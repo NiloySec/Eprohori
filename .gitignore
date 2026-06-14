@@ -1,0 +1,13 @@
+backend/venv/
+frontend/node_modules/
+frontend/.next/
+**/__pycache__/
+*.pkl
+*.pyc
+.env.local
+.env
+*.db
+
+backend/security_verify.py
+backend/uvicorn_test.log
+

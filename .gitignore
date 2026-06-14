@@ -11,3 +11,10 @@ frontend/.next/
 backend/security_verify.py
 backend/uvicorn_test.log
 
+
+# Dev artifacts (Claude Code context files, dev logs)
+frontend/CLAUDE.md
+frontend/AGENTS.md
+frontend/dev.log
+backend/uvicorn_test.log
+backend/security_verify.py

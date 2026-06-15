@@ -15,7 +15,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+DATA_DIR = Path(__file__).parent / "data"
 MODEL_PATH = Path(__file__).parent / "model.pkl"
 
 _model: Pipeline | None = None
@@ -64,7 +64,7 @@ def _load_dataset() -> tuple[list[str], list[int]]:
 # ── Training ───────────────────────────────────────────────────────────────────
 
 def _train_and_save() -> Pipeline:
-    print("[validator] Training phishing model…")
+    print("[validator] Training phishing model...")
     texts, labels = _load_dataset()
     pipe = Pipeline(
         [
@@ -89,7 +89,7 @@ def _train_and_save() -> Pipeline:
     )
     pipe.fit(texts, labels)
     joblib.dump(pipe, MODEL_PATH)
-    print(f"[validator] Model saved → {MODEL_PATH}")
+    print(f"[validator] Model saved -> {MODEL_PATH}")
     return pipe
 
 
@@ -101,7 +101,7 @@ def _get_model() -> Pipeline:
         with _lock:
             if _model is None:
                 if MODEL_PATH.exists():
-                    print("[validator] Loading cached model…")
+                    print("[validator] Loading cached model...")
                     _model = joblib.load(MODEL_PATH)
                 else:
                     _model = _train_and_save()

@@ -91,7 +91,7 @@ class ValidateTextResponse(BaseModel):
 
 
 class ValidateProfileRequest(BaseModel):
-    """13 numeric fields matching the Facebook Spam Dataset columns."""
+    """13 numeric profile-activity fields (kept for API back-compat)."""
     friends: int = 0
     following: int = 0
     community: int = 0

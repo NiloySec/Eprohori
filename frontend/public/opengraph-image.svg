@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#050810"/>
+      <stop offset="1" stop-color="#0d1829"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00e5c4"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(140, 215)">
+    <path d="M100 0 L184 35 V100 C184 152 145 188 100 200 C55 188 16 152 16 100 V35 Z" fill="url(#logo)"/>
+    <path d="M85 100 L100 115 L130 80" stroke="#050810" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <text x="380" y="290" font-family="system-ui, -apple-system, sans-serif" font-size="92" font-weight="800" fill="#ffffff">Eprohori</text>
+  <text x="380" y="350" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="500" fill="#00e5c4">বাংলাদেশের সাইবার সুরক্ষা</text>
+  <text x="380" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="400" fill="#94a3b8">AI-powered phishing &amp; scam detection</text>
+  <rect x="380" y="450" width="280" height="50" rx="25" fill="#00e5c4"/>
+  <text x="520" y="483" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#050810" text-anchor="middle">eprohori.tech</text>
+</svg>

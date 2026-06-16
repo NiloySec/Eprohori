@@ -170,6 +170,18 @@ async def lifespan(app: FastAPI):
 
 _is_production = os.getenv("ENV", "development").lower() == "production"
 
+_sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
+if _sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        environment="production" if _is_production else "development",
+        traces_sample_rate=0.1 if _is_production else 1.0,
+        send_default_pii=False,
+        integrations=[FastApiIntegration()],
+    )
+
 app = FastAPI(
     title="Eprohori API",
     description="Bangladesh's crowdsourced cyber-threat platform",
@@ -1469,6 +1481,37 @@ def check_phone(req: CheckPhoneRequest):
 # ─────────────────────────────────────────────────────────────────────────────
 # Admin
 # ─────────────────────────────────────────────────────────────────────────────
+
+@app.get("/api/admin/backup", tags=["admin"])
+def admin_backup(_admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
+    """JSON dump of all tables — for off-site backup. Streams; do not call casually."""
+    from fastapi.responses import StreamingResponse
+    import json
+
+    def _serialize(obj):
+        d = {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+        for k, v in d.items():
+            if isinstance(v, (datetime, date)):
+                d[k] = v.isoformat()
+        return d
+
+    def gen():
+        yield '{"exported_at":"' + datetime.utcnow().isoformat() + 'Z",'
+        for tbl_name, model in [
+            ("users", User), ("threats", Threat), ("alerts", Alert),
+            ("admin_audits", AdminAudit), ("phone_blacklist", PhoneBlacklist),
+        ]:
+            rows = db.query(model).all()
+            yield f'"{tbl_name}":' + json.dumps([_serialize(r) for r in rows]) + ","
+        yield '"_end":true}'
+
+    fname = f"eprohori-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
+    return StreamingResponse(
+        gen(),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
+
 
 @app.get("/api/admin/pending", response_model=list[ThreatOut], tags=["admin"])
 def admin_pending(_admin: dict = Depends(require_admin), db: Session = Depends(get_db)):

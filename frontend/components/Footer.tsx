@@ -23,6 +23,9 @@ export default function Footer() {
                 ['/monitor', 'Monitor'],
                 ['/account', 'অ্যাকাউন্ট'],
                 ['/about', 'About'],
+                ['/contact', 'যোগাযোগ'],
+                ['/privacy', 'গোপনীয়তা'],
+                ['/terms', 'শর্তাবলী'],
               ].map(([href, label]) => (
                 <li key={href}>
                   <Link href={href} className="hover:text-white transition-colors" style={{ color: 'inherit' }}>
@@ -35,7 +38,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3">যোগাযোগ</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li>📧 eprohoribd@gmail.com</li>
+              <li>📧 admin@eprohori.tech</li>
               <li>🇧🇩 বাংলাদেশ</li>
               <li className="pt-2">
                 <span style={{ color: '#00e5c4' }}>সাইবার অপরাধের শিকার হলে</span>
@@ -49,7 +52,7 @@ export default function Footer() {
           className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500"
           style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
         >
-          <p>© ২০২৫ Eprohori. সর্বস্বত্ব সংরক্ষিত।</p>
+          <p>© ২০২৬ Eprohori. সর্বস্বত্ব সংরক্ষিত।</p>
           <p className="mt-2 sm:mt-0">বাংলাদেশের সাইবার সুরক্ষা — আপনার হাতে</p>
         </div>
       </div>

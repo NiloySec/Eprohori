@@ -113,34 +113,36 @@ async def lifespan(app: FastAPI):
     # Auto-fix: create any missing tables, seed missing data
     try:
         Base.metadata.create_all(bind=engine)
-        # Lightweight migration: add new columns if the tables predate them
-        with engine.connect() as conn:
-            from sqlalchemy import text
-            existing = {row[1] for row in conn.execute(text("PRAGMA table_info(users)"))}
-            for col, ddl in [
-                ("email", "ALTER TABLE users ADD COLUMN email VARCHAR"),
-                ("phone", "ALTER TABLE users ADD COLUMN phone VARCHAR"),
-                ("password_hash", "ALTER TABLE users ADD COLUMN password_hash VARCHAR"),
-                ("created_at", "ALTER TABLE users ADD COLUMN created_at DATETIME"),
-                ("is_admin", "ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT 0"),
-                ("notify_alerts", "ALTER TABLE users ADD COLUMN notify_alerts BOOLEAN DEFAULT 1"),
-                ("district", "ALTER TABLE users ADD COLUMN district VARCHAR"),
-            ]:
-                if col not in existing:
-                    conn.execute(text(ddl))
-                    conn.commit()
-                    print(f"[main] migrated: users.{col}")
-            existing_t = {row[1] for row in conn.execute(text("PRAGMA table_info(threats)"))}
-            for col, ddl in [
-                ("reporter_email", "ALTER TABLE threats ADD COLUMN reporter_email VARCHAR"),
-                ("is_campaign", "ALTER TABLE threats ADD COLUMN is_campaign INTEGER DEFAULT 0"),
-                ("screenshot", "ALTER TABLE threats ADD COLUMN screenshot TEXT"),
-                ("district", "ALTER TABLE threats ADD COLUMN district VARCHAR"),
-            ]:
-                if col not in existing_t:
-                    conn.execute(text(ddl))
-                    conn.commit()
-                    print(f"[main] migrated: threats.{col}")
+        # Lightweight migration: idempotently add columns. Works on SQLite + PostgreSQL.
+        from sqlalchemy import inspect, text
+        insp = inspect(engine)
+
+        def _migrate(table: str, adds: list[tuple[str, str]]):
+            existing = {c["name"] for c in insp.get_columns(table)}
+            with engine.connect() as conn:
+                for col, ddl in adds:
+                    if col not in existing:
+                        conn.execute(text(ddl))
+                        conn.commit()
+                        print(f"[main] migrated: {table}.{col}")
+
+        _migrate("users", [
+            ("email",         "ALTER TABLE users ADD COLUMN email VARCHAR"),
+            ("phone",         "ALTER TABLE users ADD COLUMN phone VARCHAR"),
+            ("password_hash", "ALTER TABLE users ADD COLUMN password_hash VARCHAR"),
+            ("created_at",    "ALTER TABLE users ADD COLUMN created_at TIMESTAMP"),
+            ("is_admin",      "ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"),
+            ("notify_alerts", "ALTER TABLE users ADD COLUMN notify_alerts BOOLEAN DEFAULT TRUE"),
+            ("district",      "ALTER TABLE users ADD COLUMN district VARCHAR"),
+            ("totp_secret",   "ALTER TABLE users ADD COLUMN totp_secret VARCHAR"),
+            ("totp_enabled",  "ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE"),
+        ])
+        _migrate("threats", [
+            ("reporter_email", "ALTER TABLE threats ADD COLUMN reporter_email VARCHAR"),
+            ("is_campaign",    "ALTER TABLE threats ADD COLUMN is_campaign INTEGER DEFAULT 0"),
+            ("screenshot",     "ALTER TABLE threats ADD COLUMN screenshot TEXT"),
+            ("district",       "ALTER TABLE threats ADD COLUMN district VARCHAR"),
+        ])
         seed_db()
         phone_checker.load_blacklist()
         _bootstrap_admin()

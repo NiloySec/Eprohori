@@ -46,6 +46,8 @@ class User(Base):
     is_admin = Column(Boolean, default=False)       # admin accounts (Option B)
     notify_alerts = Column(Boolean, default=True)   # opt-in for district threat email alerts
     district = Column(String, nullable=True)        # user's home district (for targeted alerts)
+    totp_secret = Column(String, nullable=True)     # TOTP base32 secret for 2FA (null = 2FA disabled)
+    totp_enabled = Column(Boolean, default=False)   # only true after user confirms first 6-digit code
     created_at = Column(DateTime, server_default=func.now())
 
 

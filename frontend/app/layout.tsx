@@ -8,6 +8,7 @@ import ClientProviders from '@/components/ClientProviders'
 import DemoModeBanner from '@/components/DemoModeBanner'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import PWARegister from '@/components/PWARegister'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 const spaceGrotesk = Space_Grotesk({ weight: ['500', '600', '700'], subsets: ['latin'], variable: '--font-heading-en', display: 'swap' })
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </ClientProviders>
         <Analytics />
         <SpeedInsights />
+        <PWARegister />
       </body>
     </html>
   )

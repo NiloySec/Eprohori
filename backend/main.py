@@ -1287,7 +1287,6 @@ def register_user(request: dict, db: Session = Depends(get_db)):
 
 @app.post("/api/auth/login", tags=["auth"])
 def login_user(request: dict, req: Request, db: Session = Depends(get_db)):
-    # 10 wrong logins per IP per 5 minutes
     throttle(req, "user-login", max_hits=10, window_sec=300)
 
     email = (request.get("email") or "").lower().strip()
@@ -1296,10 +1295,72 @@ def login_user(request: dict, req: Request, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     if not user or not user.password_hash or not _verify_password(password, user.password_hash):
         raise HTTPException(401, "Invalid email or password")
+
+    # 2FA enforcement — if user has TOTP enabled, require valid 6-digit code
+    if user.totp_enabled and user.totp_secret:
+        otp = (request.get("totp_code") or "").strip()
+        if not otp:
+            return {"requires_2fa": True, "email": user.email}
+        import pyotp
+        if not pyotp.TOTP(user.totp_secret).verify(otp, valid_window=1):
+            raise HTTPException(401, "Invalid 2FA code")
+
     return {
         **_user_payload(db, user),
         "token": create_token(user.email, "user", USER_TOKEN_HOURS),
     }
+
+
+@app.post("/api/auth/2fa/setup", tags=["auth"])
+def setup_2fa(payload: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Generate a TOTP secret + QR provisioning URI. User must call /verify to activate."""
+    import pyotp
+    user = db.query(User).filter(User.email == payload["sub"]).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    if user.totp_enabled:
+        raise HTTPException(400, "2FA already enabled. Disable first to regenerate.")
+
+    secret = pyotp.random_base32()
+    user.totp_secret = secret
+    db.commit()
+    uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="Eprohori")
+    return {"secret": secret, "provisioning_uri": uri}
+
+
+@app.post("/api/auth/2fa/verify", tags=["auth"])
+def verify_2fa(request: dict, payload: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Confirm 2FA setup by submitting first 6-digit code from authenticator app."""
+    import pyotp
+    user = db.query(User).filter(User.email == payload["sub"]).first()
+    if not user or not user.totp_secret:
+        raise HTTPException(400, "2FA not initialized — call /setup first")
+
+    code = (request.get("code") or "").strip()
+    if not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
+        raise HTTPException(401, "Invalid code")
+
+    user.totp_enabled = True
+    db.commit()
+    return {"success": True, "message": "2FA activated"}
+
+
+@app.post("/api/auth/2fa/disable", tags=["auth"])
+def disable_2fa(request: dict, payload: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Disable 2FA — requires current TOTP code as confirmation."""
+    import pyotp
+    user = db.query(User).filter(User.email == payload["sub"]).first()
+    if not user or not user.totp_enabled or not user.totp_secret:
+        raise HTTPException(400, "2FA not enabled")
+
+    code = (request.get("code") or "").strip()
+    if not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
+        raise HTTPException(401, "Invalid code")
+
+    user.totp_enabled = False
+    user.totp_secret = None
+    db.commit()
+    return {"success": True, "message": "2FA disabled"}
 
 
 @app.put("/api/auth/profile", tags=["auth"])

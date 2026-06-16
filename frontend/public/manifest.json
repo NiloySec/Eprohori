@@ -1,0 +1,16 @@
+{
+  "name": "Eprohori — বাংলাদেশের সাইবার সুরক্ষা",
+  "short_name": "Eprohori",
+  "description": "AI-powered phishing & scam detection for Bangladesh",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050810",
+  "theme_color": "#00e5c4",
+  "orientation": "portrait",
+  "lang": "bn",
+  "categories": ["security", "utilities", "social"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/apple-icon.svg", "sizes": "180x180", "type": "image/svg+xml" }
+  ]
+}

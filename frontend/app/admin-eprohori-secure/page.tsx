@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { fetchThreats, fetchStats, verifyThreatWithAlerts, rejectThreat, broadcastAlert, adminLogin, fetchAuditLog, getAdminToken, setAdminToken } from '@/lib/api'
 import type { Threat, Stats, AuditEntry } from '@/lib/api'
 
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://eprohori-production.up.railway.app'
+
 export default function AdminPage() {
   const [loginEmail, setLoginEmail] = useState('')
   const [input, setInput] = useState('')
@@ -12,355 +14,440 @@ export default function AdminPage() {
   const [errorMsg, setErrorMsg] = useState('ভুল তথ্য — আবার চেষ্টা করুন')
   const [loggingIn, setLoggingIn] = useState(false)
   const [audit, setAudit] = useState<AuditEntry[]>([])
-
   const [threats, setThreats] = useState<Threat[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-
   const [broadcast, setBroadcast] = useState({ title: '', message: '', severity: 'high' })
   const [sent, setSent] = useState(false)
-
   const [approved, setApproved] = useState<number[]>([])
   const [rejected, setRejected] = useState<number[]>([])
-  const [actionError, setActionError] = useState<string | null>(null)
+  const [actionMsg, setActionMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+  const [activeTab, setActiveTab] = useState<'pending' | 'broadcast' | 'audit' | 'tools'>('pending')
 
-  // Restore admin session within this browser tab (JWT survives reloads)
-  useEffect(() => {
-    if (getAdminToken()) setAuthed(true)
-  }, [])
+  useEffect(() => { if (getAdminToken()) setAuthed(true) }, [])
 
   useEffect(() => {
     if (!authed) return
-    Promise.all([
-      fetchThreats({ status: 'pending', limit: 50 }),
-      fetchStats(),
-    ]).then(([t, s]) => {
-      setThreats(t)
-      setStats(s)
-      setLoading(false)
+    Promise.all([fetchThreats({ status: 'pending', limit: 50 }), fetchStats()]).then(([t, s]) => {
+      setThreats(t); setStats(s); setLoading(false)
     })
     fetchAuditLog().then(setAudit)
   }, [authed])
+
+  const flash = (kind: 'ok' | 'err', text: string, ms = 4000) => {
+    setActionMsg({ kind, text })
+    setTimeout(() => setActionMsg(null), ms)
+  }
 
   const handleApprove = async (id: number) => {
     try {
       const res = await verifyThreatWithAlerts(id)
       setApproved(a => [...a, id])
-      setActionError(res.emails_sent
-        ? `✅ Verified — district alert emails dispatched (${res.severity})`
-        : `✅ Verified — no alert emails (confidence below 70%)`
-      )
-      setTimeout(() => setActionError(null), 4000)
-      fetchAuditLog().then(setAudit) // refresh audit row
-    } catch {
-      setActionError('অনুমোদন ব্যর্থ হয়েছে — আবার চেষ্টা করুন')
-      setTimeout(() => setActionError(null), 3000)
-    }
+      flash('ok', res.emails_sent
+        ? `Verified — district alert emails dispatched (${res.severity})`
+        : `Verified — no alert emails (confidence below 70%)`)
+      fetchAuditLog().then(setAudit)
+    } catch { flash('err', 'অনুমোদন ব্যর্থ — আবার চেষ্টা করুন', 3000) }
   }
 
   const handleReject = async (id: number) => {
-    try {
-      await rejectThreat(id)
-      setRejected(r => [...r, id])
-    } catch {
-      setActionError('প্রত্যাখ্যান ব্যর্থ হয়েছে — আবার চেষ্টা করুন')
-      setTimeout(() => setActionError(null), 3000)
-    }
+    try { await rejectThreat(id); setRejected(r => [...r, id]) }
+    catch { flash('err', 'প্রত্যাখ্যান ব্যর্থ', 3000) }
   }
 
   const handleBroadcast = async () => {
     if (!broadcast.title || !broadcast.message) return
-    try {
-      await broadcastAlert(broadcast)
-      setSent(true)
-    } catch {
-      setActionError('সতর্কতা প্রকাশে ব্যর্থ — সার্ভার সংযোগ নেই')
-      setTimeout(() => setActionError(null), 4000)
-    }
+    try { await broadcastAlert(broadcast); setSent(true); fetchAuditLog().then(setAudit) }
+    catch { flash('err', 'প্রকাশ ব্যর্থ — সার্ভার সংযোগ নেই') }
   }
 
   const handleLogin = async () => {
-    setError(false)
-    setLoggingIn(true)
+    setError(false); setLoggingIn(true)
     try {
-      // Server-side verification against the admin account — issues a 1h JWT
       const admin = await adminLogin(loginEmail.trim(), input)
-      setAdminName(admin.name)
-      setAuthed(true)
+      setAdminName(admin.name); setAuthed(true)
     } catch (e) {
       setErrorMsg(
-        e instanceof Error && /invalid/i.test(e.message)
-          ? 'ভুল ইমেইল বা পাসওয়ার্ড'
-          : e instanceof Error && /admin access/i.test(e.message)
-          ? 'এই অ্যাকাউন্টের admin অনুমতি নেই'
-          : 'সার্ভার সংযোগ নেই — backend চালু করুন'
+        e instanceof Error && /invalid/i.test(e.message) ? 'ভুল ইমেইল বা পাসওয়ার্ড'
+        : e instanceof Error && /admin access/i.test(e.message) ? 'এই অ্যাকাউন্টের admin অনুমতি নেই'
+        : 'সার্ভার সংযোগ নেই — backend চালু করুন'
       )
       setError(true)
     }
     setLoggingIn(false)
   }
 
-  const handleAdminLogout = () => {
-    setAdminToken(null)
-    setAuthed(false)
-    setInput('')
-    setLoginEmail('')
+  const handleLogout = () => { setAdminToken(null); setAuthed(false); setInput(''); setLoginEmail('') }
+
+  const handleBackup = async () => {
+    try {
+      const token = getAdminToken()
+      const r = await fetch(`${API}/api/admin/backup`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      if (!r.ok) throw new Error('Backup failed')
+      const blob = await r.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `eprohori-backup-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      flash('ok', 'Backup downloaded')
+    } catch { flash('err', 'Backup failed') }
   }
 
   const pending = threats.filter(t => !approved.includes(t.id) && !rejected.includes(t.id))
 
+  /* ────── LOGIN SCREEN ────── */
   if (!authed) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <div className="w-full max-w-sm">
+      <div className="min-h-[85vh] flex items-center justify-center px-4 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(circle at 50% 20%, rgba(255,68,68,0.08) 0%, transparent 60%)',
+        }} />
+        <div className="absolute top-10 left-10 w-72 h-72 rounded-full pointer-events-none opacity-30"
+          style={{ background: 'radial-gradient(circle, rgba(255,68,68,0.15) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+        <div className="absolute bottom-10 right-10 w-80 h-80 rounded-full pointer-events-none opacity-30"
+          style={{ background: 'radial-gradient(circle, rgba(0,229,196,0.12) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+
+        <div className="relative w-full max-w-md z-10">
           <div className="text-center mb-8">
-            <span className="text-4xl">🔒</span>
-            <h1 className="font-heading text-xl font-bold mt-3" style={{ color: '#ff6666' }}>
-              ADMIN PANEL — Restricted Access
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">শুধুমাত্র অনুমোদিত ব্যবহারকারীর জন্য</p>
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-5 relative"
+              style={{ background: 'linear-gradient(135deg, rgba(255,68,68,0.15), rgba(255,68,68,0.05))', border: '1px solid rgba(255,68,68,0.25)' }}>
+              <span className="text-4xl">🔐</span>
+            </div>
+            <h1 className="font-heading text-2xl font-bold text-white mb-2">Admin Control Center</h1>
+            <p className="text-xs text-slate-500 uppercase tracking-widest">Restricted · Authorized personnel only</p>
           </div>
-          <div className="rounded-2xl p-6" style={{ backgroundColor: '#0d1829', border: '1px solid rgba(255,255,255,0.06)' }}>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">অ্যাডমিন ইমেইল</label>
-            <input
-              type="email"
-              value={loginEmail}
-              onChange={e => { setLoginEmail(e.target.value); setError(false) }}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              placeholder="admin@eprohori.bd"
-              className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500 outline-none mb-4"
-              style={{
-                backgroundColor: '#060d1a',
-                border: `1px solid ${error ? '#ff4444' : 'rgba(255,255,255,0.08)'}`,
-              }}
-            />
-            <label className="block text-sm font-semibold text-slate-300 mb-2">পাসওয়ার্ড</label>
-            <input
-              type="password"
-              value={input}
-              onChange={e => { setInput(e.target.value); setError(false) }}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              placeholder="পাসওয়ার্ড দিন..."
-              className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500 outline-none mb-4"
-              style={{
-                backgroundColor: '#060d1a',
-                border: `1px solid ${error ? '#ff4444' : 'rgba(255,255,255,0.08)'}`,
-              }}
-            />
-            {error && <p className="text-xs mb-3" style={{ color: '#ff4444' }}>{errorMsg}</p>}
-            <button
-              onClick={handleLogin}
-              disabled={loggingIn}
-              className="w-full py-3 rounded-xl font-heading font-bold"
-              style={{ backgroundColor: '#00e5c4', color: '#060d1a', opacity: loggingIn ? 0.6 : 1 }}
-            >
-              {loggingIn ? 'যাচাই হচ্ছে...' : 'প্রবেশ করুন'}
+
+          <div className="rounded-2xl p-7 backdrop-blur-xl"
+            style={{ background: 'rgba(13,24,41,0.7)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+            <Field label="অ্যাডমিন ইমেইল" icon="📧">
+              <input type="email" value={loginEmail}
+                onChange={e => { setLoginEmail(e.target.value); setError(false) }}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                placeholder="admin@eprohori.tech"
+                className="w-full bg-transparent outline-none text-white placeholder-slate-600 text-sm" />
+            </Field>
+            <div className="h-4" />
+            <Field label="পাসওয়ার্ড" icon="🔑" error={error}>
+              <input type="password" value={input}
+                onChange={e => { setInput(e.target.value); setError(false) }}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                placeholder="••••••••••••"
+                className="w-full bg-transparent outline-none text-white placeholder-slate-600 text-sm" />
+            </Field>
+
+            {error && (
+              <div className="mt-3 px-3 py-2 rounded-lg text-xs flex items-center gap-2"
+                style={{ background: 'rgba(255,68,68,0.08)', border: '1px solid rgba(255,68,68,0.2)', color: '#ff6666' }}>
+                ⚠️ {errorMsg}
+              </div>
+            )}
+
+            <button onClick={handleLogin} disabled={loggingIn}
+              className="w-full mt-5 py-3.5 rounded-xl font-bold text-sm transition disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #00e5c4 0%, #0891b2 100%)', color: '#050810' }}>
+              {loggingIn ? 'যাচাই হচ্ছে...' : 'প্রবেশ করুন →'}
             </button>
-            <p className="text-xs text-slate-600 text-center mt-3">🔐 Server-verified · 1h JWT session · auto-logout</p>
+
+            <div className="mt-5 flex items-center justify-center gap-4 text-[10px] text-slate-600">
+              <span>🔒 Server-verified</span>
+              <span>•</span>
+              <span>JWT 1h</span>
+              <span>•</span>
+              <span>Auto-logout</span>
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
+  /* ────── DASHBOARD ────── */
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10" style={{ borderTop: '3px solid #ff4444' }}>
-      <div
-        className="rounded-xl px-4 py-2.5 mb-6 text-center text-sm font-bold"
-        style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.35)', color: '#ff6666' }}
-      >
-        🔒 ADMIN PANEL — Restricted Access
-      </div>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-heading text-3xl font-bold text-white">Admin Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            {adminName ? <>👤 {adminName} · </> : null}Eprohori নিয়ন্ত্রণ কেন্দ্র
-          </p>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/5">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, rgba(0,229,196,0.2), rgba(8,145,178,0.1))', border: '1px solid rgba(0,229,196,0.3)' }}>
+            <span className="text-2xl">⚡</span>
+          </div>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="font-heading text-2xl font-bold text-white">Control Center</h1>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider"
+                style={{ background: 'rgba(255,68,68,0.15)', color: '#ff6666', border: '1px solid rgba(255,68,68,0.3)' }}>
+                ● LIVE
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {adminName ? `👤 ${adminName}` : '👤 Admin'} · Eprohori Platform Administration
+            </p>
+          </div>
         </div>
-        <button
-          onClick={handleAdminLogout}
-          className="text-sm px-4 py-2 rounded-full text-slate-400 hover:text-white"
-          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-        >
+        <button onClick={handleLogout}
+          className="text-xs px-4 py-2 rounded-full text-slate-400 hover:text-white hover:border-white/30 transition"
+          style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
           লগআউট
         </button>
       </div>
 
-      {/* API error banner */}
-      {actionError && (
-        <div className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold" style={{ backgroundColor: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.3)', color: '#ff4444' }}>
-          ⚠️ {actionError}
+      {/* Flash msg */}
+      {actionMsg && (
+        <div className="mb-6 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2"
+          style={{
+            background: actionMsg.kind === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(255,68,68,0.1)',
+            border: `1px solid ${actionMsg.kind === 'ok' ? 'rgba(34,197,94,0.3)' : 'rgba(255,68,68,0.3)'}`,
+            color: actionMsg.kind === 'ok' ? '#22c55e' : '#ff6666',
+          }}>
+          {actionMsg.kind === 'ok' ? '✅' : '⚠️'} {actionMsg.text}
         </div>
       )}
 
-      {/* Stats */}
+      {/* Stat cards */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'আজকের রিপোর্ট', value: stats.today_reports, color: '#00e5c4' },
-            { label: 'সক্রিয় হুমকি', value: stats.active_threats, color: '#ff4444' },
-            { label: 'পেন্ডিং রিভিউ', value: pending.length, color: '#f59e0b' },
-            { label: 'অনুমোদিত', value: approved.length, color: '#22c55e' },
-          ].map(s => (
-            <div key={s.label} className="rounded-xl p-4" style={{ backgroundColor: '#0d1829', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="font-heading text-2xl font-bold mb-1" style={{ color: s.color }}>{s.value}</div>
-              <div className="text-xs text-slate-400">{s.label}</div>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard icon="📥" label="আজকের রিপোর্ট" value={stats.today_reports} accent="#00e5c4" hint="Today's submissions" />
+          <StatCard icon="🚨" label="সক্রিয় হুমকি" value={stats.active_threats} accent="#ef4444" hint="Verified threats" />
+          <StatCard icon="⏳" label="পেন্ডিং রিভিউ" value={pending.length} accent="#f59e0b" hint="Awaiting decision" />
+          <StatCard icon="✓" label="অনুমোদিত (session)" value={approved.length} accent="#22c55e" hint="Approved this session" />
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Pending threats */}
-        <div>
-          <h2 className="font-heading text-xl font-bold text-white mb-4">⏳ পেন্ডিং রিভিউ</h2>
-          {loading ? (
-            <div className="text-slate-400 text-sm">লোড হচ্ছে...</div>
-          ) : pending.length === 0 ? (
-            <div className="rounded-xl p-6 text-center" style={{ backgroundColor: '#0d1829', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <p className="text-slate-400 text-sm">কোনো পেন্ডিং রিপোর্ট নেই।</p>
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        {[
+          { id: 'pending', label: '⏳ পেন্ডিং', count: pending.length },
+          { id: 'broadcast', label: '📢 সতর্কতা প্রচার' },
+          { id: 'audit', label: '🧾 Activity Log', count: audit.length },
+          { id: 'tools', label: '🛠️ Tools' },
+        ].map(t => (
+          <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+            className="px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition"
+            style={{
+              background: activeTab === t.id ? 'rgba(0,229,196,0.12)' : 'rgba(13,24,41,0.5)',
+              border: `1px solid ${activeTab === t.id ? 'rgba(0,229,196,0.3)' : 'rgba(255,255,255,0.05)'}`,
+              color: activeTab === t.id ? '#00e5c4' : '#94a3b8',
+            }}>
+            {t.label}
+            {typeof t.count === 'number' && (
+              <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.08)', color: 'inherit' }}>{t.count}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'pending' && (
+        <Panel title="অপেক্ষমাণ রিপোর্ট" subtitle="অনুমোদনের জন্য AI-যাচাইকৃত রিপোর্ট">
+          {loading ? <Empty text="লোড হচ্ছে..." />
+            : pending.length === 0 ? <Empty text="🎉 সব ক্লিয়ার! কোনো পেন্ডিং রিপোর্ট নেই।" />
+            : (
+              <div className="grid md:grid-cols-2 gap-3">
+                {pending.map(t => {
+                  const willAlert = t.confidence >= 70
+                  return (
+                    <div key={t.id} className="rounded-xl p-4 transition hover:border-white/15"
+                      style={{ background: 'rgba(6,13,26,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-bold"
+                          style={{ background: 'rgba(0,229,196,0.1)', color: '#00e5c4' }}>{t.type}</span>
+                        <ConfidenceDot value={t.confidence} />
+                      </div>
+                      <p className="text-sm text-white font-medium mb-2 line-clamp-2">{t.detail}</p>
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500 mb-3">
+                        <span>📍 {t.division}</span>
+                      </div>
+                      <div className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold mb-3 ${willAlert ? '' : 'opacity-70'}`}
+                        style={{
+                          background: willAlert ? 'rgba(245,158,11,0.1)' : 'rgba(148,163,184,0.08)',
+                          color: willAlert ? '#f59e0b' : '#94a3b8',
+                          border: `1px solid ${willAlert ? 'rgba(245,158,11,0.25)' : 'rgba(148,163,184,0.15)'}`,
+                        }}>
+                        {willAlert ? '📧 District alert হবে' : '📋 Internal only'}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleApprove(t.id)}
+                          className="flex-1 py-2 rounded-lg text-xs font-bold transition hover:brightness-110"
+                          style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>
+                          ✓ অনুমোদন
+                        </button>
+                        <button onClick={() => handleReject(t.id)}
+                          className="flex-1 py-2 rounded-lg text-xs font-bold transition hover:brightness-110"
+                          style={{ background: 'rgba(255,68,68,0.1)', color: '#ff6666', border: '1px solid rgba(255,68,68,0.25)' }}>
+                          ✕ প্রত্যাখ্যান
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+        </Panel>
+      )}
+
+      {activeTab === 'broadcast' && (
+        <Panel title="সতর্কতা প্রচার" subtitle="সব district user-দের কাছে email alert পাঠান">
+          {sent ? (
+            <div className="text-center py-10">
+              <div className="text-5xl mb-3">📡</div>
+              <p className="font-bold text-white text-lg">সতর্কতা প্রকাশিত!</p>
+              <p className="text-sm text-slate-400 mt-1">All subscribed users will receive email shortly.</p>
+              <button onClick={() => { setSent(false); setBroadcast({ title: '', message: '', severity: 'high' }) }}
+                className="mt-5 text-sm px-5 py-2 rounded-full transition hover:bg-white/5"
+                style={{ border: '1px solid rgba(255,255,255,0.12)', color: '#94a3b8' }}>
+                + আরেকটা পাঠান
+              </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {pending.map(t => {
-                const willAlert = t.confidence >= 70
+            <div className="space-y-4 max-w-2xl">
+              <Field label="শিরোনাম" icon="📌">
+                <input value={broadcast.title} onChange={e => setBroadcast(b => ({ ...b, title: e.target.value }))}
+                  placeholder="যেমন: bKash impersonation campaign চলছে"
+                  className="w-full bg-transparent outline-none text-white placeholder-slate-600 text-sm" />
+              </Field>
+              <Field label="বার্তা" icon="✍️">
+                <textarea value={broadcast.message} onChange={e => setBroadcast(b => ({ ...b, message: e.target.value }))}
+                  rows={5} placeholder="বিস্তারিত বিবরণ ও user-দের কী করা উচিত..."
+                  className="w-full bg-transparent outline-none text-white placeholder-slate-600 text-sm resize-none" />
+              </Field>
+              <Field label="তীব্রতা" icon="🚦">
+                <select value={broadcast.severity} onChange={e => setBroadcast(b => ({ ...b, severity: e.target.value }))}
+                  className="w-full bg-transparent outline-none text-white text-sm">
+                  <option value="critical" className="bg-slate-900">🚨 জরুরি (Critical)</option>
+                  <option value="high" className="bg-slate-900">⚠️ উচ্চ (High)</option>
+                  <option value="medium" className="bg-slate-900">📢 মাঝারি (Medium)</option>
+                </select>
+              </Field>
+              <button onClick={handleBroadcast} disabled={!broadcast.title || !broadcast.message}
+                className="w-full mt-3 py-3.5 rounded-xl font-bold text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(135deg, #00e5c4 0%, #0891b2 100%)', color: '#050810' }}>
+                📡 সতর্কতা প্রকাশ করুন
+              </button>
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {activeTab === 'audit' && (
+        <Panel title="Activity Timeline" subtitle="Multi-admin accountability log">
+          {audit.length === 0 ? <Empty text="কোনো কার্যকলাপ এখনো নেই।" /> : (
+            <div className="space-y-1.5">
+              {audit.map(a => {
+                const color = a.action === 'approve' ? '#22c55e' : a.action === 'reject' ? '#ff6666' : a.action === 'broadcast' ? '#f59e0b' : '#00e5c4'
+                const icon = a.action === 'approve' ? '✓' : a.action === 'reject' ? '✕' : a.action === 'broadcast' ? '📡' : '🔐'
                 return (
-                <div key={t.id} className="rounded-xl p-4" style={{ backgroundColor: '#0d1829', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <p className="text-sm text-white font-medium mb-1">{t.detail}</p>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mb-2">
-                    <span>{t.type}</span>
-                    <span>📍 {t.division}</span>
-                    <span>AI: {t.confidence}%</span>
+                  <div key={a.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition hover:bg-white/[0.03]">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0"
+                      style={{ background: `${color}15`, color, border: `1px solid ${color}30` }}>
+                      {icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-slate-200 truncate">{a.target}</div>
+                      <div className="text-[10px] text-slate-500">{a.admin_email}</div>
+                    </div>
+                    <div className="text-[10px] text-slate-600 shrink-0 text-right">
+                      {new Date(/Z$|[+]/.test(a.created_at) ? a.created_at : a.created_at + 'Z').toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
+                    </div>
                   </div>
-                  <div
-                    className="inline-block text-xs px-2.5 py-1 rounded-full font-semibold mb-3"
-                    style={{
-                      backgroundColor: willAlert ? 'rgba(245,158,11,0.12)' : 'rgba(148,163,184,0.1)',
-                      color: willAlert ? '#f59e0b' : '#94a3b8',
-                      border: `1px solid ${willAlert ? 'rgba(245,158,11,0.3)' : 'rgba(148,163,184,0.2)'}`,
-                    }}
-                  >
-                    {willAlert
-                      ? '📧 Verification will alert district users'
-                      : '📋 Internal verification only (no emails)'}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleApprove(t.id)}
-                      className="flex-1 py-1.5 rounded-lg text-xs font-bold"
-                      style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
-                    >
-                      ✓ অনুমোদন
-                    </button>
-                    <button
-                      onClick={() => handleReject(t.id)}
-                      className="flex-1 py-1.5 rounded-lg text-xs font-bold"
-                      style={{ backgroundColor: 'rgba(255,68,68,0.1)', color: '#ff4444', border: '1px solid rgba(255,68,68,0.2)' }}
-                    >
-                      ✕ প্রত্যাখ্যান
-                    </button>
-                  </div>
-                </div>
-                  )
+                )
               })}
             </div>
           )}
-        </div>
+        </Panel>
+      )}
 
-        {/* Broadcast */}
-        <div>
-          <h2 className="font-heading text-xl font-bold text-white mb-4">📢 সতর্কতা প্রচার</h2>
-          <div className="rounded-xl p-5" style={{ backgroundColor: '#0d1829', border: '1px solid rgba(255,255,255,0.05)' }}>
-            {sent ? (
-              <div className="text-center py-6">
-                <p className="text-3xl mb-2">✅</p>
-                <p className="font-bold text-white">সতর্কতা প্রকাশিত!</p>
-                <button
-                  onClick={() => { setSent(false); setBroadcast({ title: '', message: '', severity: 'high' }) }}
-                  className="mt-4 text-sm px-4 py-2 rounded-full"
-                  style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}
-                >
-                  আবার পাঠান
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">শিরোনাম</label>
-                    <input
-                      value={broadcast.title}
-                      onChange={e => setBroadcast(b => ({ ...b, title: e.target.value }))}
-                      placeholder="সতর্কতার শিরোনাম..."
-                      className="w-full px-3 py-2.5 rounded-lg text-sm text-white outline-none"
-                      style={{ backgroundColor: '#060d1a', border: '1px solid rgba(255,255,255,0.07)' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">বার্তা</label>
-                    <textarea
-                      value={broadcast.message}
-                      onChange={e => setBroadcast(b => ({ ...b, message: e.target.value }))}
-                      rows={4}
-                      placeholder="সতর্কতার বিবরণ..."
-                      className="w-full px-3 py-2.5 rounded-lg text-sm text-white outline-none resize-none"
-                      style={{ backgroundColor: '#060d1a', border: '1px solid rgba(255,255,255,0.07)' }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">তীব্রতা</label>
-                    <select
-                      value={broadcast.severity}
-                      onChange={e => setBroadcast(b => ({ ...b, severity: e.target.value }))}
-                      className="w-full px-3 py-2.5 rounded-lg text-sm text-white outline-none"
-                      style={{ backgroundColor: '#060d1a', border: '1px solid rgba(255,255,255,0.07)' }}
-                    >
-                      <option value="critical">🚨 জরুরি</option>
-                      <option value="high">⚠️ উচ্চ</option>
-                      <option value="medium">📢 মাঝারি</option>
-                    </select>
-                  </div>
-                </div>
-                <button
-                  onClick={handleBroadcast}
-                  disabled={!broadcast.title || !broadcast.message}
-                  className="w-full mt-5 py-3 rounded-xl font-heading font-bold disabled:opacity-40"
-                  style={{ backgroundColor: '#00e5c4', color: '#060d1a' }}
-                >
-                  সতর্কতা প্রকাশ করুন
-                </button>
-              </>
-            )}
+      {activeTab === 'tools' && (
+        <Panel title="Admin Tools" subtitle="ডাটাবেস ও সিস্টেম management">
+          <div className="grid md:grid-cols-2 gap-4">
+            <ToolCard icon="💾" title="Database Backup" desc="সব tables-এর JSON dump ডাউনলোড করুন"
+              cta="Download backup" onClick={handleBackup} />
+            <ToolCard icon="📊" title="Public Stats" desc="Public-facing statistics page দেখুন"
+              cta="Visit /stats" onClick={() => window.open('/stats', '_blank')} />
+            <ToolCard icon="🗺️" title="Live Monitor" desc="Real-time threat map ও alerts"
+              cta="Open monitor" onClick={() => window.open('/monitor', '_blank')} />
+            <ToolCard icon="🐛" title="Sentry Dashboard" desc="Error tracking ও performance monitoring"
+              cta="Open Sentry" onClick={() => window.open('https://sentry.io/issues/', '_blank')} />
           </div>
-        </div>
-      </div>
+        </Panel>
+      )}
+    </div>
+  )
+}
 
-      {/* ── Audit log — who did what, when ── */}
-      <div className="mt-8 rounded-2xl p-6" style={{ backgroundColor: '#0d1829', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <h2 className="font-heading text-lg font-bold text-white mb-4">🧾 Admin Activity Log</h2>
-        {audit.length === 0 ? (
-          <p className="text-sm text-slate-500">কোনো কার্যকলাপ এখনো নেই।</p>
-        ) : (
-          <div className="space-y-2">
-            {audit.map(a => {
-              const color = a.action === 'approve' ? '#22c55e' : a.action === 'reject' ? '#ff4444' : a.action === 'broadcast' ? '#f59e0b' : '#00e5c4'
-              return (
-                <div key={a.id} className="flex items-center gap-3 text-sm">
-                  <span className="text-xs px-2 py-0.5 rounded-full font-bold shrink-0" style={{ backgroundColor: `${color}20`, color }}>
-                    {a.action}
-                  </span>
-                  <span className="text-slate-300 flex-1 truncate">{a.target}</span>
-                  <span className="text-xs text-slate-500 shrink-0">{a.admin_email}</span>
-                  <span className="text-xs text-slate-600 shrink-0">
-                    {new Date(/Z$|[+]/.test(a.created_at) ? a.created_at : a.created_at + 'Z').toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        )}
+/* ────── UI primitives ────── */
+
+function Field({ label, icon, error, children }: { label: string; icon?: string; error?: boolean; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        {icon && <span className="text-sm">{icon}</span>}{label}
+      </label>
+      <div className="px-4 py-3 rounded-xl transition"
+        style={{ background: 'rgba(6,13,26,0.6)', border: `1px solid ${error ? 'rgba(255,68,68,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+        {children}
       </div>
     </div>
+  )
+}
+
+function StatCard({ icon, label, value, accent, hint }: { icon: string; label: string; value: number; accent: string; hint: string }) {
+  return (
+    <div className="relative rounded-2xl p-5 overflow-hidden transition hover:scale-[1.02]"
+      style={{ background: 'rgba(13,24,41,0.6)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none opacity-20"
+        style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)`, filter: 'blur(20px)' }} />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-2xl">{icon}</span>
+          <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: accent }} />
+        </div>
+        <div className="font-heading text-3xl font-bold mb-1" style={{ color: accent }}>{value}</div>
+        <div className="text-xs text-slate-300 font-medium">{label}</div>
+        <div className="text-[10px] text-slate-500 mt-0.5">{hint}</div>
+      </div>
+    </div>
+  )
+}
+
+function Panel({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl p-6"
+      style={{ background: 'rgba(13,24,41,0.5)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="mb-5">
+        <h2 className="font-heading text-xl font-bold text-white">{title}</h2>
+        {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function Empty({ text }: { text: string }) {
+  return <div className="py-10 text-center text-sm text-slate-500">{text}</div>
+}
+
+function ConfidenceDot({ value }: { value: number }) {
+  const c = value >= 75 ? '#ef4444' : value >= 55 ? '#f59e0b' : value >= 35 ? '#3b82f6' : '#22c55e'
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: c }} />
+      <span className="text-[10px] font-bold" style={{ color: c }}>{value}%</span>
+    </div>
+  )
+}
+
+function ToolCard({ icon, title, desc, cta, onClick }: { icon: string; title: string; desc: string; cta: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className="text-left rounded-xl p-5 transition hover:scale-[1.01] hover:border-cyan-400/30 group"
+      style={{ background: 'rgba(6,13,26,0.5)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="text-3xl mb-3">{icon}</div>
+      <div className="font-heading text-base font-semibold text-white mb-1">{title}</div>
+      <div className="text-xs text-slate-400 mb-3">{desc}</div>
+      <div className="text-xs text-cyan-400 group-hover:underline">{cta} →</div>
+    </button>
   )
 }

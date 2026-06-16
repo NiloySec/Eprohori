@@ -1,14 +1,13 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { fetchStats, fetchThreats, fetchAlerts, validateText } from '@/lib/api'
-import type { Stats, Threat, Alert, ValidationResult } from '@/lib/api'
-import { ThreatCardSkeleton, AlertCardSkeleton, StatCardSkeleton } from '@/components/Skeleton'
+import { fetchStats, validateText } from '@/lib/api'
+import type { Stats, ValidationResult } from '@/lib/api'
+import { StatCardSkeleton } from '@/components/Skeleton'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import { useLanguage } from '@/lib/LanguageContext'
 import BetaSignup from '@/components/BetaSignup'
 import TrustBar from '@/components/TrustBar'
-import PressSection from '@/components/PressSection'
 
 /* ── Demo fallback data (shown when backend has no records yet) ── */
 const DEMO = {
@@ -145,8 +144,6 @@ export default function HomePage() {
   const tagline                         = useTypingEffect(TAGLINES, 90, 3000)
   const { t, lang }                     = useLanguage()
   const [stats, setStats]               = useState<Stats | null>(null)
-  const [threats, setThreats]           = useState<Threat[]>([])
-  const [alerts, setAlerts]             = useState<Alert[]>([])
   const [scanTab, setScanTab]           = useState<'url' | 'sms'>('url')
   const [scanInput, setScanInput]       = useState('')
   const [scanning, setScanning]         = useState(false)
@@ -173,8 +170,6 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchStats().then(setStats)
-    fetchThreats({ limit: 5 }).then(setThreats)
-    fetchAlerts().then(d => setAlerts(d.slice(0, 5)))
   }, [])
 
   const handleScan = async () => {
@@ -280,94 +275,6 @@ export default function HomePage() {
       </section>
 
       <TrustBar />
-
-      {/* ── How It Works ──────────────────────────────────────── */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#0d1829' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14 fade-in-up">
-            <span
-              className="inline-block text-xs font-bold px-3 py-1.5 rounded-full mb-4 uppercase tracking-widest"
-              style={{ backgroundColor: 'rgba(0,229,196,0.1)', border: '1px solid rgba(0,229,196,0.25)', color: '#00e5c4' }}
-            >
-              {t('how_it_works_badge')}
-            </span>
-            <h2 className="font-heading text-3xl font-bold text-white mb-3">
-              {t('how_it_works_title')}
-            </h2>
-            <p className="text-slate-400 max-w-lg mx-auto text-sm">
-              {t('how_it_works_desc')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* animated flow connectors (desktop only) */}
-            <div className="flow-connector hidden md:block absolute top-10 left-1/3 right-1/3" />
-            <div className="flow-connector hidden md:block absolute top-10 left-2/3 right-4" />
-
-            {[
-              {
-                step: '০১',
-                icon: '🚨',
-                title: t('step1_title'),
-                desc: t('step1_desc'),
-                color: '#00e5c4',
-                animDelay: '0.1s',
-                badge: null as string | null,
-              },
-              {
-                step: '০২',
-                icon: '🧠',
-                title: t('step2_title'),
-                desc: t('step2_desc'),
-                color: '#a855f7',
-                animDelay: '0.2s',
-                badge: null as string | null,
-              },
-              {
-                step: '০৩',
-                icon: '🗺️',
-                title: t('step3_title'),
-                desc: t('step3_desc'),
-                color: '#22c55e',
-                animDelay: '0.3s',
-                badge: t('step3_badge') as string | null,
-              },
-            ].map(s => (
-              <div
-                key={s.step}
-                className="glass-card p-7 text-center relative fade-in-up"
-                style={{ animationDelay: s.animDelay }}
-              >
-                {/* Step number badge */}
-                <div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-black px-3 py-1 rounded-full"
-                  style={{ backgroundColor: s.color, color: '#060d1a', letterSpacing: '0.05em' }}
-                >
-                  {s.step}
-                </div>
-                {/* Icon */}
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 mt-2"
-                  style={{ backgroundColor: `${s.color}12`, border: `1px solid ${s.color}30` }}
-                >
-                  {s.icon}
-                </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-3">{s.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-4">{s.desc}</p>
-                {/* USP badge (step 03 only) */}
-                {s.badge && (
-                  <span
-                    className="inline-block text-xs font-bold px-3 py-1.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.28)', color: '#22c55e' }}
-                  >
-                    {s.badge}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Quick Scan ────────────────────────────────────────── */}
       <section id="quick-scan" className="py-14 px-4" style={{ backgroundColor: '#060d1a' }}>
@@ -542,145 +449,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Latest Threats + Alerts ───────────────────────────── */}
-      <section className="py-12 px-4" style={{ backgroundColor: '#0d1829' }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Threats */}
-          <div>
-            <div className="flex items-center justify-between mb-5 fade-in-up">
-              <h2 className="font-heading text-xl font-bold text-white">{t('recent_threats_title')}</h2>
-              <Link href="/report" className="text-sm hover:underline" style={{ color: '#00e5c4' }}>{t('see_more')}</Link>
-            </div>
-            <div className="space-y-3">
-              {threats.length === 0
-                ? Array(5).fill(0).map((_, i) => <ThreatCardSkeleton key={i} />)
-                : threats.slice(0, 5).map((t, idx) => (
-                    <div
-                      key={t.id}
-                      className="rounded-xl p-4 hover-reveal fade-in-up"
-                      style={{
-                        backgroundColor: '#111f35',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        borderLeft: `3px solid ${sevColor[t.severity]}`,
-                        animationDelay: `${idx * 0.07}s`,
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{
-                            backgroundColor: sevColor[t.severity],
-                            animation: t.severity === 'critical' ? 'sevBlink 1.6s ease-in-out infinite' : 'none',
-                          }}
-                        />
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full font-bold"
-                          style={{ backgroundColor: `${sevColor[t.severity]}20`, color: sevColor[t.severity] }}
-                        >
-                          {sevLabel[t.severity]}
-                        </span>
-                        <span className="text-xs text-slate-500">{typeIcon[t.type]} {t.type}</span>
-                      </div>
-                      <p className="text-sm text-slate-200 mb-1.5">{t.detail}</p>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>📍 {t.division}</span>
-                        <span>{timeAgo(t.created_at)}</span>
-                        <span
-                          className="ml-auto px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
-                        >
-                          {t.confidence}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-            </div>
-          </div>
-
-          {/* Alerts */}
-          <div>
-            <div className="flex items-center justify-between mb-5 fade-in-up">
-              <h2 className="font-heading text-xl font-bold text-white">{t('recent_alerts_title')}</h2>
-              <Link href="/monitor" className="text-sm hover:underline" style={{ color: '#00e5c4' }}>{t('all_alerts')}</Link>
-            </div>
-            <div className="space-y-3">
-              {alerts.length === 0
-                ? Array(5).fill(0).map((_, i) => <AlertCardSkeleton key={i} />)
-                : alerts.slice(0, 5).map((a, idx) => (
-                    <div
-                      key={a.id}
-                      className="rounded-xl p-4 hover-reveal fade-in-up"
-                      style={{
-                        backgroundColor: '#111f35',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        borderLeft: `3px solid ${sevColor[a.severity]}`,
-                        animationDelay: `${idx * 0.07}s`,
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full font-bold"
-                          style={{ backgroundColor: `${sevColor[a.severity]}20`, color: sevColor[a.severity] }}
-                        >
-                          {a.severity === 'critical' ? '🚨 জরুরি' : a.severity === 'high' ? '⚠️ উচ্চ' : '📢 মাঝারি'}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-200 font-semibold mb-1">{a.title}</p>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>📍 {a.area}</span>
-                        <span>{timeAgo(a.created_at)}</span>
-                        <span className="ml-auto">{a.report_count} রিপোর্ট</span>
-                      </div>
-                    </div>
-                  ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       <BetaSignup />
-
-      <PressSection />
-
-      {/* ── Ranger CTA ────────────────────────────────────────── */}
-      <section className="py-20 px-4 grid-bg" style={{ position: 'relative', overflow: 'hidden' }}>
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 50% 60% at 50% 50%, rgba(0,229,196,0.06) 0%, transparent 70%)' }}
-        />
-        <div className="relative max-w-3xl mx-auto text-center z-10 fade-in-up">
-          <div
-            className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center pulse-glow"
-            style={{ background: 'rgba(0,229,196,0.1)', border: '1px solid rgba(0,229,196,0.3)' }}
-          >
-            <span className="text-4xl">🛡️</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold text-white mb-3">
-            <span className="gradient-text">{t('ranger_title')}</span>
-          </h2>
-          <p className="text-slate-400 mb-8 leading-relaxed max-w-lg mx-auto">
-            {t('ranger_desc')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/report"
-              className="btn-primary px-8 py-3.5"
-              style={{ borderRadius: '14px', fontSize: '1rem', textDecoration: 'none' }}
-            >
-              {t('report_now')}
-            </Link>
-            <Link
-              href="/account"
-              className="px-8 py-3.5 rounded-xl font-heading font-bold text-base transition-all"
-              style={{ border: '1.5px solid rgba(255,255,255,0.12)', color: '#94a3b8', backgroundColor: 'rgba(255,255,255,0.03)', textDecoration: 'none' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.07)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
-            >
-              {t('view_profile')}
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   )
 }

@@ -6,6 +6,9 @@ import type { Stats, Threat, Alert, ValidationResult } from '@/lib/api'
 import { ThreatCardSkeleton, AlertCardSkeleton, StatCardSkeleton } from '@/components/Skeleton'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import { useLanguage } from '@/lib/LanguageContext'
+import BetaSignup from '@/components/BetaSignup'
+import TrustBar from '@/components/TrustBar'
+import PressSection from '@/components/PressSection'
 
 /* ── Demo fallback data (shown when backend has no records yet) ── */
 const DEMO = {
@@ -275,6 +278,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <TrustBar />
 
       {/* ── How It Works ──────────────────────────────────────── */}
       <section className="py-20 px-4" style={{ backgroundColor: '#0d1829' }}>
@@ -632,6 +637,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <BetaSignup />
+
+      <PressSection />
 
       {/* ── Ranger CTA ────────────────────────────────────────── */}
       <section className="py-20 px-4 grid-bg" style={{ position: 'relative', overflow: 'hidden' }}>

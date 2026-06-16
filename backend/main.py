@@ -278,6 +278,30 @@ async def unhandled_exception_handler(request, exc):
 # Stats
 # ─────────────────────────────────────────────────────────────────────────────
 
+# In-memory beta signup list (resets on restart; for demo).
+# For production persistence, swap to a DB table or external service (Mailchimp/Buttondown).
+_beta_signups: set[str] = set()
+
+
+@app.post("/api/beta-signup", tags=["marketing"])
+def beta_signup(request: dict, req: Request):
+    """Capture interested user emails for beta access. Throttled to prevent abuse."""
+    throttle(req, "beta-signup", max_hits=5, window_sec=300)
+    email = (request.get("email") or "").lower().strip()
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(400, "Invalid email")
+    if len(email) > 254:
+        raise HTTPException(400, "Email too long")
+    already = email in _beta_signups
+    _beta_signups.add(email)
+    return {
+        "success": True,
+        "already_subscribed": already,
+        "total_signups": len(_beta_signups),
+        "message": "ধন্যবাদ! আপনি Eprohori beta access list-এ যুক্ত হয়েছেন।",
+    }
+
+
 @app.get("/api/stats", response_model=StatsOut, tags=["stats"])
 def get_stats(db: Session = Depends(get_db)):
     today_start = datetime.combine(date.today(), datetime.min.time())

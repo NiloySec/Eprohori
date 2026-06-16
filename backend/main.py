@@ -278,6 +278,12 @@ async def unhandled_exception_handler(request, exc):
 # Stats
 # ─────────────────────────────────────────────────────────────────────────────
 
+@app.get("/api/sentry-test", tags=["ops"], include_in_schema=False)
+def sentry_test():
+    """Intentionally raises to verify Sentry capture. Remove after testing."""
+    raise RuntimeError("Sentry test error from Eprohori — if you see this in Sentry, it works!")
+
+
 @app.get("/api/stats", response_model=StatsOut, tags=["stats"])
 def get_stats(db: Session = Depends(get_db)):
     today_start = datetime.combine(date.today(), datetime.min.time())

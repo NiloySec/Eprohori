@@ -26,16 +26,16 @@ export default function StatsPage() {
       {stats && (
         <>
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            <Stat label="মোট রিপোর্ট" value={stats.total_threats ?? stats.total_reports ?? 0} accent="#00e5c4" />
+            <Stat label="মোট রিপোর্ট" value={stats.total_threats ?? 0} accent="#00e5c4" />
             <Stat label="আজ" value={stats.today_reports ?? 0} accent="#fbbf24" />
-            <Stat label="যাচাইকৃত হুমকি" value={stats.active_threats ?? stats.warned_count ?? 0} accent="#ef4444" />
+            <Stat label="যাচাইকৃত হুমকি" value={stats.active_threats ?? 0} accent="#ef4444" />
             <Stat label="সতর্ক হওয়া মানুষ" value={stats.alerted_people ?? 0} accent="#8b5cf6" />
           </section>
 
           <section className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
-            <Stat label="জেলা কভারেজ" value={stats.district_coverage ?? stats.districts_covered ?? 0} suffix=" / 64" accent="#22d3ee" />
+            <Stat label="জেলা কভারেজ" value={stats.district_coverage ?? 0} suffix=" / 64" accent="#22d3ee" />
             <Stat label="অপেক্ষমাণ পর্যালোচনা" value={stats.pending_count ?? 0} accent="#fb923c" />
-            <Stat label="সক্রিয় Rangers" value={stats.rangers_count ?? stats.rangers ?? 0} accent="#a78bfa" />
+            <Stat label="সক্রিয় Rangers" value={stats.rangers_count ?? 0} accent="#a78bfa" />
           </section>
 
           <section className="rounded-2xl p-8 bg-slate-900/40 border border-slate-800 mb-10">

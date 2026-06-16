@@ -7,7 +7,6 @@ import { StatCardSkeleton } from '@/components/Skeleton'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import { useLanguage } from '@/lib/LanguageContext'
 import BetaSignup from '@/components/BetaSignup'
-import TrustBar from '@/components/TrustBar'
 
 /* ── Demo fallback data (shown when backend has no records yet) ── */
 const DEMO = {
@@ -273,8 +272,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <TrustBar />
 
       {/* ── Quick Scan ────────────────────────────────────────── */}
       <section id="quick-scan" className="py-14 px-4" style={{ backgroundColor: '#060d1a' }}>

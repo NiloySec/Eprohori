@@ -326,10 +326,59 @@ a             { transition: color 0.2s ease; }
 .input-premium::placeholder { color: #475569; }
 
 /* ── Narrow custom scrollbar ── */
-::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar       { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,229,196,0.28); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,229,196,0.55); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0,229,196,0.4), rgba(8,145,178,0.4));
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(0,229,196,0.7), rgba(8,145,178,0.7));
+  background-clip: padding-box;
+}
+* { scrollbar-width: thin; scrollbar-color: rgba(0,229,196,0.4) transparent; }
+
+/* ── Site-wide outlook polish ── */
+html { scroll-behavior: smooth; }
+
+::selection {
+  background: rgba(0,229,196,0.25);
+  color: #ffffff;
+  text-shadow: none;
+}
+
+/* Accessible, on-brand focus ring (only for keyboard nav) */
+:focus-visible {
+  outline: 2px solid rgba(0,229,196,0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* Links inherit the brand accent on hover by default */
+a { transition: color 0.18s ease; }
+
+/* Consistent rounded media + crisp images */
+img { -webkit-user-drag: none; user-select: none; }
+
+/* Subtle page-enter fade for every route */
+main { animation: pageEnter 0.4s ease-out both; }
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Respect reduced-motion preference site-wide */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* ── Tooltip ── */
 [data-tooltip] { position: relative; }

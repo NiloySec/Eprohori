@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PageHero from '@/components/PageHero'
 
 export const metadata: Metadata = {
   title: 'যোগাযোগ — Eprohori',
@@ -7,9 +8,14 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-16 text-slate-200">
-      <h1 className="text-4xl font-bold mb-3 text-white">যোগাযোগ</h1>
-      <p className="text-slate-400 mb-10">প্রশ্ন, পরামর্শ বা সাহায্যের জন্য আমাদের জানান।</p>
+    <div>
+      <PageHero
+        icon="✉️"
+        eyebrow="Get in touch"
+        title="যোগাযোগ"
+        lead="প্রশ্ন, পরামর্শ, partnership বা সাহায্য — আমরা শুনতে প্রস্তুত।"
+      />
+      <div className="max-w-4xl mx-auto px-6 pb-20 text-slate-200">
 
       <div className="grid md:grid-cols-2 gap-6">
         <ContactCard
@@ -55,6 +61,7 @@ export default function ContactPage() {
       <p className="mt-10 text-sm text-slate-500">
         Response time: সাধারণ প্রশ্নের ২৪-৪৮ ঘণ্টায় উত্তর দিই। জরুরি ক্ষেত্রে দ্রুত যোগাযোগ করি।
       </p>
+      </div>
     </div>
   )
 }

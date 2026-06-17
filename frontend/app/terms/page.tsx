@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PageHero from '@/components/PageHero'
 
 export const metadata: Metadata = {
   title: 'ব্যবহারের শর্তাবলী — Eprohori',
@@ -7,9 +8,15 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-6 py-16 text-slate-200">
-      <h1 className="text-4xl font-bold mb-2 text-white">ব্যবহারের শর্তাবলী</h1>
-      <p className="text-slate-400 mb-10">সর্বশেষ হালনাগাদ: ১৬ জুন, ২০২৬</p>
+    <div>
+      <PageHero
+        icon="📜"
+        eyebrow="Legal"
+        title="ব্যবহারের শর্তাবলী"
+        lead="Eprohori ব্যবহারের আগে এই শর্তগুলো পড়ে নিন — আপনার ও কমিউনিটির সুরক্ষার জন্য।"
+      />
+      <div className="max-w-4xl mx-auto px-6 pb-20 text-slate-200">
+      <p className="text-sm text-slate-500 mb-10 text-center">সর্বশেষ হালনাগাদ: ১৬ জুন, ২০২৬</p>
 
       <Section title="১. পরিষেবার পরিচিতি">
         <p>Eprohori একটি ক্রাউডসোর্সড সাইবার থ্রেট রিপোর্টিং প্ল্যাটফর্ম। আমরা AI ব্যবহার করে phishing, scam ও cyber threat যাচাই করি এবং কমিউনিটিকে সতর্ক করি।</p>
@@ -89,15 +96,19 @@ export default function TermsPage() {
       <Section title="১১. যোগাযোগ">
         <p><a href="mailto:admin@eprohori.tech" className="text-cyan-400 hover:underline">admin@eprohori.tech</a></p>
       </Section>
+      </div>
     </div>
   )
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-10">
-      <h2 className="text-2xl font-semibold mb-3 text-white">{title}</h2>
-      <div className="text-slate-300 leading-relaxed">{children}</div>
+    <section
+      className="mb-5 rounded-2xl p-6 md:p-8 transition hover:border-cyan-500/20"
+      style={{ background: 'rgba(13,24,41,0.5)', border: '1px solid rgba(255,255,255,0.06)' }}
+    >
+      <h2 className="font-heading text-xl md:text-2xl font-semibold mb-3 text-white">{title}</h2>
+      <div className="text-slate-300 leading-relaxed text-sm md:text-base">{children}</div>
     </section>
   )
 }

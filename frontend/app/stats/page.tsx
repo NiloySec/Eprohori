@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { fetchStats } from '@/lib/api'
 import type { Stats } from '@/lib/api'
+import PageHero from '@/components/PageHero'
 
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -14,14 +15,16 @@ export default function StatsPage() {
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-16 text-slate-200">
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-bold text-white mb-3">পরিসংখ্যান</h1>
-        <p className="text-slate-400 text-lg">Eprohori platform-এ live cyber threat data</p>
-        <p className="mt-2 text-xs text-cyan-400">প্রতি ৩০ সেকেন্ডে আপডেট হয়</p>
-      </header>
+    <div>
+      <PageHero
+        icon="📊"
+        eyebrow="Live · প্রতি ৩০ সেকেন্ডে আপডেট"
+        title="পরিসংখ্যান"
+        lead="Eprohori platform জুড়ে real-time সাইবার থ্রেট ডেটা — সম্পূর্ণ স্বচ্ছ ও public।"
+      />
+      <div className="max-w-7xl mx-auto px-6 pb-20 text-slate-200">
 
-      {loading && <div className="text-center text-slate-500">Loading...</div>}
+      {loading && <div className="text-center text-slate-500 py-10">Loading...</div>}
 
       {stats && (
         <>
@@ -56,6 +59,7 @@ export default function StatsPage() {
           </section>
         </>
       )}
+      </div>
     </div>
   )
 }

@@ -32,7 +32,7 @@ import profile_validator
 import validator
 import phone_checker
 from database import Base, engine, get_db
-from models import AdminAudit, Alert, PhoneBlacklist, Threat, User
+from models import AdminAudit, Alert, BetaSignup, PhoneBlacklist, Threat, User
 from schemas import (
     ActivityOut,
     AlertOut,
@@ -251,6 +251,9 @@ _bearer = HTTPBearer(auto_error=False)
 # ── Per-IP throttle helper (used by OTP/login/etc.) ──────────────────────────
 _ip_throttle: dict[str, list[float]] = {}
 
+# Pragmatic email shape check: non-empty local + domain with a dotted TLD.
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 
 def throttle(request: Request, bucket: str, max_hits: int, window_sec: int) -> None:
     """Raise 429 if a single IP exceeds max_hits within window_sec for this bucket."""
@@ -278,26 +281,25 @@ async def unhandled_exception_handler(request, exc):
 # Stats
 # ─────────────────────────────────────────────────────────────────────────────
 
-# In-memory beta signup list (resets on restart; for demo).
-# For production persistence, swap to a DB table or external service (Mailchimp/Buttondown).
-_beta_signups: set[str] = set()
-
-
 @app.post("/api/beta-signup", tags=["marketing"])
-def beta_signup(request: dict, req: Request):
-    """Capture interested user emails for beta access. Throttled to prevent abuse."""
+def beta_signup(request: dict, req: Request, db: Session = Depends(get_db)):
+    """Capture interested user emails for beta access (DB-persisted, scale-safe)."""
     throttle(req, "beta-signup", max_hits=5, window_sec=300)
     email = (request.get("email") or "").lower().strip()
-    if not email or "@" not in email or "." not in email.split("@")[-1]:
-        raise HTTPException(400, "Invalid email")
     if len(email) > 254:
         raise HTTPException(400, "Email too long")
-    already = email in _beta_signups
-    _beta_signups.add(email)
+    if not _EMAIL_RE.match(email):
+        raise HTTPException(400, "Invalid email")
+
+    existing = db.query(BetaSignup).filter(BetaSignup.email == email).first()
+    if not existing:
+        db.add(BetaSignup(email=email))
+        db.commit()
+    total = db.query(func.count(BetaSignup.id)).scalar() or 0
     return {
         "success": True,
-        "already_subscribed": already,
-        "total_signups": len(_beta_signups),
+        "already_subscribed": existing is not None,
+        "total_signups": total,
         "message": "ধন্যবাদ! আপনি Eprohori beta access list-এ যুক্ত হয়েছেন।",
     }
 
@@ -1587,6 +1589,7 @@ def admin_backup(_admin: dict = Depends(require_admin), db: Session = Depends(ge
         for tbl_name, model in [
             ("users", User), ("threats", Threat), ("alerts", Alert),
             ("admin_audits", AdminAudit), ("phone_blacklist", PhoneBlacklist),
+            ("beta_signups", BetaSignup),
         ]:
             rows = db.query(model).all()
             yield f'"{tbl_name}":' + json.dumps([_serialize(r) for r in rows]) + ","

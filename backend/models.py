@@ -67,3 +67,12 @@ class PhoneBlacklist(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     phone_number = Column(String, unique=True, index=True)
+
+
+class BetaSignup(Base):
+    """Persisted beta-access email list (survives restarts, scale-safe)."""
+    __tablename__ = "beta_signups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())

@@ -773,25 +773,23 @@ def _reporter_trust(db: Session, creds: Optional[HTTPAuthorizationCredentials]) 
     """Trust scoring: who is reporting decides how much the report weighs.
 
     Returns (reporter_email, auto_verify_threshold, force_pending).
-      Floor is AUTO_VERIFY_CONF (0.90 = "critical") so genuinely critical threats
-      auto-verify + alert instantly for everyone, consistent with the severity
-      model. Trust still matters via abuse guards below:
-      anonymous            → 0.92 (slightly higher bar than a known user)
-      new account (<100xp) → 0.90
-      proven ranger        → 0.90 (standard)
-      bad history          → always manual review
-      (whitelisted domains never auto-verify; see _is_whitelisted)
+
+    Single threshold for everyone: AUTO_VERIFY_CONF (0.90 = "critical"), so any
+    critical-confidence threat auto-verifies + alerts instantly, consistently.
+    Abuse protection is kept (not a trust *tier*, but hard guards):
+      - repeat offender (3+ rejected, more rejected than verified) → manual review
+      - whitelisted domains never auto-verify (see _is_whitelisted)
     """
     if not creds:
-        return None, 0.92, False
+        return None, AUTO_VERIFY_CONF, False
     try:
         payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=[JWT_ALG])
     except jwt.InvalidTokenError:
-        return None, 0.92, False
+        return None, AUTO_VERIFY_CONF, False
     email = payload.get("sub")
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        return None, 0.92, False
+        return None, AUTO_VERIFY_CONF, False
 
     rejected = db.query(Threat).filter(
         Threat.reporter_email == email, Threat.status == "rejected"

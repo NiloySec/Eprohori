@@ -1451,6 +1451,59 @@ async def verify_otp(request: dict):
     return {"success": True, "message": "OTP verified"}
 
 
+@app.post("/api/auth/forgot-password", tags=["auth"])
+async def forgot_password(request: dict, req: Request, db: Session = Depends(get_db)):
+    """Send a password-reset OTP. Always returns success (never leaks whether the email exists)."""
+    throttle(req, "forgot-password", max_hits=5, window_sec=600)
+    email = (request.get("email") or "").lower().strip()
+    generic = {"success": True, "message": "যদি এই ইমেইলে অ্যাকাউন্ট থাকে, একটি OTP পাঠানো হয়েছে।"}
+    if not _EMAIL_RE.match(email):
+        return generic
+
+    user = db.query(User).filter(User.email == email).first()
+    # Only send if the account exists and has a password — but response is identical either way
+    if user and user.password_hash:
+        otp = str(secrets.randbelow(900000) + 100000)
+        otp_store[email] = {"otp": otp, "expires": datetime.utcnow().timestamp() + 600, "attempts": 0}
+        html = otp_email_template(user.name or "User", otp, "password reset")
+        await send_email(email, "Eprohori — Password Reset OTP", html, user.name or "User")
+    return generic
+
+
+@app.post("/api/auth/reset-password", tags=["auth"])
+def reset_password(request: dict, req: Request, db: Session = Depends(get_db)):
+    """Verify the reset OTP and set a new password."""
+    throttle(req, "reset-password", max_hits=10, window_sec=600)
+    email = (request.get("email") or "").lower().strip()
+    otp_input = request.get("otp") or ""
+    new_password = request.get("new_password") or ""
+
+    if len(new_password) < 8:
+        raise HTTPException(400, "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে")
+
+    stored = otp_store.get(email)
+    if not stored:
+        raise HTTPException(400, "OTP পাওয়া যায়নি — নতুন করে চেষ্টা করুন")
+    if datetime.utcnow().timestamp() > stored["expires"]:
+        del otp_store[email]
+        raise HTTPException(400, "OTP-এর মেয়াদ শেষ — নতুন করে চেষ্টা করুন")
+    if stored["attempts"] >= 3:
+        del otp_store[email]
+        raise HTTPException(400, "অনেকবার ভুল হয়েছে — নতুন OTP নিন")
+    if not secrets.compare_digest(stored["otp"], otp_input):
+        otp_store[email]["attempts"] += 1
+        raise HTTPException(400, "ভুল OTP")
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(400, "অ্যাকাউন্ট পাওয়া যায়নি")
+
+    user.password_hash = _hash_password(new_password)
+    db.commit()
+    del otp_store[email]
+    return {"success": True, "message": "পাসওয়ার্ড পরিবর্তন হয়েছে — এখন লগইন করুন"}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # AI Validation
 # ─────────────────────────────────────────────────────────────────────────────

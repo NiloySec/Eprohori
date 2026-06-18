@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession } from '@/lib/api'
+import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword } from '@/lib/api'
 import type { Ranger, MyReport } from '@/lib/api'
 import DistrictSelect from '@/components/DistrictSelect'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -125,6 +125,45 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
   const [loginEmail, setLoginEmail]       = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError]       = useState('')
+
+  // Forgot-password state
+  const [forgotMode, setForgotMode]   = useState(false)
+  const [forgotStep, setForgotStep]   = useState<'email' | 'reset'>('email')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotOtp, setForgotOtp]     = useState('')
+  const [forgotPass, setForgotPass]   = useState('')
+  const [forgotMsg, setForgotMsg]     = useState('')
+  const [forgotErr, setForgotErr]     = useState('')
+  const [forgotBusy, setForgotBusy]   = useState(false)
+
+  const handleForgotSend = async () => {
+    setForgotErr(''); setForgotMsg('')
+    if (!isValidEmail(forgotEmail)) { setForgotErr('সঠিক ইমেইল দিন'); return }
+    setForgotBusy(true)
+    try {
+      const r = await forgotPassword(forgotEmail.trim())
+      setForgotMsg(r.message || 'OTP পাঠানো হয়েছে — ইমেইল দেখুন')
+      setForgotStep('reset')
+    } catch { setForgotErr('সমস্যা হয়েছে — আবার চেষ্টা করুন') }
+    setForgotBusy(false)
+  }
+
+  const handleForgotReset = async () => {
+    setForgotErr(''); setForgotMsg('')
+    if (forgotOtp.trim().length !== 6) { setForgotErr('৬ ডিজিটের OTP দিন'); return }
+    if (forgotPass.length < 8) { setForgotErr('পাসওয়ার্ড কমপক্ষে ৮ অক্ষর'); return }
+    setForgotBusy(true)
+    try {
+      await resetPassword(forgotEmail.trim(), forgotOtp.trim(), forgotPass)
+      setForgotMode(false); setForgotStep('email')
+      setForgotEmail(''); setForgotOtp(''); setForgotPass('')
+      setLoginError(''); setLoginEmail(forgotEmail.trim())
+      alert('পাসওয়ার্ড পরিবর্তন হয়েছে — এখন নতুন পাসওয়ার্ড দিয়ে লগইন করুন।')
+    } catch (e) {
+      setForgotErr(e instanceof Error ? e.message : 'রিসেট ব্যর্থ — OTP ঠিক আছে কিনা দেখুন')
+    }
+    setForgotBusy(false)
+  }
 
   // Register state
   const [regName, setRegName]         = useState('')
@@ -320,6 +359,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
         style={{ background: 'rgba(13,24,41,0.85)', border: '1px solid rgba(0,229,196,0.15)', boxShadow: '0 8px 40px rgba(0,0,0,0.3)' }}
       >
         {/* Tabs */}
+        {!forgotMode && (
         <div className="flex" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           {(['login', 'register'] as const).map(k => (
             <button
@@ -341,16 +381,54 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
             </button>
           ))}
         </div>
+        )}
 
         <div className="p-6 space-y-4">
-          {tab === 'login' ? (
+          {forgotMode ? (
+            <>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setForgotMode(false); setForgotStep('email'); setForgotErr(''); setForgotMsg('') }}
+                  className="text-slate-400 hover:text-white text-lg leading-none"
+                  aria-label="Back to login"
+                >←</button>
+                <h2 className="font-heading text-xl font-bold text-white">পাসওয়ার্ড রিসেট</h2>
+              </div>
+              {forgotStep === 'email' ? (
+                <>
+                  <p className="text-xs text-slate-400">আপনার রেজিস্টার্ড ইমেইলে একটি ৬-ডিজিট OTP পাঠানো হবে।</p>
+                  {field('ইমেইল', forgotEmail, setForgotEmail, 'email', 'you@example.com')}
+                  {forgotErr && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {forgotErr}</p>}
+                  <button onClick={handleForgotSend} disabled={forgotBusy} className="btn-primary w-full py-3">
+                    {forgotBusy ? 'পাঠানো হচ্ছে...' : 'OTP পাঠান →'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  {forgotMsg && <p className="text-xs" style={{ color: '#22c55e' }}>✅ {forgotMsg}</p>}
+                  {field('OTP (৬ ডিজিট)', forgotOtp, setForgotOtp, 'text', '১২৩৪৫৬')}
+                  {field('নতুন পাসওয়ার্ড', forgotPass, setForgotPass, 'password', 'কমপক্ষে ৮ অক্ষর')}
+                  {forgotErr && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {forgotErr}</p>}
+                  <button onClick={handleForgotReset} disabled={forgotBusy} className="btn-primary w-full py-3">
+                    {forgotBusy ? 'রিসেট হচ্ছে...' : 'পাসওয়ার্ড রিসেট করুন'}
+                  </button>
+                  <button onClick={handleForgotSend} disabled={forgotBusy} className="block w-full text-center text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                    OTP পাননি? আবার পাঠান
+                  </button>
+                </>
+              )}
+            </>
+          ) : tab === 'login' ? (
             <>
               <h2 className="font-heading text-xl font-bold text-white">{t('login_title')}</h2>
               {field(t('email_label'), loginEmail, setLoginEmail, 'email', 'you@example.com')}
               {field(t('password_label'), loginPassword, setLoginPassword, 'password', '••••••••')}
               {loginError && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {loginError}</p>}
               <button onClick={handleLogin} className="btn-primary w-full py-3">{t('login_btn')} →</button>
-              <button className="block w-full text-center text-xs text-slate-500 hover:text-slate-300 transition-colors">
+              <button
+                onClick={() => { setForgotMode(true); setForgotStep('email'); setForgotErr(''); setForgotMsg(''); setForgotEmail(loginEmail) }}
+                className="block w-full text-center text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              >
                 পাসওয়ার্ড ভুলে গেছেন?
               </button>
             </>

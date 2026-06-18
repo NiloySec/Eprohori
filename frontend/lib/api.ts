@@ -438,6 +438,14 @@ export function changePassword(email: string, oldPassword: string, newPassword: 
   return authPost('/auth/change-password', { email, old_password: oldPassword, new_password: newPassword }, 'POST', true)
 }
 
+export function forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+  return authPost('/auth/forgot-password', { email })
+}
+
+export function resetPassword(email: string, otp: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  return authPost('/auth/reset-password', { email, otp, new_password: newPassword })
+}
+
 export async function deleteAccount(): Promise<void> {
   try {
     await fetch(`${API_BASE}/users/me`, {

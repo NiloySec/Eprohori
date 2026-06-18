@@ -430,6 +430,36 @@ export default function MonitorPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* District-level breakdown within the selected division */}
+                {(() => {
+                  const dl = districts
+                    .filter(d => d.division === selected.division_en)
+                    .sort((a, b) => b.threats - a.threats)
+                  if (dl.length === 0) return null
+                  const max = Math.max(...dl.map(d => d.threats), 1)
+                  return (
+                    <div className="mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <p className="text-xs text-slate-400 mb-2">📍 জেলাভিত্তিক বিভাজন</p>
+                      <div className="space-y-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
+                        {dl.map(d => (
+                          <div key={d.name}>
+                            <div className="flex justify-between text-xs mb-1">
+                              <span className="text-slate-300">{d.name_bn || d.name}</span>
+                              <span className="text-white font-semibold">{d.threats}</span>
+                            </div>
+                            <div className="h-1.5 rounded-full" style={{ backgroundColor: 'rgba(30,58,95,0.6)' }}>
+                              <div
+                                className="h-1.5 rounded-full transition-all duration-700"
+                                style={{ width: `${(d.threats / max) * 100}%`, background: `linear-gradient(90deg, ${d.color}88, ${d.color})` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             ) : (
               <div

@@ -644,12 +644,11 @@ async def send_alert_emails(threat_id: int) -> int:
         # ── Build recipient set ──
         recipients: dict[str, str] = {}  # email -> name
 
-        # 1. Always include the reporter
-        if t.reporter_email:
-            reporter = db.query(User).filter(User.email == t.reporter_email).first()
-            recipients[t.reporter_email] = reporter.name if reporter else t.reporter_email.split("@")[0]
+        # NOTE: the reporter is intentionally NOT alerted here — they already know
+        # about the threat they reported. They get a separate result/confirmation
+        # email instead. This alert is a *warning* for OTHER people in the district.
 
-        # 2. Opt-in users whose district OR region matches
+        # Opt-in users whose district OR region matches (excluding the reporter)
         if district:
             district_users = db.query(User).filter(
                 User.notify_alerts == True,  # noqa: E712
@@ -657,7 +656,7 @@ async def send_alert_emails(threat_id: int) -> int:
                 ((User.district == district) | (User.region == district)),
             ).all()
             for u in district_users:
-                if u.email:
+                if u.email and u.email != t.reporter_email:
                     recipients.setdefault(u.email, u.name)
 
         if not recipients:
@@ -774,21 +773,25 @@ def _reporter_trust(db: Session, creds: Optional[HTTPAuthorizationCredentials]) 
     """Trust scoring: who is reporting decides how much the report weighs.
 
     Returns (reporter_email, auto_verify_threshold, force_pending).
-      anonymous            → 0.95 (needs near-certain ML score)
-      new account (<100xp) → 0.92
+      Floor is AUTO_VERIFY_CONF (0.90 = "critical") so genuinely critical threats
+      auto-verify + alert instantly for everyone, consistent with the severity
+      model. Trust still matters via abuse guards below:
+      anonymous            → 0.92 (slightly higher bar than a known user)
+      new account (<100xp) → 0.90
       proven ranger        → 0.90 (standard)
       bad history          → always manual review
+      (whitelisted domains never auto-verify; see _is_whitelisted)
     """
     if not creds:
-        return None, 0.95, False
+        return None, 0.92, False
     try:
         payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=[JWT_ALG])
     except jwt.InvalidTokenError:
-        return None, 0.95, False
+        return None, 0.92, False
     email = payload.get("sub")
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        return None, 0.95, False
+        return None, 0.92, False
 
     rejected = db.query(Threat).filter(
         Threat.reporter_email == email, Threat.status == "rejected"
@@ -798,9 +801,7 @@ def _reporter_trust(db: Session, creds: Optional[HTTPAuthorizationCredentials]) 
     ).count()
     if rejected >= 3 and rejected > verified:
         return email, 1.01, True  # repeat offender → human always decides
-    if (user.xp or 0) >= 100:
-        return email, AUTO_VERIFY_CONF, False
-    return email, 0.92, False
+    return email, AUTO_VERIFY_CONF, False
 
 
 MAX_THREAT_CONTENT_LEN = 4000   # 4 KB of text — enough for SMS/URL/short post

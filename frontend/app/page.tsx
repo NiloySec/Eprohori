@@ -273,6 +273,48 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── What Eprohori detects ─────────────────────────────── */}
+      <section className="py-16 px-4" style={{ backgroundColor: '#0d1829' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10 fade-in-up">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] mb-3" style={{ color: '#00e5c4' }}>
+              কী থেকে সুরক্ষা
+            </p>
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">
+              Eprohori যা যা শনাক্ত করে
+            </h2>
+            <p className="text-slate-400 text-sm max-w-xl mx-auto">
+              বাংলাদেশে সবচেয়ে বেশি যে সাইবার প্রতারণাগুলো ঘটে — AI দিয়ে সেকেন্ডেই যাচাই করুন।
+            </p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: '💬', color: '#00e5c4', title: 'ফিশিং SMS', desc: 'ভুয়া bKash/নগদ পুরস্কার, OTP চাওয়া, অ্যাকাউন্ট বন্ধের হুমকি' },
+              { icon: '🔗', color: '#3b82f6', title: 'স্ক্যাম লিংক', desc: 'নকল ব্যাংক/পেমেন্ট সাইট, সন্দেহজনক shortlink, ফিশিং URL' },
+              { icon: '👤', color: '#f59e0b', title: 'ভুয়া অফার', desc: 'ভুয়া চাকরি, লোভনীয় investment, online প্রতারণা' },
+              { icon: '🎓', color: '#a855f7', title: 'বৃত্তি প্রতারণা', desc: 'ভুয়া scholarship, লটারি জেতার মিথ্যা বার্তা' },
+            ].map((c, idx) => (
+              <div
+                key={c.title}
+                className="rounded-2xl p-5 fade-in-up transition hover:border-white/15"
+                style={{
+                  background: `linear-gradient(135deg, ${c.color}0d 0%, rgba(6,13,26,0.6) 100%)`,
+                  border: `1px solid ${c.color}22`,
+                  animationDelay: `${idx * 0.08}s`,
+                }}
+              >
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
+                  style={{ backgroundColor: `${c.color}1a`, border: `1px solid ${c.color}33` }}>
+                  {c.icon}
+                </div>
+                <h3 className="font-heading text-base font-bold text-white mb-1.5">{c.title}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Quick Scan ────────────────────────────────────────── */}
       <section id="quick-scan" className="py-14 px-4" style={{ backgroundColor: '#060d1a' }}>
         <div className="max-w-2xl mx-auto">

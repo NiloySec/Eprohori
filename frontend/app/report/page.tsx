@@ -126,13 +126,28 @@ export default function ThreatsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
+    <div>
+      {/* ── Premium hero header ── */}
+      <section className="relative overflow-hidden grid-bg">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 55% 60% at 50% 0%, rgba(0,229,196,0.10) 0%, transparent 70%)' }} />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{ width: 600, height: 380, borderRadius: '50%', background: 'rgba(0,229,196,0.12)', filter: 'blur(120px)', opacity: 0.4 }} />
+        <div className="relative max-w-3xl mx-auto px-4 pt-16 pb-8 text-center z-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5 fade-in-up"
+            style={{ background: 'rgba(0,229,196,0.08)', border: '1px solid rgba(0,229,196,0.25)' }}>
+            <span className="text-3xl">🚨</span>
+          </div>
+          <h1 className="font-heading text-4xl md:text-5xl font-bold mb-3 gradient-text fade-in-up-1 leading-tight">
+            {t('threats_page_title')}
+          </h1>
+          <p className="text-base md:text-lg text-slate-400 max-w-xl mx-auto fade-in-up-2">
+            {t('threats_page_subtitle')}
+          </p>
+        </div>
+      </section>
 
-      {/* ── Header ── */}
-      <div className="mb-8">
-        <h1 className="font-heading text-3xl font-bold text-white mb-2">{t('threats_page_title')}</h1>
-        <p className="text-slate-400">{t('threats_page_subtitle')}</p>
-      </div>
+      <div className="max-w-3xl mx-auto px-4 pb-16 pt-4">
 
       {/* ── Top Scams This Week ── */}
       <section className="mb-10">
@@ -385,6 +400,7 @@ export default function ThreatsPage() {
           ))}
         </div>
       </section>
+      </div>
     </div>
   )
 }

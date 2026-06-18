@@ -2,7 +2,6 @@ backend/venv/
 frontend/node_modules/
 frontend/.next/
 **/__pycache__/
-*.pkl
 *.pyc
 .env.local
 .env

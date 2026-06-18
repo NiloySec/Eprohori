@@ -1,7 +1,6 @@
 venv/
 __pycache__/
 *.pyc
-*.pkl
 *.db
 uvicorn_test.log
 security_verify.py

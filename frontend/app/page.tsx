@@ -6,7 +6,6 @@ import type { Stats, ValidationResult } from '@/lib/api'
 import { StatCardSkeleton } from '@/components/Skeleton'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import { useLanguage } from '@/lib/LanguageContext'
-import BetaSignup from '@/components/BetaSignup'
 import SavedFeedback from '@/components/SavedFeedback'
 
 /* ── Demo fallback data (shown when backend has no records yet) ── */
@@ -451,8 +450,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <BetaSignup />
     </div>
   )
 }

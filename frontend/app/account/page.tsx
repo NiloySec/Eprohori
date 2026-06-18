@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword } from '@/lib/api'
+import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword, adminLogin } from '@/lib/api'
 import type { Ranger, MyReport } from '@/lib/api'
 import DistrictSelect from '@/components/DistrictSelect'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -199,6 +199,14 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
     // Real login against the backend user DB
     try {
       const u = await loginUser(loginEmail.trim(), loginPassword)
+      // Admin account → set up admin session + go straight to the admin dashboard
+      if (u.is_admin) {
+        try {
+          await adminLogin(loginEmail.trim(), loginPassword)
+          window.location.href = '/admin-eprohori-secure'
+          return
+        } catch { /* if admin-login fails, fall through to the normal user view */ }
+      }
       const user: AuthUser = {
         name: u.name, email: u.email, phone: u.phone, division: u.division || 'ঢাকা',
         xp: u.xp, reports: u.reports, rank: u.rank, synced: true,

@@ -370,6 +370,7 @@ export interface BackendUser {
   rank: number
   joinedAt: string
   token?: string
+  is_admin?: boolean
 }
 
 // ── JWT token storage ──

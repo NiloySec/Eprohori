@@ -1179,6 +1179,7 @@ def _user_payload(db: Session, user: User) -> dict:
         "id": user.id,
         "name": user.name,
         "email": user.email,
+        "is_admin": bool(user.is_admin),
         "phone": user.phone or "",
         "division": user.region or "",
         "district": user.district or "",

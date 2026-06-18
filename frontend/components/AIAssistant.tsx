@@ -480,9 +480,10 @@ export default function AIAssistant() {
   const [input, setInput] = useState('')
   const { lang } = useLanguage()
 
-  // ── Voice input (Web Speech API) ──
+  // ── Voice input (Web Speech API — real-time live transcription) ──
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef<any>(null)
+  const finalTranscriptRef = useRef('')
 
   const toggleVoiceInput = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -497,11 +498,19 @@ export default function AIAssistant() {
     }
     const recognition = new SR()
     recognition.lang = lang === 'bn' ? 'bn-BD' : 'en-US'
-    recognition.interimResults = false
+    recognition.interimResults = true   // live text as you speak
+    recognition.continuous = true       // keep listening across pauses
     recognition.maxAlternatives = 1
+    // Start from whatever is already typed, then append speech
+    finalTranscriptRef.current = input ? input.trim() + ' ' : ''
     recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript
-      if (transcript) setInput(transcript)
+      let interim = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript
+        if (e.results[i].isFinal) finalTranscriptRef.current += t + ' '
+        else interim += t
+      }
+      setInput((finalTranscriptRef.current + interim).trimStart())
     }
     recognition.onend = () => setListening(false)
     recognition.onerror = () => setListening(false)
@@ -1060,7 +1069,7 @@ export default function AIAssistant() {
                     handleSend()
                   }
                 }}
-                placeholder="একটি প্রশ্ন করুন বা কিছু যাচাই করুন..."
+                placeholder={listening ? '🎤 শুনছি... কথা বলুন' : 'একটি প্রশ্ন করুন বা কিছু যাচাই করুন...'}
                 disabled={sending}
                 style={{
                   flex: 1,

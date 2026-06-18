@@ -4,7 +4,7 @@ const SITE_URL = 'https://eprohori.tech'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
-  const routes = ['', '/report', '/monitor', '/about', '/contact', '/privacy', '/terms', '/account', '/rangers']
+  const routes = ['', '/report', '/monitor', '/stats', '/about', '/contact', '/privacy', '/terms', '/account']
   return routes.map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: now,

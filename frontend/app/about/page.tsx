@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchStats } from '@/lib/api'
 import type { Stats } from '@/lib/api'
+import PressSection from '@/components/PressSection'
 
 function useCountUp(target: number, start: boolean, duration = 1800) {
   const [count, setCount] = useState(0)
@@ -168,11 +169,14 @@ export default function AboutPage() {
                 cirt.gov.bd
               </a>
             </p>
-            <p>📧 <a href="mailto:eprohoribd@gmail.com" style={{ color: '#00e5c4' }}>eprohoribd@gmail.com</a></p>
+            <p>📧 <a href="mailto:admin@eprohori.tech" style={{ color: '#00e5c4' }}>admin@eprohori.tech</a></p>
             <p>🆘 সাইবার অপরাধ হেল্পলাইন: <strong className="text-white">999</strong></p>
           </div>
         </div>
       </section>
+
+      {/* ── 6. Partnerships ── */}
+      <PressSection />
     </div>
   )
 }

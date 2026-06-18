@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { fetchStats, fetchTrending, reportThreat, validateText, checkPhone } from '@/lib/api'
-import type { Stats, TrendingScam, ValidationResult } from '@/lib/api'
+import { fetchTrending, reportThreat, validateText, checkPhone } from '@/lib/api'
+import type { TrendingScam, ValidationResult } from '@/lib/api'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import DistrictSelect, { DISTRICT_TO_DIVISION } from '@/components/DistrictSelect'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -36,18 +36,11 @@ export default function ThreatsPage() {
   const [submitResult, setSubmitResult] = useState<ValidationResult | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
-  const [stats, setStats]           = useState<Stats | null>(null)
-  const [myReports, setMyReports]   = useState(0)
   const [trending, setTrending]     = useState<TrendingScam[]>([])
   const [trendLoading, setTrendLoading] = useState(true)
 
   useEffect(() => {
-    fetchStats().then(setStats)
     fetchTrending().then(d => { setTrending(d); setTrendLoading(false) })
-    try {
-      const saved = JSON.parse(localStorage.getItem('eprohori_reports') || '[]')
-      setMyReports(Array.isArray(saved) ? saved.length : 0)
-    } catch { /* ignore */ }
   }, [])
 
   const handleSubmit = async () => {
@@ -97,7 +90,6 @@ export default function ThreatsPage() {
         createdAt: new Date().toISOString(),
       })
       localStorage.setItem('eprohori_reports', JSON.stringify(saved.slice(0, 50)))
-      setMyReports(saved.length > 50 ? 50 : saved.length)
 
       const profileRaw = localStorage.getItem('eprohori_profile')
       if (profileRaw) {
@@ -375,29 +367,6 @@ export default function ThreatsPage() {
               </button>
             )}
           </div>
-        </div>
-      </section>
-
-      {/* ── Quick stats ── */}
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { label: t('stat_today'),    value: stats?.today_reports ?? '—',  icon: '📊', color: '#00e5c4' },
-            { label: t('stat_threats'),  value: stats?.active_threats ?? '—', icon: '🛡️', color: '#22c55e' },
-            { label: t('your_reports'),  value: myReports,                    icon: '🏅', color: '#f59e0b' },
-          ].map(s => (
-            <div
-              key={s.label}
-              className="rounded-xl p-5 text-center"
-              style={{ backgroundColor: '#0d1829', border: `1px solid ${s.color}22` }}
-            >
-              <div className="text-2xl mb-1">{s.icon}</div>
-              <div className="font-heading font-bold text-2xl mb-1" style={{ color: s.color }}>
-                {typeof s.value === 'number' ? s.value.toLocaleString() : s.value}
-              </div>
-              <div className="text-xs text-slate-400">{s.label}</div>
-            </div>
-          ))}
         </div>
       </section>
       </div>

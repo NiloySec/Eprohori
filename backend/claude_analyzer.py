@@ -203,7 +203,18 @@ def hybrid_predict(text: str, ml_result: dict) -> dict:
         # ML was confident it's a threat — keep its verdict, enrich the reasons.
         is_threat = ml_result["is_threat"]
         category = ml_result["category"]
-        reasons = (ai.reasons_bn[:3] or ml_result["reasons"]) if is_threat else []
+        # Consistency guard: if ML flags a threat on a MODERATE score (< 0.85) but
+        # the AI confidently disagrees, defer to the AI. This prevents clearly-safe
+        # messages (e.g. "class at 9am") that the linear model over-scores from being
+        # labelled phishing with a contradicting "this is safe" explanation.
+        # Strong ML threats (>= 0.85) always stand, so real attacks aren't suppressed.
+        if is_threat and not ai.is_threat and confidence < 0.85:
+            is_threat = False
+            category = "safe"
+            confidence = round(min(confidence, 0.30), 4)
+            reasons = []
+        else:
+            reasons = (ai.reasons_bn[:3] or ml_result["reasons"]) if is_threat else []
 
     return {
         "is_threat": is_threat,

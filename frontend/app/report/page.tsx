@@ -141,49 +141,6 @@ export default function ThreatsPage() {
 
       <div className="max-w-3xl mx-auto px-4 pb-16 pt-4">
 
-      {/* ── Top Scams This Week ── */}
-      <section className="mb-10">
-        <h2 className="font-heading text-xl font-bold text-white mb-4">🔥 {t('trending_title')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {trendLoading
-            ? Array(3).fill(0).map((_, i) => (
-                <div key={i} className="h-28 rounded-xl shimmer-base" style={{ backgroundColor: 'rgba(13,24,41,0.8)' }} />
-              ))
-            : trending.slice(0, 3).map((tr, i) => (
-                <div
-                  key={tr.id}
-                  className="rounded-xl p-5 hover-reveal fade-in-up"
-                  style={{
-                    background: i === 0
-                      ? 'linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(13,24,41,0.9) 100%)'
-                      : i === 1
-                      ? 'linear-gradient(135deg, rgba(148,163,184,0.06) 0%, rgba(13,24,41,0.9) 100%)'
-                      : 'linear-gradient(135deg, rgba(205,124,59,0.06) 0%, rgba(13,24,41,0.9) 100%)',
-                    border: `1px solid ${i === 0 ? 'rgba(245,158,11,0.2)' : i === 1 ? 'rgba(148,163,184,0.15)' : 'rgba(205,124,59,0.15)'}`,
-                    animationDelay: `${i * 0.1}s`,
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className="font-heading font-bold text-3xl"
-                      style={{ color: i === 0 ? '#f59e0b' : i === 1 ? '#94a3b8' : '#cd7c3b' }}
-                    >
-                      #{i + 1}
-                    </span>
-                    <span className="text-2xl">
-                      {tr.category === 'SMS' ? '💬' : tr.category === 'URL' ? '🔗' : tr.category === 'Facebook' ? '👤' : '🌐'}
-                    </span>
-                  </div>
-                  <p className="text-sm font-semibold text-white mb-2">{tr.title}</p>
-                  <div className="flex justify-between text-xs text-slate-500">
-                    <span>{tr.division}</span>
-                    <span style={{ color: '#ff4444', fontWeight: 700 }}>{tr.count} রিপোর্ট</span>
-                  </div>
-                </div>
-              ))}
-        </div>
-      </section>
-
       {/* ── Report Form ── */}
       <section className="mb-10">
         <div
@@ -367,6 +324,49 @@ export default function ThreatsPage() {
               </button>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ── Top Scams This Week (context, below the form) ── */}
+      <section>
+        <h2 className="font-heading text-xl font-bold text-white mb-4">🔥 {t('trending_title')}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {trendLoading
+            ? Array(3).fill(0).map((_, i) => (
+                <div key={i} className="h-28 rounded-xl shimmer-base" style={{ backgroundColor: 'rgba(13,24,41,0.8)' }} />
+              ))
+            : trending.slice(0, 3).map((tr, i) => (
+                <div
+                  key={tr.id}
+                  className="rounded-xl p-5 hover-reveal fade-in-up"
+                  style={{
+                    background: i === 0
+                      ? 'linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(13,24,41,0.9) 100%)'
+                      : i === 1
+                      ? 'linear-gradient(135deg, rgba(148,163,184,0.06) 0%, rgba(13,24,41,0.9) 100%)'
+                      : 'linear-gradient(135deg, rgba(205,124,59,0.06) 0%, rgba(13,24,41,0.9) 100%)',
+                    border: `1px solid ${i === 0 ? 'rgba(245,158,11,0.2)' : i === 1 ? 'rgba(148,163,184,0.15)' : 'rgba(205,124,59,0.15)'}`,
+                    animationDelay: `${i * 0.1}s`,
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className="font-heading font-bold text-3xl"
+                      style={{ color: i === 0 ? '#f59e0b' : i === 1 ? '#94a3b8' : '#cd7c3b' }}
+                    >
+                      #{i + 1}
+                    </span>
+                    <span className="text-2xl">
+                      {tr.category === 'SMS' ? '💬' : tr.category === 'URL' ? '🔗' : tr.category === 'Facebook' ? '👤' : '🌐'}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-white mb-2">{tr.title}</p>
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>{tr.division}</span>
+                    <span style={{ color: '#ff4444', fontWeight: 700 }}>{tr.count} রিপোর্ট</span>
+                  </div>
+                </div>
+              ))}
         </div>
       </section>
       </div>

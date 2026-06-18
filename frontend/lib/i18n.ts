@@ -17,7 +17,7 @@ export const translations = {
     hero_desc: 'Detect, report, and prevent phishing, scams and cyber threats — keep Bangladesh safe together.',
     hero_description: 'Detect, report, and prevent phishing, scams and cyber threats — keep Bangladesh safe together.',
     report_btn: 'Report Threat →',
-    validate_btn: 'AI Validate',
+    validate_btn: '🔍 Quick Scan with AI',
     ai_btn: 'Eprohori AI',
 
     // ── Home sections ─────────────────────────────────────────────────────
@@ -205,7 +205,7 @@ export const translations = {
     hero_desc: 'ফিশিং, স্ক্যাম ও সাইবার হুমকি শনাক্ত করুন, রিপোর্ট করুন এবং বাংলাদেশকে নিরাপদ রাখুন।',
     hero_description: 'ফিশিং, স্ক্যাম ও সাইবার হুমকি শনাক্ত করুন, রিপোর্ট করুন এবং বাংলাদেশকে নিরাপদ রাখুন।',
     report_btn: 'হুমকি রিপোর্ট করুন →',
-    validate_btn: 'AI যাচাই',
+    validate_btn: '🔍 AI দিয়ে স্ক্যান করুন',
     ai_btn: 'Eprohori AI',
 
     // ── Home sections ─────────────────────────────────────────────────────

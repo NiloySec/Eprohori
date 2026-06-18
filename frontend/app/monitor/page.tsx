@@ -307,91 +307,31 @@ export default function MonitorPage() {
         )}
       </section>
 
-      {/* ── Section 3: Live Activity ── */}
-      <section className="mb-14">
-        <div className="flex items-center gap-2 mb-5">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#00e5c4' }} />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: '#00e5c4' }} />
-          </span>
-          <h2 className="font-heading text-2xl font-bold text-white">{t('live_activity')}</h2>
-          <span className="text-xs text-slate-500 ml-auto">{t('realtime_update')}</span>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Activity feed */}
-          <div className="lg:col-span-2 glass-card p-5">
-            <p className="text-xs text-slate-500 mb-3">{t('last_activity')}</p>
-            {activity.length === 0 ? (
-              <div className="space-y-2">
-                {Array(5).fill(0).map((_, i) => (
-                  <div key={i} className="h-10 rounded-lg shimmer-base" style={{ backgroundColor: 'rgba(13,24,41,0.8)' }} />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2" style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                {activity.map((a, i) => (
-                  <button
-                    key={a.id}
-                    onClick={() => router.push('/report/' + a.id)}
-                    className="w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-all hover:bg-white/5 fade-in-up"
-                    style={{ animationDelay: `${i * 0.04}s` }}
-                  >
-                    <span
-                      className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"
-                      style={{
-                        backgroundColor: `${SEV_COLOR[a.severity] ?? '#3b82f6'}15`,
-                        border: `1px solid ${SEV_COLOR[a.severity] ?? '#3b82f6'}30`,
-                      }}
-                    >
-                      {a.type === 'SMS' ? '💬' : a.type === 'URL' ? '🔗' : a.type === 'Facebook' ? '👤' : '🌐'}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{a.detail}</p>
-                      <p className="text-xs text-slate-500">📍 {a.division} · {timeAgo(a.created_at)}</p>
-                    </div>
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: a.status === 'verified' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
-                        color: a.status === 'verified' ? '#22c55e' : '#64748b',
-                      }}
-                    >
-                      {a.status === 'verified' ? '✓' : '⏳'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Threat type distribution chart */}
-          <div className="glass-card p-5">
-            <p className="text-xs text-slate-500 mb-3">{t('threat_types_today')}</p>
-            {typeDist.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-6">—</p>
-            ) : (
-              typeDist.map((s, i) => (
-                <div key={s.type} className="mb-3">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">{s.type}</span>
-                    <span style={{ color: distColors[i % distColors.length] }}>{s.pct}%</span>
-                  </div>
-                  <div className="h-1.5 rounded-full" style={{ backgroundColor: 'rgba(30,58,95,0.6)' }}>
-                    <div
-                      className="h-1.5 rounded-full transition-all duration-700"
-                      style={{
-                        width: `${s.pct}%`,
-                        background: `linear-gradient(90deg, ${distColors[i % distColors.length]}88, ${distColors[i % distColors.length]})`,
-                      }}
-                    />
-                  </div>
+      {/* ── Section 3: Threat type distribution ── */}
+      {typeDist.length > 0 && (
+        <section className="mb-14">
+          <h2 className="font-heading text-2xl font-bold text-white mb-5">{t('threat_types_today')}</h2>
+          <div className="glass-card p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+            {typeDist.map((s, i) => (
+              <div key={s.type}>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-300">{s.type}</span>
+                  <span className="font-semibold" style={{ color: distColors[i % distColors.length] }}>{s.pct}%</span>
                 </div>
-              ))
-            )}
+                <div className="h-2 rounded-full" style={{ backgroundColor: 'rgba(30,58,95,0.6)' }}>
+                  <div
+                    className="h-2 rounded-full transition-all duration-700"
+                    style={{
+                      width: `${s.pct}%`,
+                      background: `linear-gradient(90deg, ${distColors[i % distColors.length]}88, ${distColors[i % distColors.length]})`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Section 4: Threat Map ── */}
       <section className="mb-14">

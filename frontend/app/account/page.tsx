@@ -520,6 +520,7 @@ export default function AccountPage() {
   // Account deletion (danger zone)
   const router = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [view, setView] = useState<'overview' | 'settings' | 'reports' | 'leaderboard'>('overview')
   const [deleting, setDeleting] = useState(false)
   const [deleted, setDeleted] = useState(false)
 
@@ -717,7 +718,31 @@ export default function AccountPage() {
         ))}
       </div>
 
-      {/* ── Badge / level ── */}
+      {/* ── Tab bar ── */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {([
+          ['overview', '🎖️ প্রোফাইল'],
+          ['reports', '📋 রিপোর্ট'],
+          ['leaderboard', '🏆 র‍্যাংকিং'],
+          ['settings', '⚙️ সেটিংস'],
+        ] as const).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setView(k)}
+            className="px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all"
+            style={{
+              background: view === k ? 'rgba(0,229,196,0.12)' : 'rgba(13,24,41,0.6)',
+              border: `1px solid ${view === k ? 'rgba(0,229,196,0.35)' : 'rgba(255,255,255,0.06)'}`,
+              color: view === k ? '#00e5c4' : '#94a3b8',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Badge / level (overview) ── */}
+      {view === 'overview' && (
       <div
         className="rounded-2xl p-6 fade-in-up"
         style={{ background: 'rgba(13,24,41,0.85)', border: '1px solid rgba(255,255,255,0.06)' }}
@@ -748,9 +773,10 @@ export default function AccountPage() {
           ))}
         </div>
       </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* ── Account settings ── */}
+      {/* ── Account settings ── */}
+      {view === 'settings' && (
         <div
           className="rounded-2xl p-6 fade-in-up"
           style={{ background: 'rgba(13,24,41,0.85)', border: '1px solid rgba(255,255,255,0.06)' }}
@@ -836,8 +862,10 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
+      )}
 
-        {/* ── Recent activity ── */}
+      {/* ── Recent activity (reports) ── */}
+      {view === 'reports' && (
         <div
           className="rounded-2xl p-6 fade-in-up"
           style={{ background: 'rgba(13,24,41,0.85)', border: '1px solid rgba(255,255,255,0.06)' }}
@@ -905,9 +933,10 @@ export default function AccountPage() {
             </div>
           )}
         </div>
-      </div>
+      )}
 
       {/* ── Community rank / leaderboard ── */}
+      {view === 'leaderboard' && (
       <div
         className="rounded-2xl p-6 fade-in-up"
         style={{ background: 'rgba(13,24,41,0.85)', border: '1px solid rgba(255,255,255,0.06)' }}
@@ -944,6 +973,7 @@ export default function AccountPage() {
           })}
         </div>
       </div>
+      )}
 
       {/* ── Edit Profile modal ── */}
       {editOpen && (

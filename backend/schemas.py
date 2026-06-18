@@ -128,6 +128,7 @@ class StatsOut(BaseModel):
     warned_count: int = 0
     rangers: int = 0
     districts_covered: int = 64
+    saved_count: int = 0   # "Eprohori saved me from a scam" — pilot impact metric
 
 
 class DivisionOut(BaseModel):

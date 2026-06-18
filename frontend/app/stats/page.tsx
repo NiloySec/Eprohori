@@ -28,6 +28,17 @@ export default function StatsPage() {
 
       {stats && (
         <>
+          {(stats.saved_count ?? 0) > 0 && (
+            <section className="rounded-2xl p-8 mb-10 text-center relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.12), rgba(0,229,196,0.06))', border: '1px solid rgba(34,197,94,0.3)' }}>
+              <p className="text-xs uppercase tracking-widest text-emerald-400 mb-2">Real Impact</p>
+              <div className="text-5xl md:text-6xl font-bold text-white mb-2">
+                {(stats.saved_count ?? 0).toLocaleString('bn-BD')}
+              </div>
+              <p className="text-slate-300">জন বলেছেন Eprohori তাঁদের scam থেকে বাঁচিয়েছে 🛡️</p>
+            </section>
+          )}
+
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <Stat label="মোট রিপোর্ট" value={stats.total_threats ?? 0} accent="#00e5c4" />
             <Stat label="আজ" value={stats.today_reports ?? 0} accent="#fbbf24" />

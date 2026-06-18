@@ -47,7 +47,7 @@ from security import (
     require_admin,
     throttle,
 )
-from models import AdminAudit, Alert, BetaSignup, PhoneBlacklist, Threat, User
+from models import AdminAudit, Alert, BetaSignup, ImpactFeedback, PhoneBlacklist, Threat, User
 from schemas import (
     ActivityOut,
     AlertOut,
@@ -296,6 +296,18 @@ def beta_signup(request: dict, req: Request, db: Session = Depends(get_db)):
     }
 
 
+@app.post("/api/feedback/saved", tags=["marketing"])
+def impact_feedback(request: dict, req: Request, db: Session = Depends(get_db)):
+    """Record a 'did Eprohori save you from a scam?' response — the pilot impact metric."""
+    throttle(req, "impact-feedback", max_hits=20, window_sec=300)
+    saved = bool(request.get("saved"))
+    source = (request.get("source") or "").strip()[:20] or None
+    db.add(ImpactFeedback(saved=saved, source=source))
+    db.commit()
+    saved_total = db.query(func.count(ImpactFeedback.id)).filter(ImpactFeedback.saved == True).scalar() or 0  # noqa: E712
+    return {"success": True, "saved_count": saved_total}
+
+
 @app.get("/api/stats", response_model=StatsOut, tags=["stats"])
 def get_stats(db: Session = Depends(get_db)):
     today_start = datetime.combine(date.today(), datetime.min.time())
@@ -308,6 +320,7 @@ def get_stats(db: Session = Depends(get_db)):
     total = db.query(Threat).count()
     active = db.query(Threat).filter(Threat.status == "verified").count()
     rangers = db.query(User).count()
+    saved_count = db.query(func.count(ImpactFeedback.id)).filter(ImpactFeedback.saved == True).scalar() or 0  # noqa: E712
     return StatsOut(
         total_threats=total,
         today_reports=today_count,
@@ -320,6 +333,7 @@ def get_stats(db: Session = Depends(get_db)):
         warned_count=total * 27,
         rangers=rangers,
         districts_covered=64,
+        saved_count=saved_count,
     )
 
 
@@ -1514,7 +1528,7 @@ def admin_backup(_admin: dict = Depends(require_admin), db: Session = Depends(ge
         for tbl_name, model in [
             ("users", User), ("threats", Threat), ("alerts", Alert),
             ("admin_audits", AdminAudit), ("phone_blacklist", PhoneBlacklist),
-            ("beta_signups", BetaSignup),
+            ("beta_signups", BetaSignup), ("impact_feedback", ImpactFeedback),
         ]:
             rows = db.query(model).all()
             yield f'"{tbl_name}":' + json.dumps([_serialize(r) for r in rows]) + ","

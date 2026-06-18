@@ -76,3 +76,13 @@ class BetaSignup(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class ImpactFeedback(Base):
+    """'Did Eprohori save you from a scam?' — the pilot's core impact metric."""
+    __tablename__ = "impact_feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    saved = Column(Boolean, default=False)          # True = "yes, it saved me"
+    source = Column(String, nullable=True)          # scan | alert | monitor
+    created_at = Column(DateTime, server_default=func.now())

@@ -62,6 +62,7 @@ export interface Stats {
   total_threats?: number
   rangers_count?: number
   pending_count?: number
+  saved_count?: number
 }
 
 export interface Threat {

@@ -7,6 +7,7 @@ import { StatCardSkeleton } from '@/components/Skeleton'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import { useLanguage } from '@/lib/LanguageContext'
 import BetaSignup from '@/components/BetaSignup'
+import SavedFeedback from '@/components/SavedFeedback'
 
 /* ── Demo fallback data (shown when backend has no records yet) ── */
 const DEMO = {
@@ -400,6 +401,11 @@ export default function HomePage() {
                     )}
                   </div>
                 </div>
+                {scanResult.is_phishing && (
+                  <div className="mt-3">
+                    <SavedFeedback source="scan" />
+                  </div>
+                )}
               </div>
             )}
           </div>

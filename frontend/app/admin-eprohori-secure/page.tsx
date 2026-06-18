@@ -368,8 +368,6 @@ export default function AdminPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <ToolCard icon="💾" title="Database Backup" desc="সব tables-এর JSON dump ডাউনলোড করুন"
               cta="Download backup" onClick={handleBackup} />
-            <ToolCard icon="📊" title="Public Stats" desc="Public-facing statistics page দেখুন"
-              cta="Visit /stats" onClick={() => window.open('/stats', '_blank')} />
             <ToolCard icon="🗺️" title="Live Monitor" desc="Real-time threat map ও alerts"
               cta="Open monitor" onClick={() => window.open('/monitor', '_blank')} />
             <ToolCard icon="🐛" title="Sentry Dashboard" desc="Error tracking ও performance monitoring"

@@ -58,7 +58,6 @@ export default function Navbar() {
     { href: '/',        label: t('nav_home') },
     { href: '/report',  label: t('nav_threats') },
     { href: '/monitor', label: t('nav_monitor') },
-    { href: '/stats',   label: 'পরিসংখ্যান' },
     { href: '/about',   label: t('nav_about') },
   ]
 

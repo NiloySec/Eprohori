@@ -32,6 +32,21 @@ import profile_validator
 import validator
 import phone_checker
 from database import Base, engine, get_db
+from security import (
+    ADMIN_TOKEN_HOURS,
+    JWT_ALG,
+    JWT_SECRET,
+    USER_TOKEN_HOURS,
+    _bearer,
+    _EMAIL_RE,
+    _hash_password,
+    _ip_throttle,
+    _verify_password,
+    create_token,
+    get_current_user,
+    require_admin,
+    throttle,
+)
 from models import AdminAudit, Alert, BetaSignup, PhoneBlacklist, Threat, User
 from schemas import (
     ActivityOut,
@@ -242,29 +257,6 @@ class BodySizeLimitMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(BodySizeLimitMiddleware)
-
-
-# Bearer-token extractor (used by JWT auth + reporter trust scoring)
-_bearer = HTTPBearer(auto_error=False)
-
-
-# ── Per-IP throttle helper (used by OTP/login/etc.) ──────────────────────────
-_ip_throttle: dict[str, list[float]] = {}
-
-# Pragmatic email shape check: non-empty local + domain with a dotted TLD.
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-
-
-def throttle(request: Request, bucket: str, max_hits: int, window_sec: int) -> None:
-    """Raise 429 if a single IP exceeds max_hits within window_sec for this bucket."""
-    ip = request.client.host if request.client else "unknown"
-    key = f"{bucket}:{ip}"
-    now = datetime.utcnow().timestamp()
-    hits = [t for t in _ip_throttle.get(key, []) if now - t < window_sec]
-    if len(hits) >= max_hits:
-        raise HTTPException(429, "Too many requests. Please wait and try again.")
-    hits.append(now)
-    _ip_throttle[key] = hits
 
 
 @app.exception_handler(Exception)
@@ -1143,57 +1135,6 @@ def get_districts(
 # Store OTPs temporarily (in production use Redis)
 otp_store: dict[str, dict] = {}
 
-# ── JWT ──────────────────────────────────────────────────────────────────────
-
-_jwt_env = os.getenv("JWT_SECRET")
-if _jwt_env:
-    JWT_SECRET = _jwt_env
-elif os.getenv("ENV", "development").lower() == "production":
-    # Hard-fail in production — a random per-process secret invalidates tokens on every restart
-    raise RuntimeError("JWT_SECRET must be set in the environment for production")
-else:
-    JWT_SECRET = secrets.token_hex(32)
-    print("[main] WARNING: JWT_SECRET not set, using random dev secret (tokens invalidated on restart)")
-JWT_ALG = "HS256"
-USER_TOKEN_HOURS = 24 * 7   # user sessions: 7 days
-ADMIN_TOKEN_HOURS = 1       # admin sessions: 1 hour (auto-logout)
-
-
-def create_token(sub: str, role: str, hours: float) -> str:
-    now = datetime.utcnow()
-    payload = {"sub": sub, "role": role, "iat": now, "exp": now + timedelta(hours=hours)}
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALG)
-
-
-def get_current_user(
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
-) -> dict:
-    """FastAPI dependency: validates the Bearer JWT, returns its payload."""
-    if not creds:
-        raise HTTPException(401, "Not authenticated")
-    try:
-        return jwt.decode(creds.credentials, JWT_SECRET, algorithms=[JWT_ALG])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(401, "Token expired — please log in again")
-    except jwt.InvalidTokenError:
-        raise HTTPException(401, "Invalid token")
-
-
-def require_admin(
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
-) -> dict:
-    """Admin guard — returns 403 for any auth failure (no token, bad token, wrong role)."""
-    if not creds:
-        raise HTTPException(403, "Admin access required")
-    try:
-        payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=[JWT_ALG])
-    except jwt.InvalidTokenError:
-        raise HTTPException(403, "Admin access required")
-    if payload.get("role") != "admin":
-        raise HTTPException(403, "Admin access required")
-    return payload
-
-
 def _log_audit(db: Session, admin_email: str, action: str, target: str = "") -> None:
     db.add(AdminAudit(admin_email=admin_email, action=action, target=target))
     db.commit()
@@ -1237,22 +1178,6 @@ def refresh_token(payload: dict = Depends(get_current_user)):
     role = payload.get("role", "user")
     hours = ADMIN_TOKEN_HOURS if role == "admin" else USER_TOKEN_HOURS
     return {"token": create_token(payload["sub"], role, hours)}
-
-
-
-def _hash_password(password: str) -> str:
-    salt = secrets.token_hex(16)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
-    return f"{salt}${digest}"
-
-
-def _verify_password(password: str, stored: str) -> bool:
-    try:
-        salt, digest = stored.split("$", 1)
-        check = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100_000).hex()
-        return secrets.compare_digest(check, digest)
-    except Exception:  # noqa: BLE001
-        return False
 
 
 def _user_rank(db: Session, user: User) -> int:

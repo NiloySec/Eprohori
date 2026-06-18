@@ -159,48 +159,45 @@ export default function MonitorPage() {
   })
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
+    <div>
+      {/* ── Premium hero header ── */}
+      <section className="relative overflow-hidden grid-bg">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 55% 60% at 50% 0%, rgba(255,68,68,0.08) 0%, transparent 70%)' }} />
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{ width: 600, height: 380, borderRadius: '50%', background: 'rgba(0,229,196,0.10)', filter: 'blur(120px)', opacity: 0.4 }} />
 
-      {/* ── Section 1: Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-10 fade-in-up">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <h1 className="font-heading text-3xl font-bold text-white">{t('monitor_title')}</h1>
-            <span
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-              style={{ backgroundColor: 'rgba(255,68,68,0.12)', border: '1px solid rgba(255,68,68,0.3)', color: '#ff6666' }}
-            >
+        <div className="relative max-w-7xl mx-auto px-4 pt-16 pb-8 z-10">
+          <div className="flex flex-col items-center text-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-4 fade-in-up"
+              style={{ backgroundColor: 'rgba(255,68,68,0.12)', border: '1px solid rgba(255,68,68,0.3)', color: '#ff6666' }}>
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
               </span>
-              LIVE
+              LIVE MONITORING
             </span>
+            <h1 className="font-heading text-4xl md:text-5xl font-bold mb-3 gradient-text fade-in-up-1 leading-tight">
+              {t('monitor_title')}
+            </h1>
+            <p className="text-base md:text-lg text-slate-400 max-w-2xl mx-auto fade-in-up-2">
+              {t('monitor_subtitle')}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-7 fade-in-up-3">
+              <Link href="/report" className="btn-primary px-7 py-3" style={{ borderRadius: '12px' }}>
+                🚨 {t('report_btn')}
+              </Link>
+              {lastUpdated && (
+                <span className="text-xs text-slate-500">
+                  {t('last_updated')}: <span style={{ color: '#00e5c4' }}>{lastUpdated.toLocaleTimeString()}</span>
+                </span>
+              )}
+            </div>
           </div>
-          <p className="text-slate-400">{t('monitor_subtitle')}</p>
         </div>
-        {lastUpdated && (
-          <p className="sm:ml-auto text-xs text-slate-500">
-            {t('last_updated')}: <span style={{ color: '#00e5c4' }}>{lastUpdated.toLocaleTimeString()}</span>
-          </p>
-        )}
-      </div>
+      </section>
 
-      {/* Quick action bar */}
-      <div
-        className="rounded-xl px-5 py-4 mb-10 flex flex-col sm:flex-row items-start sm:items-center gap-3 fade-in-up"
-        style={{
-          background: 'linear-gradient(135deg, rgba(0,229,196,0.07) 0%, rgba(59,130,246,0.07) 100%)',
-          border: '1px solid rgba(0,229,196,0.2)',
-        }}
-      >
-        <p className="font-semibold text-white flex items-center gap-2">
-          <span className="text-xl">🚨</span> {t('spotted_threat')}
-        </p>
-        <Link href="/report" className="btn-primary px-6 py-2.5 sm:ml-auto" style={{ borderRadius: '12px' }}>
-          {t('report_btn')}
-        </Link>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 pb-16 pt-4">
 
       {/* ── Section 2: Active Alerts ── */}
       <section className="mb-14">
@@ -748,6 +745,7 @@ export default function MonitorPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

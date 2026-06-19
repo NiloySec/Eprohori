@@ -659,18 +659,16 @@ async def send_alert_emails(threat_id: int) -> int:
 
         # NOTE: the reporter is intentionally NOT alerted here — they already know
         # about the threat they reported. They get a separate result/confirmation
-        # email instead. This alert is a *warning* for OTHER people in the district.
+        # email instead. This alert is a *warning* for everyone else.
 
-        # Opt-in users whose district OR region matches (excluding the reporter)
-        if district:
-            district_users = db.query(User).filter(
-                User.notify_alerts == True,  # noqa: E712
-                User.email.isnot(None),
-                ((User.district == district) | (User.region == district)),
-            ).all()
-            for u in district_users:
-                if u.email and u.email != t.reporter_email:
-                    recipients.setdefault(u.email, u.name)
+        # ALL opt-in users nationwide (not just the affected district) — excluding the reporter
+        opt_in_users = db.query(User).filter(
+            User.notify_alerts == True,  # noqa: E712
+            User.email.isnot(None),
+        ).all()
+        for u in opt_in_users:
+            if u.email and u.email != t.reporter_email:
+                recipients.setdefault(u.email, u.name)
 
         if not recipients:
             return 0

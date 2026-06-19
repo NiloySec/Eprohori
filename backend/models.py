@@ -17,6 +17,7 @@ class Threat(Base):
     is_campaign = Column(Integer, default=0)        # 1 = burst of reports detected (scam wave)
     screenshot = Column(Text, nullable=True)        # optional base64 evidence image
     district = Column(String, nullable=True)        # reporter-selected district (region = parent division)
+    human_reviewed = Column(Boolean, default=False) # True once an admin manually approved/rejected — safe for ML feedback
     created_at = Column(DateTime, server_default=func.now())
 
 

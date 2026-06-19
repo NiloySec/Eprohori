@@ -157,6 +157,7 @@ async def lifespan(app: FastAPI):
             ("is_campaign",    "ALTER TABLE threats ADD COLUMN is_campaign INTEGER DEFAULT 0"),
             ("screenshot",     "ALTER TABLE threats ADD COLUMN screenshot TEXT"),
             ("district",       "ALTER TABLE threats ADD COLUMN district VARCHAR"),
+            ("human_reviewed", "ALTER TABLE threats ADD COLUMN human_reviewed BOOLEAN DEFAULT FALSE"),
         ])
         seed_db()
         phone_checker.load_blacklist()
@@ -1617,6 +1618,7 @@ def approve_threat(threat_id: int, admin: dict = Depends(require_admin), db: Ses
     if not t:
         raise HTTPException(status_code=404, detail="Threat not found")
     t.status = "verified"
+    t.human_reviewed = True
     db.commit()
     _log_audit(db, admin.get("sub", "admin"), "approve", f"threat #{threat_id}")
     return StatusResponse(status="verified")
@@ -1636,6 +1638,7 @@ async def verify_threat(
         raise HTTPException(status_code=404, detail="Threat not found")
 
     t.status = "verified"
+    t.human_reviewed = True
     db.commit()
     db.refresh(t)
     _log_audit(db, admin.get("sub", "admin"), "verify", f"threat #{threat_id}")
@@ -1655,6 +1658,7 @@ def reject_threat(threat_id: int, admin: dict = Depends(require_admin), db: Sess
     if not t:
         raise HTTPException(status_code=404, detail="Threat not found")
     t.status = "rejected"
+    t.human_reviewed = True
     db.commit()
     _log_audit(db, admin.get("sub", "admin"), "reject", f"threat #{threat_id}")
     return StatusResponse(status="rejected")

@@ -606,7 +606,10 @@ export default function MonitorPage() {
           <p className="text-sm text-slate-500 text-center py-8">{t('no_threats_found')}</p>
         ) : (
           <div className="space-y-3">
-            {listedThreats.map((th, idx) => (
+            {listedThreats.map((th, idx) => {
+              const isSafe = th.status === 'rejected'
+              const accent = isSafe ? '#22c55e' : SEV_COLOR[th.severity]
+              return (
               <button
                 key={th.id}
                 onClick={() => router.push('/report/' + th.id)}
@@ -614,18 +617,27 @@ export default function MonitorPage() {
                 style={{
                   backgroundColor: '#0d1829',
                   border: '1px solid rgba(255,255,255,0.05)',
-                  borderLeft: `3px solid ${SEV_COLOR[th.severity]}`,
+                  borderLeft: `3px solid ${accent}`,
                   animationDelay: `${idx * 0.04}s`,
                 }}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full font-bold"
-                    style={{ backgroundColor: `${SEV_COLOR[th.severity]}20`, color: SEV_COLOR[th.severity] }}
-                  >
-                    {SEV_LABEL[th.severity]}
-                  </span>
-                  {th.is_campaign && (
+                  {isSafe ? (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-bold"
+                      style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
+                    >
+                      ✅ যাচাইকৃত নিরাপদ
+                    </span>
+                  ) : (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-bold"
+                      style={{ backgroundColor: `${SEV_COLOR[th.severity]}20`, color: SEV_COLOR[th.severity] }}
+                    >
+                      {SEV_LABEL[th.severity]}
+                    </span>
+                  )}
+                  {!isSafe && th.is_campaign && (
                     <span
                       className="text-xs px-2 py-0.5 rounded-full font-bold sev-blink"
                       style={{ backgroundColor: 'rgba(255,68,68,0.15)', color: '#ff4444', border: '1px solid rgba(255,68,68,0.35)' }}
@@ -634,15 +646,17 @@ export default function MonitorPage() {
                     </span>
                   )}
                   <span className="text-xs text-slate-500">{th.type}</span>
-                  <span
-                    className="ml-auto text-xs px-2 py-0.5 rounded-full"
-                    style={{
-                      backgroundColor: th.status === 'verified' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
-                      color: th.status === 'verified' ? '#22c55e' : '#64748b',
-                    }}
-                  >
-                    {th.status === 'verified' ? '✓ যাচাইকৃত' : '⏳ পেন্ডিং'}
-                  </span>
+                  {!isSafe && (
+                    <span
+                      className="ml-auto text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: th.status === 'verified' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
+                        color: th.status === 'verified' ? '#22c55e' : '#64748b',
+                      }}
+                    >
+                      {th.status === 'verified' ? '✓ যাচাইকৃত' : '⏳ পেন্ডিং'}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-slate-200 mb-2">{th.detail}</p>
                 <div className="flex items-center gap-3 text-xs text-slate-500">
@@ -656,7 +670,8 @@ export default function MonitorPage() {
                   </span>
                 </div>
               </button>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>

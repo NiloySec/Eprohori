@@ -73,7 +73,7 @@ export interface Threat {
   severity: 'critical' | 'high' | 'medium' | 'low'
   confidence: number        // 0-100
   platform?: string
-  status: 'verified' | 'pending'
+  status: 'verified' | 'pending' | 'rejected'
   created_at: string
   description?: string
   is_campaign?: boolean     // burst of reports — active scam wave

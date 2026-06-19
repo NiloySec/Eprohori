@@ -255,16 +255,38 @@ export default function AdminPage() {
                   return (
                     <div key={t.id} className="rounded-xl p-4 transition hover:border-white/15"
                       style={{ background: 'rgba(6,13,26,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="text-xs px-2 py-0.5 rounded-full font-bold"
-                          style={{ background: 'rgba(0,229,196,0.1)', color: '#00e5c4' }}>{t.type}</span>
+                      <div className="flex items-start justify-between mb-2 gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-bold"
+                            style={{ background: 'rgba(0,229,196,0.1)', color: '#00e5c4' }}>{t.type}</span>
+                          {t.platform && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(148,163,184,0.12)', color: '#cbd5e1' }}>{t.platform}</span>
+                          )}
+                          {t.is_campaign && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>🔥 Campaign</span>
+                          )}
+                        </div>
                         <ConfidenceDot value={t.confidence} />
                       </div>
-                      <p className="text-sm text-white font-medium mb-2 line-clamp-2">{t.detail}</p>
-                      <div className="flex items-center gap-3 text-[11px] text-slate-500 mb-3">
-                        <span>📍 {t.division}</span>
+
+                      {/* Full report content (scrolls if long) */}
+                      <div className="rounded-lg p-3 mb-2 text-sm text-white whitespace-pre-wrap break-words"
+                        style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.05)', maxHeight: 160, overflowY: 'auto' }}>
+                        {t.detail}
                       </div>
-                      <div className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold mb-3 ${willAlert ? '' : 'opacity-70'}`}
+                      {t.description && (
+                        <p className="text-xs text-slate-400 mb-2"><span className="text-slate-500">বিবরণ:</span> {t.description}</p>
+                      )}
+
+                      <div className="flex items-center gap-3 text-[11px] text-slate-500 mb-1 flex-wrap">
+                        <span>📍 {t.division}</span>
+                        <span>🎯 AI: {t.confidence}%</span>
+                        <span>🕐 {new Date(/Z$|[+]/.test(t.created_at) ? t.created_at : t.created_at + 'Z').toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                      </div>
+                      {t.screenshot && (
+                        <a href={t.screenshot} target="_blank" rel="noopener noreferrer" className="text-[11px] text-cyan-400 hover:underline">📎 screenshot দেখুন</a>
+                      )}
+                      <div className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold mt-2 mb-3 ${willAlert ? '' : 'opacity-70'}`}
                         style={{
                           background: willAlert ? 'rgba(245,158,11,0.1)' : 'rgba(148,163,184,0.08)',
                           color: willAlert ? '#f59e0b' : '#94a3b8',

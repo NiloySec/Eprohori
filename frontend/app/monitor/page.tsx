@@ -12,14 +12,19 @@ const Map = dynamic(() => import('@/components/BangladeshDivisionMap'), { ssr: f
 
 type AlertFilter = 'all' | 'critical' | 'high' | 'medium'
 type TimeFilter  = '24h' | '3d' | '7d' | '15d' | '30d'
-type CatFilter   = 'সব' | 'SMS' | 'URL' | 'Facebook' | 'চাকরি'
+type CatFilter   = 'all' | 'sms' | 'email' | 'messenger' | 'whatsapp' | 'telegram' | 'website' | 'other'
 
 const SEV_COLOR: Record<string, string> = { critical: '#ff4444', high: '#f59e0b', medium: '#3b82f6', low: '#22c55e' }
 const SEV_ICON:  Record<string, string> = { critical: '🚨', high: '⚠️', medium: '📢' }
 const SEV_LABEL: Record<string, string> = { critical: 'জরুরি', high: 'উচ্চ', medium: 'মাঝারি', low: 'কম' }
 
 const CAT_TYPE: Partial<Record<CatFilter, string>> = {
-  SMS: 'sms', URL: 'url', Facebook: 'facebook', 'চাকরি': 'website',
+  sms: 'sms', email: 'email', messenger: 'messenger', whatsapp: 'whatsapp',
+  telegram: 'telegram', website: 'website', other: 'other',
+}
+const PLATFORM_LABEL: Record<CatFilter, string> = {
+  all: 'সব প্ল্যাটফর্ম', sms: 'এসএমএস', email: 'ই-মেইল', messenger: 'মেসেঞ্জার',
+  whatsapp: 'হোয়াটসঅ্যাপ', telegram: 'টেলিগ্রাম', website: 'ওয়েবসাইট', other: 'অন্যান্য',
 }
 
 function timeAgo(iso: string) {
@@ -36,9 +41,7 @@ export default function MonitorPage() {
   const TIME_LABELS: Record<TimeFilter, string> = {
     '24h': '২৪ ঘণ্টা', '3d': '৩ দিন', '7d': '৭ দিন', '15d': '১৫ দিন', '30d': '৩০ দিন',
   }
-  const CAT_LABEL: Record<CatFilter, string> = {
-    'সব': t('filter_all'), SMS: t('filter_sms'), URL: t('filter_url'), Facebook: 'Facebook', 'চাকরি': t('filter_job'),
-  }
+  const CAT_LABEL = PLATFORM_LABEL
   const sevLabelT: Record<string, string> = {
     critical: t('severity_critical'), high: t('severity_high'), medium: t('severity_medium'),
   }
@@ -55,7 +58,8 @@ export default function MonitorPage() {
   const [districts, setDistricts]   = useState<DistrictData[]>([])
   const [selected, setSelected]     = useState<DivisionData | null>(null)
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h')
-  const [catFilter, setCatFilter]   = useState<CatFilter>('সব')
+  const [catFilter, setCatFilter]   = useState<CatFilter>('all')
+  const [districtSel, setDistrictSel] = useState('')  // threat-list district filter
   const [threats, setThreats]       = useState<Threat[]>([])
   const [threatsLoading, setThreatsLoading] = useState(false)
 
@@ -97,7 +101,7 @@ export default function MonitorPage() {
 
   // District circles — refetch on time/category change
   useEffect(() => {
-    fetchDistricts(timeFilter, catFilter !== 'সব' ? CAT_TYPE[catFilter] : undefined)
+    fetchDistricts(timeFilter, catFilter !== 'all' ? CAT_TYPE[catFilter] : undefined)
       .then(setDistricts)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeFilter, catFilter])
@@ -117,7 +121,7 @@ export default function MonitorPage() {
   useEffect(() => {
     setThreatsLoading(true)
     const params: Parameters<typeof fetchThreats>[0] = { limit: 20, timeframe: timeFilter }
-    if (catFilter !== 'সব') params.type = CAT_TYPE[catFilter]
+    if (catFilter !== 'all') params.type = CAT_TYPE[catFilter]
     fetchThreats(params)
       .then(setThreats)
       .finally(() => setThreatsLoading(false))
@@ -129,10 +133,11 @@ export default function MonitorPage() {
   const filteredAlerts = alertFilter === 'all' ? alerts : alerts.filter(a => a.severity === alertFilter)
 
   const filteredDivisions = divisions.map(d => {
-    if (catFilter === 'সব') return d
+    if (catFilter === 'all') return d
     return { ...d, threat_count: d.categories[catFilter] ?? 0 }
   })
   const sorted = [...filteredDivisions].sort((a, b) => b.threat_count - a.threat_count)
+  const sortedDistricts = [...districts].sort((a, b) => b.threats - a.threats)
   const total  = filteredDivisions.reduce((sum, d) => sum + d.threat_count, 0)
   const catTotals = divisions.reduce((acc, d) => {
     Object.entries(d.categories).forEach(([cat, count]) => { acc[cat] = (acc[cat] || 0) + count })
@@ -488,20 +493,16 @@ export default function MonitorPage() {
               className="rounded-xl p-4"
               style={{ background: 'rgba(17,31,53,0.7)', border: '1px solid rgba(255,255,255,0.05)' }}
             >
-              <h3 className="font-semibold text-white text-sm mb-3">{t('high_risk_areas')}</h3>
+              <h3 className="font-semibold text-white text-sm mb-3">উচ্চ ঝুঁকির জেলা</h3>
               <div className="space-y-2">
-                {sorted.slice(0, 5).map((d, i) => (
+                {sortedDistricts.slice(0, 5).map((d, i) => (
                   <button
                     key={d.name}
                     onClick={() => {
-                      const orig = divisions.find(x => x.division_en === d.division_en) ?? d
-                      setSelected(orig)
+                      const div = divisions.find(x => x.division_en === d.division) ?? null
+                      setSelected(div)
                     }}
                     className="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-all hover:bg-white/5"
-                    style={{
-                      backgroundColor: selected?.name === d.name ? 'rgba(0,229,196,0.06)' : 'transparent',
-                      border: selected?.name === d.name ? '1px solid rgba(0,229,196,0.15)' : '1px solid transparent',
-                    }}
                   >
                     <span
                       className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
@@ -512,8 +513,8 @@ export default function MonitorPage() {
                     >
                       {i + 1}
                     </span>
-                    <span className="flex-1 text-sm text-white font-medium">{d.name}</span>
-                    <span style={{ color: '#00e5c4', fontWeight: 700, fontSize: '0.85rem' }}>{d.threat_count}</span>
+                    <span className="flex-1 text-sm text-white font-medium">{d.name_bn || d.name}</span>
+                    <span style={{ color: '#00e5c4', fontWeight: 700, fontSize: '0.85rem' }}>{d.threats}</span>
                   </button>
                 ))}
               </div>
@@ -533,7 +534,7 @@ export default function MonitorPage() {
               </>
             ) : t('all_threats_title')}
           </h2>
-          {catFilter !== 'সব' && (
+          {catFilter !== 'all' && (
             <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0,229,196,0.12)', color: '#00e5c4' }}>
               {CAT_LABEL[catFilter]}
             </span>
@@ -566,17 +567,33 @@ export default function MonitorPage() {
             >
               ✓ শুধুমাত্র যাচাইকৃত হুমকি
             </span>
+            {/* Platform filter */}
             <select
-              value={selected?.name ?? 'সব'}
+              value={catFilter}
+              onChange={e => setCatFilter(e.target.value as CatFilter)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold outline-none"
+              style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#94a3b8' }}
+            >
+              {(['all', 'sms', 'email', 'messenger', 'whatsapp', 'telegram', 'website', 'other'] as CatFilter[]).map(c => (
+                <option key={c} value={c}>{PLATFORM_LABEL[c]}</option>
+              ))}
+            </select>
+            {/* District filter (filters by the district's parent division) */}
+            <select
+              value={districtSel}
               onChange={e => {
-                const div = divisions.find(d => d.name === e.target.value) ?? null
+                const name = e.target.value
+                setDistrictSel(name)
+                if (!name) { setSelected(null); return }
+                const dist = districts.find(d => d.name === name)
+                const div = dist ? divisions.find(x => x.division_en === dist.division) ?? null : null
                 setSelected(div)
               }}
               className="px-3 py-1.5 rounded-full text-xs font-semibold outline-none"
               style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#94a3b8' }}
             >
-              <option value="সব">সব বিভাগ</option>
-              {divisions.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
+              <option value="">সব জেলা</option>
+              {districts.map(d => <option key={d.name} value={d.name}>{d.name_bn || d.name}</option>)}
             </select>
           </div>
         </div>

@@ -74,6 +74,7 @@ from notification_service import (
     digest_alert_template,
     otp_email_template,
     report_result_email_template,
+    report_safe_email_template,
     send_email,
     send_telegram,
     threat_alert_template,
@@ -88,6 +89,13 @@ async def send_report_result_email(
     html = report_result_email_template(name, threat_type, confidence, reason, district)
     result = await send_email(to_email, "Your Report Analysis - Eprohori", html, name)
     print(f"[notify] report-result email -> {to_email}: {result}")
+
+
+async def send_report_safe_email(to_email: str, name: str):
+    """Polite note to the reporter when their report is reviewed as safe (rejected)."""
+    html = report_safe_email_template(name)
+    result = await send_email(to_email, "আপনার রিপোর্ট যাচাই হয়েছে — Eprohori", html, name)
+    print(f"[notify] report-safe email -> {to_email}: {result}")
 
 
 def _bootstrap_admin():
@@ -1653,7 +1661,12 @@ async def verify_threat(
 
 
 @app.put("/api/threats/{threat_id}/reject", response_model=StatusResponse, tags=["admin"])
-def reject_threat(threat_id: int, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
+def reject_threat(
+    threat_id: int,
+    background_tasks: BackgroundTasks,
+    admin: dict = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
     t = db.query(Threat).filter(Threat.id == threat_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Threat not found")
@@ -1661,6 +1674,13 @@ def reject_threat(threat_id: int, admin: dict = Depends(require_admin), db: Sess
     t.human_reviewed = True
     db.commit()
     _log_audit(db, admin.get("sub", "admin"), "reject", f"threat #{threat_id}")
+
+    # Polite "your report was reviewed as safe" note to the reporter
+    if t.reporter_email:
+        reporter = db.query(User).filter(User.email == t.reporter_email).first()
+        name = reporter.name if reporter else t.reporter_email.split("@")[0]
+        background_tasks.add_task(send_report_safe_email, t.reporter_email, name)
+
     return StatusResponse(status="rejected")
 
 

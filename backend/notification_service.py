@@ -356,6 +356,51 @@ def report_result_email_template(
     """
 
 
+def report_safe_email_template(name: str) -> str:
+    """Sent to the reporter when their report is reviewed and found to be safe."""
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family:Arial,sans-serif;background:#060d1a;
+                 color:#e2e8f0;padding:40px 20px;margin:0">
+      <div style="max-width:520px;margin:0 auto;background:#0d1829;border-radius:16px;
+                  border:1px solid rgba(34,197,94,0.2);padding:40px">
+        {EMAIL_LOGO_HTML}
+        <h2 style="color:#ffffff;font-size:20px;margin:0 0 8px">
+          আপনার রিপোর্ট যাচাই হয়েছে ✅
+        </h2>
+        <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.3);
+                    border-radius:12px;padding:20px;margin:16px 0 24px">
+          <p style="color:#e2e8f0;font-size:14px;margin:0 0 8px">
+            প্রিয় {name},
+          </p>
+          <p style="color:#cbd5e1;font-size:14px;line-height:1.7;margin:0">
+            আপনার পাঠানো রিপোর্টটি আমাদের টিম যাচাই করেছে — এটি
+            <strong style="color:#22c55e">নিরাপদ</strong> পাওয়া গেছে, কোনো হুমকি নয়।
+            সতর্ক থাকার জন্য ও কমিউনিটিকে সুরক্ষিত রাখতে সাহায্য করার জন্য
+            আপনাকে অসংখ্য ধন্যবাদ। 🙏
+          </p>
+        </div>
+        <p style="color:#94a3b8;font-size:13px;line-height:1.7;margin:0 0 24px">
+          ভুল হতে পারে এই ভেবে দ্বিধা করবেন না — সন্দেহ হলেই রিপোর্ট করুন।
+          আপনার সতর্কতাই বাংলাদেশকে নিরাপদ রাখে।
+        </p>
+        <a href="https://eprohori.tech/report"
+           style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
+                  padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
+                  margin-bottom:24px">
+          আরও রিপোর্ট করুন →
+        </a>
+        <p style="color:#64748b;font-size:12px;text-align:center;margin:0">
+          🛡️ প্রতিটি রিপোর্ট বাংলাদেশকে নিরাপদ করে।
+          <br>© 2026 Eprohori · Bangladesh
+        </p>
+      </div>
+    </body>
+    </html>
+    """
+
+
 def digest_alert_template(items: list) -> str:
     """Hourly digest: one email summarising multiple threats instead of a flood."""
     rows = "".join(

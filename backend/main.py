@@ -322,8 +322,12 @@ def _timeframe_cutoff(timeframe: Optional[str]) -> Optional[datetime]:
     """Return a UTC cutoff datetime for the given timeframe string, or None."""
     if timeframe == "24h":
         return datetime.utcnow() - timedelta(hours=24)
+    if timeframe == "3d":
+        return datetime.utcnow() - timedelta(days=3)
     if timeframe == "7d":
         return datetime.utcnow() - timedelta(days=7)
+    if timeframe == "15d":
+        return datetime.utcnow() - timedelta(days=15)
     if timeframe == "30d":
         return datetime.utcnow() - timedelta(days=30)
     return None

@@ -151,8 +151,12 @@ export default function BangladeshDivisionMap({ divisions, districts, selectedDi
       const map = L.map(mapRef.current, {
         center: [23.7, 90.35],
         zoom: 7,
-        zoomControl: true,
+        zoomControl: false,
         scrollWheelZoom: false,
+        dragging: false,          // fixed map — won't pan or hijack page scroll
+        doubleClickZoom: false,
+        touchZoom: false,
+        keyboard: false,
         attributionControl: false,
       })
 

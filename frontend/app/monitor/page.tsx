@@ -11,7 +11,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 const Map = dynamic(() => import('@/components/BangladeshDivisionMap'), { ssr: false })
 
 type AlertFilter = 'all' | 'critical' | 'high' | 'medium'
-type TimeFilter  = '24h' | '7d' | '30d'
+type TimeFilter  = '24h' | '3d' | '7d' | '15d' | '30d'
 type CatFilter   = 'সব' | 'SMS' | 'URL' | 'Facebook' | 'চাকরি'
 
 const SEV_COLOR: Record<string, string> = { critical: '#ff4444', high: '#f59e0b', medium: '#3b82f6', low: '#22c55e' }
@@ -34,7 +34,7 @@ export default function MonitorPage() {
   const { t } = useLanguage()
 
   const TIME_LABELS: Record<TimeFilter, string> = {
-    '24h': t('time_24h'), '7d': t('time_7d'), '30d': t('time_30d'),
+    '24h': '২৪ ঘণ্টা', '3d': '৩ দিন', '7d': '৭ দিন', '15d': '১৫ দিন', '30d': '৩০ দিন',
   }
   const CAT_LABEL: Record<CatFilter, string> = {
     'সব': t('filter_all'), SMS: t('filter_sms'), URL: t('filter_url'), Facebook: 'Facebook', 'চাকরি': t('filter_job'),
@@ -338,7 +338,7 @@ export default function MonitorPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
           <h2 className="font-heading text-2xl font-bold text-white">{t('threat_map')}</h2>
           <div className="flex flex-wrap gap-2 sm:ml-auto">
-            {(['24h', '7d', '30d'] as TimeFilter[]).map(f => (
+            {(['24h', '3d', '7d', '15d', '30d'] as TimeFilter[]).map(f => (
               <button
                 key={f}
                 onClick={() => setTimeFilter(f)}
@@ -351,20 +351,6 @@ export default function MonitorPage() {
                 }}
               >
                 {TIME_LABELS[f]}
-              </button>
-            ))}
-            {(['সব', 'SMS', 'URL', 'Facebook', 'চাকরি'] as CatFilter[]).map(f => (
-              <button
-                key={f}
-                onClick={() => setCatFilter(f)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  backgroundColor: catFilter === f ? 'rgba(0,229,196,0.15)' : 'rgba(255,255,255,0.03)',
-                  color: catFilter === f ? '#00e5c4' : '#64748b',
-                  border: `1px solid ${catFilter === f ? 'rgba(0,229,196,0.4)' : 'transparent'}`,
-                }}
-              >
-                {CAT_LABEL[f]}
               </button>
             ))}
           </div>

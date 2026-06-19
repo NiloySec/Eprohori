@@ -24,7 +24,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Req
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import func
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
 import claude_analyzer
@@ -373,8 +373,13 @@ def list_threats(
     if status:
         q = q.filter(Threat.status == status)
     elif not include_pending:
-        # Public default: only verified threats are visible
-        q = q.filter(Threat.status == "verified")
+        # Public default: verified threats + admin-reviewed rejected reports
+        # (rejected ones appear like normal entries — no 'rejected' marker, no alert).
+        # Auto-rejected (never human-reviewed) stay hidden as noise.
+        q = q.filter(or_(
+            Threat.status == "verified",
+            and_(Threat.status == "rejected", Threat.human_reviewed == True),  # noqa: E712
+        ))
     if type:
         q = q.filter(Threat.type == type)
     if search:

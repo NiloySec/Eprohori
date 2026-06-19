@@ -1,30 +1,32 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { fetchTrending, reportThreat, validateText, checkPhone } from '@/lib/api'
+import { fetchTrending, reportThreat, validateText } from '@/lib/api'
 import type { TrendingScam, ValidationResult } from '@/lib/api'
 import ConfidenceMeter from '@/components/ConfidenceMeter'
 import DistrictSelect, { DISTRICT_TO_DIVISION } from '@/components/DistrictSelect'
 import { useLanguage } from '@/lib/LanguageContext'
 
-type ThreatType = '' | 'url' | 'sms' | 'facebook' | 'website' | 'call' | 'other'
+type ThreatType = '' | 'sms' | 'email' | 'messenger' | 'whatsapp' | 'telegram' | 'website' | 'other'
 
 const THREAT_TYPES: { value: Exclude<ThreatType, ''>; label: string }[] = [
-  { value: 'url',      label: '🔗 Phishing URL' },
-  { value: 'sms',      label: '💬 Scam SMS' },
-  { value: 'facebook', label: '👤 Facebook Page/Profile' },
-  { value: 'website',  label: '🌐 Fraud Website' },
-  { value: 'call',     label: '📞 Fraud Call/Number' },
-  { value: 'other',    label: '⚠️ Other' },
+  { value: 'sms',       label: '💬 এসএমএস (SMS)' },
+  { value: 'email',     label: '📧 ই-মেইল (Email)' },
+  { value: 'messenger', label: '💬 মেসেঞ্জার (Messenger)' },
+  { value: 'whatsapp',  label: '🟢 হোয়াটসঅ্যাপ (WhatsApp)' },
+  { value: 'telegram',  label: '✈️ টেলিগ্রাম (Telegram)' },
+  { value: 'website',   label: '🌐 ওয়েবসাইট (Website)' },
+  { value: 'other',     label: '⚠️ অন্যান্য (Others)' },
 ]
 
 const TYPE_PLACEHOLDER: Record<Exclude<ThreatType, ''>, string> = {
-  url:      'https://suspicious-link.com',
-  sms:      'Paste the suspicious SMS text...',
-  facebook: 'Facebook page URL or profile link...',
-  website:  'Fraud website URL...',
-  call:     'Phone number e.g. 01XXXXXXXXX',
-  other:    'Describe the threat...',
+  sms:       'সন্দেহজনক SMS-এর টেক্সট paste করুন...',
+  email:     'সন্দেহজনক ইমেইলের বিষয়/টেক্সট paste করুন...',
+  messenger: 'Messenger বার্তা বা লিংক paste করুন...',
+  whatsapp:  'WhatsApp বার্তা বা লিংক paste করুন...',
+  telegram:  'Telegram বার্তা বা লিংক paste করুন...',
+  website:   'সন্দেহজনক ওয়েবসাইটের URL...',
+  other:     'হুমকির বিবরণ লিখুন...',
 }
 
 export default function ThreatsPage() {
@@ -57,22 +59,9 @@ export default function ThreatsPage() {
       platform: form.platform,
       description: form.description,
     })
-    let res: ValidationResult
-    if (threatType === 'call') {
-      const phone = await checkPhone(form.detail)
-      res = {
-        is_phishing: phone.is_scam,
-        confidence: phone.is_scam ? 90 : 15,
-        reason: phone.message,
-        risk_level: phone.is_scam ? 'high' : 'safe',
-        actions: phone.is_scam
-          ? ['এই নম্বরে সাড়া দেবেন না', 'নম্বরটি ব্লক করুন', 'পরিচিতদের সতর্ক করুন']
-          : ['সতর্ক থাকুন', 'অপরিচিত নম্বরে ব্যক্তিগত তথ্য দেবেন না'],
-      }
-    } else {
-      const vtype = threatType === 'url' || threatType === 'website' ? 'url' : 'sms'
-      res = await validateText(form.detail, vtype)
-    }
+    // Website → URL validator; all text channels (sms/email/messenger/...) → text validator
+    const vtype = threatType === 'website' ? 'url' : 'sms'
+    const res: ValidationResult = await validateText(form.detail, vtype)
     await savePromise
 
     setSubmitResult(res)
@@ -192,26 +181,20 @@ export default function ThreatsPage() {
                   onChange={d => setForm(f => ({ ...f, district: d }))}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1.5">প্ল্যাটফর্ম</label>
-                <select
-                  value={form.platform}
-                  onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl text-sm text-white"
-                  style={inputStyle}
-                  onFocus={inputFocus as React.FocusEventHandler<HTMLSelectElement>}
-                  onBlur={inputBlur as React.FocusEventHandler<HTMLSelectElement>}
-                >
-                  <option value="">নির্বাচন করুন</option>
-                  <option>বিকাশ</option>
-                  <option>নগদ</option>
-                  <option>Facebook</option>
-                  <option>WhatsApp</option>
-                  <option>Email</option>
-                  <option>ওয়েবসাইট</option>
-                  <option>অন্যান্য</option>
-                </select>
-              </div>
+              {threatType === 'other' && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-300 mb-1.5">প্ল্যাটফর্মের নাম</label>
+                  <input
+                    value={form.platform}
+                    onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}
+                    placeholder="যেমন: Imo, Viber, TikTok..."
+                    className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500"
+                    style={inputStyle}
+                    onFocus={inputFocus as React.FocusEventHandler<HTMLInputElement>}
+                    onBlur={inputBlur as React.FocusEventHandler<HTMLInputElement>}
+                  />
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-300 mb-1.5">বিবরণ</label>

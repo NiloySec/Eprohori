@@ -747,6 +747,11 @@ CAMPAIGN_THRESHOLD = 5
 _recent_reports: dict[int, list[float]] = {}   # threat_id -> report timestamps
 _campaign_alerted: dict[int, float] = {}        # threat_id -> last wave-alert ts
 
+# R3: if one entity (cluster) gets more than this many reports in a day, push it
+# back to admin review (anti-brigading — stops mass false reports auto-verifying).
+DAILY_REVIEW_THRESHOLD = 5
+_daily_entity_count: dict[int, list[float]] = {}  # threat_id -> today's report timestamps
+
 
 async def send_campaign_alert(threat_type: str, division: str, detail: str, report_count: int):
     """Scam wave: bypasses the hourly cooldown — people are being hit RIGHT NOW."""
@@ -822,7 +827,11 @@ def create_threat(
     payload.type = _type
 
     # ── Validate required fields ─────────────────────────────────────────────
-    valid_types = {"sms", "url", "facebook", "website", "call", "scholarship", "investment", "other"}
+    valid_types = {
+        "sms", "email", "messenger", "whatsapp", "telegram", "website", "other",
+        # legacy/internal types still accepted for back-compat
+        "url", "facebook", "call", "scholarship", "investment",
+    }
     if _type and _type not in valid_types:
         raise HTTPException(422, f"Invalid threat type. Allowed: {sorted(valid_types)}")
     if payload.district:
@@ -867,6 +876,13 @@ def create_threat(
                     send_campaign_alert, dup.type, dup.region or "", dup.content or "", len(times) + 1
                 )
 
+        # R3: >5 reports/day on the same entity → force admin review
+        day_times = [ts for ts in _daily_entity_count.get(dup.id, []) if now_ts - ts < 86400]
+        day_times.append(now_ts)
+        _daily_entity_count[dup.id] = day_times
+        if len(day_times) > DAILY_REVIEW_THRESHOLD and dup.status == "verified":
+            dup.status = "pending"  # over-reported → human scrutiny
+
         db.commit()
         db.refresh(dup)
         response.status_code = 200  # clustered into existing threat
@@ -875,10 +891,19 @@ def create_threat(
     # ── 2. Trust scoring: reporter history sets the auto-verify bar ──────────
     reporter_email, verify_threshold, force_pending = _reporter_trust(db, creds)
 
+    # Anonymous reporters must supply an email so we can confirm the result to them.
+    if not reporter_email:
+        anon_email = (payload.reporter_email or "").lower().strip()
+        if not _EMAIL_RE.match(anon_email):
+            raise HTTPException(400, "Anonymous রিপোর্টের জন্য একটি ইমেইল দিন — ফলাফল জানাতে প্রয়োজন।")
+        reporter_email = anon_email
+
     # ── 3. ML analysis ────────────────────────────────────────────────────────
+    # All text-bearing channels (sms/email/messenger/whatsapp/telegram/website/url)
+    # run through the text classifier — it operates on raw text regardless of source.
     confidence = 0.0
     ml_analyzed = False
-    if payload.type in ("sms", "url") and payload.content:
+    if payload.content:
         try:
             result = validator.predict(payload.content)
             confidence = result["confidence"]

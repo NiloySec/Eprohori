@@ -33,20 +33,31 @@ export default function ThreatsPage() {
   const { t } = useLanguage()
 
   const [threatType, setThreatType] = useState<ThreatType>('')
-  const [form, setForm]             = useState({ detail: '', district: 'Dhaka', platform: '', description: '' })
+  const [form, setForm]             = useState({ detail: '', district: 'Dhaka', platform: '', description: '', email: '' })
   const [submitting, setSubmitting]     = useState(false)
   const [submitResult, setSubmitResult] = useState<ValidationResult | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [loggedIn, setLoggedIn]     = useState(true)  // assume true until checked (hides anon email field)
 
   const [trending, setTrending]     = useState<TrendingScam[]>([])
   const [trendLoading, setTrendLoading] = useState(true)
 
   useEffect(() => {
     fetchTrending().then(d => { setTrending(d); setTrendLoading(false) })
+    try {
+      const auth = JSON.parse(localStorage.getItem('ep_auth') || 'null')
+      setLoggedIn(!!auth?.loggedIn)
+    } catch { setLoggedIn(false) }
   }, [])
 
   const handleSubmit = async () => {
     if (!threatType || !form.detail.trim()) return
+    // Anonymous reporters must give an email (so they can be told the result)
+    if (!loggedIn && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) {
+      setSubmitResult(null)
+      alert('রিপোর্টের ফলাফল জানাতে একটি সঠিক ইমেইল দিন।')
+      return
+    }
     setSubmitting(true)
     setSubmitResult(null)
 
@@ -58,6 +69,7 @@ export default function ThreatsPage() {
       division: DISTRICT_TO_DIVISION[form.district] || form.district,
       platform: form.platform,
       description: form.description,
+      reporterEmail: form.email.trim() || undefined,
     })
     // Website → URL validator; all text channels (sms/email/messenger/...) → text validator
     const vtype = threatType === 'website' ? 'url' : 'sms'
@@ -173,6 +185,23 @@ export default function ThreatsPage() {
                 onBlur={inputBlur as React.FocusEventHandler<HTMLInputElement>}
               />
             </div>
+            {!loggedIn && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-1.5">
+                  আপনার ইমেইল * <span className="text-xs font-normal text-slate-500">(ফলাফল জানাতে — গোপন রাখা হবে)</span>
+                </label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500"
+                  style={inputStyle}
+                  onFocus={inputFocus as React.FocusEventHandler<HTMLInputElement>}
+                  onBlur={inputBlur as React.FocusEventHandler<HTMLInputElement>}
+                />
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-1.5">{t('form_district_label')}</label>
@@ -277,7 +306,7 @@ export default function ThreatsPage() {
                   <button
                     className="text-sm px-4 py-2 rounded-full transition-all hover:bg-white/5"
                     style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}
-                    onClick={() => { setSubmitSuccess(false); setThreatType(''); setForm({ detail: '', district: 'Dhaka', platform: '', description: '' }) }}
+                    onClick={() => { setSubmitSuccess(false); setThreatType(''); setForm({ detail: '', district: 'Dhaka', platform: '', description: '', email: '' }) }}
                   >
                     আরো রিপোর্ট করুন
                   </button>

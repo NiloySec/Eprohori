@@ -655,10 +655,11 @@ export async function reportThreat(data: {
   platform?: string
   description?: string
   screenshot?: string
+  reporterEmail?: string
 }): Promise<void> {
   try {
-    // Reporter email fallback (links report to account even if token expired)
-    let reporterEmail: string | undefined
+    // Logged-in email takes precedence; otherwise use the email the anon user typed.
+    let reporterEmail: string | undefined = data.reporterEmail
     try {
       const auth = JSON.parse(localStorage.getItem('ep_auth') || 'null')
       if (auth?.loggedIn && auth.email) reporterEmail = auth.email

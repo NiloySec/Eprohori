@@ -48,6 +48,15 @@ export default function ThreatsPage() {
       const auth = JSON.parse(localStorage.getItem('ep_auth') || 'null')
       setLoggedIn(!!auth?.loggedIn)
     } catch { setLoggedIn(false) }
+    // Pre-fill from a risky Quick Scan ("রিপোর্ট করুন" on the home page)
+    try {
+      const pre = JSON.parse(sessionStorage.getItem('ep_prefill_report') || 'null')
+      if (pre?.text) {
+        setThreatType((pre.type as ThreatType) || 'sms')
+        setForm(f => ({ ...f, detail: pre.text }))
+        sessionStorage.removeItem('ep_prefill_report')
+      }
+    } catch { /* ignore */ }
   }, [])
 
   const handleSubmit = async () => {

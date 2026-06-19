@@ -443,7 +443,22 @@ export default function HomePage() {
                   </div>
                 </div>
                 {scanResult.is_phishing && (
-                  <div className="mt-3">
+                  <div className="mt-3 space-y-3">
+                    <Link
+                      href="/report"
+                      onClick={() => {
+                        try {
+                          sessionStorage.setItem('ep_prefill_report', JSON.stringify({
+                            text: scanInput.trim(),
+                            type: scanTab === 'url' ? 'website' : 'sms',
+                          }))
+                        } catch { /* ignore */ }
+                      }}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm transition"
+                      style={{ background: 'linear-gradient(135deg, #ff4444 0%, #c81e1e 100%)', color: '#fff', textDecoration: 'none' }}
+                    >
+                      🚨 এটা রিপোর্ট করুন — কমিউনিটিকে সতর্ক করুন
+                    </Link>
                     <SavedFeedback source="scan" />
                   </div>
                 )}

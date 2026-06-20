@@ -129,6 +129,7 @@ class StatsOut(BaseModel):
     rangers: int = 0
     districts_covered: int = 64
     saved_count: int = 0   # "Eprohori saved me from a scam" — pilot impact metric
+    blocked_count: int = 0 # known threats = training-dataset phishing entries + verified reports
 
 
 class DivisionOut(BaseModel):

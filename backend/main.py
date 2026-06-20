@@ -196,6 +196,11 @@ async def lifespan(app: FastAPI):
 
 _is_production = os.getenv("ENV", "development").lower() == "production"
 
+# Phishing-labelled entries already in the training dataset (see BENCHMARK.md: 3,815
+# phishing of 5,772 samples). Shown as the base "known threats blocked" count;
+# verified user reports are added on top. Override via env if the dataset changes.
+DATASET_BLOCKED_BASE = int(os.getenv("DATASET_BLOCKED_BASE", "3815"))
+
 _sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
 if _sentry_dsn:
     import sentry_sdk
@@ -307,6 +312,8 @@ def get_stats(db: Session = Depends(get_db)):
     active = db.query(Threat).filter(Threat.status == "verified").count()
     rangers = db.query(User).count()
     saved_count = db.query(func.count(ImpactFeedback.id)).filter(ImpactFeedback.saved == True).scalar() or 0  # noqa: E712
+    # Known threats = phishing entries already in the training dataset + verified reports
+    blocked_count = DATASET_BLOCKED_BASE + active
     return StatsOut(
         total_threats=total,
         today_reports=today_count,
@@ -320,6 +327,7 @@ def get_stats(db: Session = Depends(get_db)):
         rangers=rangers,
         districts_covered=64,
         saved_count=saved_count,
+        blocked_count=blocked_count,
     )
 
 

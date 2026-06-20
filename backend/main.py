@@ -32,6 +32,7 @@ import profile_validator
 import validator
 import phone_checker
 import virustotal
+import url_heuristics
 
 # Matches http(s) URLs and bare domains like example.com/path
 _URL_RE = re.compile(r"^(https?://|www\.)\S+$|^[a-z0-9-]+(\.[a-z0-9-]+)+(/\S*)?$", re.IGNORECASE)
@@ -1587,7 +1588,23 @@ def validate_text(req: ValidateTextRequest):
                 reasons=[], explanation="VirusTotal-এ এই লিংকটি নিরাপদ পাওয়া গেছে।",
                 source="virustotal",
             )
-        # VT unavailable / unknown URL → fall through to ML+LLM
+        # VT has no data. Don't trust the Bangla text model on URLs (false positives),
+        # but DO run lightweight URL heuristics to catch brand-impersonation / lookalikes
+        # (e.g. bkash.reward.xyz) that VT doesn't know yet.
+        h = url_heuristics.analyze(text)
+        if h:
+            return ValidateTextResponse(
+                is_threat=True, confidence=h["confidence"], category="phishing",
+                reasons=h["reasons"],
+                explanation="এই লিংকটি পরিচিত ব্র্যান্ডের ছদ্মবেশ/সন্দেহজনক প্যাটার্ন দেখাচ্ছে — সতর্ক থাকুন, তথ্য দেবেন না।",
+                source="heuristic",
+            )
+        # Nothing notable → honest "unverified" (the URL was submitted to VT for later).
+        return ValidateTextResponse(
+            is_threat=False, confidence=0.0, category="unverified",
+            reasons=[], explanation="এই লিংকটি এখনো যাচাই করা যায়নি — পরিচিত হুমকি তালিকায় নেই। তবুও সতর্ক থাকুন।",
+            source="unverified",
+        )
 
     ml_result = validator.predict(text)
     result = claude_analyzer.hybrid_predict(text, ml_result)

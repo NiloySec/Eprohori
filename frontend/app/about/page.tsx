@@ -169,7 +169,7 @@ export default function AboutPage() {
                 cirt.gov.bd
               </a>
             </p>
-            <p>📧 <a href="mailto:admin@eprohori.tech" style={{ color: '#00e5c4' }}>admin@eprohori.tech</a></p>
+            <p>📧 <a href="mailto:eprohori.tech@gmail.com" style={{ color: '#00e5c4' }}>eprohori.tech@gmail.com</a></p>
             <p>🆘 সাইবার অপরাধ হেল্পলাইন: <strong className="text-white">999</strong></p>
           </div>
         </div>

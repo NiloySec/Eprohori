@@ -54,7 +54,7 @@ export default function PrivacyPage() {
           <li><strong>Portability:</strong> আপনার ডেটা export করার অধিকার</li>
           <li><strong>Objection:</strong> প্রক্রিয়াকরণে আপত্তি জানানোর অধিকার</li>
         </ul>
-        <p className="mt-3">এসব অধিকার ব্যবহার করতে: <a href="mailto:admin@eprohori.tech" className="text-cyan-400 hover:underline">admin@eprohori.tech</a></p>
+        <p className="mt-3">এসব অধিকার ব্যবহার করতে: <a href="mailto:eprohori.tech@gmail.com" className="text-cyan-400 hover:underline">eprohori.tech@gmail.com</a></p>
       </Section>
 
       <Section title="৫. ডেটা সংরক্ষণ">
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="৯. যোগাযোগ">
-        <p>প্রশ্ন বা অভিযোগ: <a href="mailto:admin@eprohori.tech" className="text-cyan-400 hover:underline">admin@eprohori.tech</a></p>
+        <p>প্রশ্ন বা অভিযোগ: <a href="mailto:eprohori.tech@gmail.com" className="text-cyan-400 hover:underline">eprohori.tech@gmail.com</a></p>
         <p className="mt-2">Data Protection Officer: Eprohori Team, Bangladesh</p>
       </Section>
       </div>

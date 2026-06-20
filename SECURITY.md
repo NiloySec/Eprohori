@@ -7,7 +7,7 @@ software seriously and welcome responsible disclosure.
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Email **admin@eprohori.tech** with:
+Email **eprohori.tech@gmail.com** with:
 
 - A description of the vulnerability and its impact
 - Steps to reproduce (proof-of-concept if possible)

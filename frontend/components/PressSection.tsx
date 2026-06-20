@@ -35,11 +35,11 @@ export default function PressSection() {
 
         <div className="mt-10 text-center">
           <a
-            href="mailto:admin@eprohori.tech?subject=Eprohori Partnership Inquiry"
+            href="mailto:eprohori.tech@gmail.com?subject=Eprohori Partnership Inquiry"
             className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-semibold transition"
             style={{ border: '1.5px solid rgba(0,229,196,0.4)', color: '#00e5c4', backgroundColor: 'rgba(0,229,196,0.06)' }}
           >
-            ✉️ admin@eprohori.tech
+            ✉️ eprohori.tech@gmail.com
           </a>
         </div>
       </div>

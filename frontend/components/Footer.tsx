@@ -89,7 +89,7 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3">যোগাযোগ</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li>📧 admin@eprohori.tech</li>
+              <li>📧 eprohori.tech@gmail.com</li>
               <li>🇧🇩 বাংলাদেশ</li>
               <li className="pt-2">
                 <span style={{ color: '#00e5c4' }}>সাইবার অপরাধের শিকার হলে</span>

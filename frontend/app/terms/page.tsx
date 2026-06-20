@@ -94,7 +94,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="১১. যোগাযোগ">
-        <p><a href="mailto:admin@eprohori.tech" className="text-cyan-400 hover:underline">admin@eprohori.tech</a></p>
+        <p><a href="mailto:eprohori.tech@gmail.com" className="text-cyan-400 hover:underline">eprohori.tech@gmail.com</a></p>
       </Section>
       </div>
     </div>

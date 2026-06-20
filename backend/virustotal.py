@@ -62,8 +62,17 @@ def check_url(url: str) -> dict | None:
     total = malicious + suspicious + harmless + stats.get("undetected", 0) or 1
 
     is_threat = malicious >= 1 or suspicious >= 2
-    # confidence: share of engines that flagged it (for threats), else inverse
-    conf = (malicious + suspicious) / total if is_threat else max(0.02, 1 - (malicious + suspicious) / total)
+    # User-facing confidence = how sure we are of the verdict (not the raw engine share —
+    # a single reputable engine flagging a URL is already a strong signal).
+    if is_threat:
+        if malicious >= 3:
+            conf = 0.97
+        elif malicious >= 1:
+            conf = 0.88
+        else:  # suspicious-only
+            conf = 0.72
+    else:
+        conf = 0.96  # clean across all engines → high-confidence safe
 
     result = {
         "is_threat": is_threat,

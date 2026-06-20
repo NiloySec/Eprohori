@@ -1575,23 +1575,18 @@ def validate_text(req: ValidateTextRequest):
     looks_like_url = (req.type or "").lower() == "url" or bool(_URL_RE.match(text))
     if looks_like_url:
         vt = virustotal.check_url(text)
-        if vt is not None:  # VT has a verdict → trust it
-            if vt["is_threat"]:
-                return ValidateTextResponse(
-                    is_threat=True, confidence=vt["confidence"], category="phishing",
-                    reasons=[f"VirusTotal: {vt['malicious']} malicious / {vt['suspicious']} suspicious engines"],
-                    explanation="VirusTotal-এর একাধিক security engine এই লিংকটিকে ক্ষতিকর হিসেবে চিহ্নিত করেছে।",
-                    source="virustotal",
-                )
+        h = url_heuristics.analyze(text)   # brand-impersonation / lookalike check
+
+        # 1. VT flagged it → definite threat
+        if vt is not None and vt["is_threat"]:
             return ValidateTextResponse(
-                is_threat=False, confidence=vt["confidence"], category="safe",
-                reasons=[], explanation="VirusTotal-এ এই লিংকটি নিরাপদ পাওয়া গেছে।",
+                is_threat=True, confidence=vt["confidence"], category="phishing",
+                reasons=[f"VirusTotal: {vt['malicious']} malicious / {vt['suspicious']} suspicious engines"],
+                explanation="VirusTotal-এর security engine এই লিংকটিকে ক্ষতিকর হিসেবে চিহ্নিত করেছে।",
                 source="virustotal",
             )
-        # VT has no data. Don't trust the Bangla text model on URLs (false positives),
-        # but DO run lightweight URL heuristics to catch brand-impersonation / lookalikes
-        # (e.g. bkash.reward.xyz) that VT doesn't know yet.
-        h = url_heuristics.analyze(text)
+        # 2. Brand impersonation overrides a VT "clean" — a fresh lookalike
+        #    (e.g. bkash.reward.xyz) isn't in VT's malicious DB yet, but is still dangerous.
         if h:
             return ValidateTextResponse(
                 is_threat=True, confidence=h["confidence"], category="phishing",
@@ -1599,7 +1594,14 @@ def validate_text(req: ValidateTextRequest):
                 explanation="এই লিংকটি পরিচিত ব্র্যান্ডের ছদ্মবেশ/সন্দেহজনক প্যাটার্ন দেখাচ্ছে — সতর্ক থাকুন, তথ্য দেবেন না।",
                 source="heuristic",
             )
-        # Nothing notable → honest "unverified" (the URL was submitted to VT for later).
+        # 3. VT clean + no impersonation → safe
+        if vt is not None:
+            return ValidateTextResponse(
+                is_threat=False, confidence=vt["confidence"], category="safe",
+                reasons=[], explanation="VirusTotal-এ এই লিংকটি নিরাপদ পাওয়া গেছে।",
+                source="virustotal",
+            )
+        # 4. Unknown to VT + no heuristic signal → honest "unverified"
         return ValidateTextResponse(
             is_threat=False, confidence=0.0, category="unverified",
             reasons=[], explanation="এই লিংকটি এখনো যাচাই করা যায়নি — পরিচিত হুমকি তালিকায় নেই। তবুও সতর্ক থাকুন।",

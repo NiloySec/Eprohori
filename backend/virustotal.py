@@ -61,18 +61,21 @@ def check_url(url: str) -> dict | None:
     harmless = stats.get("harmless", 0)
     total = malicious + suspicious + harmless + stats.get("undetected", 0) or 1
 
-    is_threat = malicious >= 1 or suspicious >= 2
+    # A SINGLE engine flag is noise — legit sites (e.g. domain marketplaces like
+    # afternic.com) routinely get 1 low-quality engine false-flag. Require corroboration:
+    # ≥2 malicious, OR 1 malicious backed by a suspicious, OR ≥3 suspicious.
+    is_threat = malicious >= 2 or (malicious >= 1 and suspicious >= 1) or suspicious >= 3
     # `confidence` is a RISK score (0 = safe, 1 = definitely phishing) — the whole
     # app's gauge interprets it that way. So safe URLs must be LOW, threats HIGH.
     if is_threat:
-        if malicious >= 3:
+        if malicious >= 5:
             conf = 0.97
-        elif malicious >= 1:
+        elif malicious >= 2:
             conf = 0.88
-        else:  # suspicious-only
-            conf = 0.72
+        else:  # 1 malicious + suspicious, or suspicious-only
+            conf = 0.75
     else:
-        conf = 0.03  # clean across all engines → very low risk
+        conf = 0.03  # no meaningful detections → very low risk
 
     result = {
         "is_threat": is_threat,

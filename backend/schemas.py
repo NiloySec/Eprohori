@@ -79,6 +79,7 @@ class RangerOut(BaseModel):
 
 class ValidateTextRequest(BaseModel):
     text: str
+    type: Optional[str] = None   # "url" routes through VirusTotal first
 
 
 class ValidateTextResponse(BaseModel):

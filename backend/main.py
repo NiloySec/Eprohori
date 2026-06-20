@@ -31,6 +31,10 @@ import claude_analyzer
 import profile_validator
 import validator
 import phone_checker
+import virustotal
+
+# Matches http(s) URLs and bare domains like example.com/path
+_URL_RE = re.compile(r"^(https?://|www\.)\S+$|^[a-z0-9-]+(\.[a-z0-9-]+)+(/\S*)?$", re.IGNORECASE)
 from database import Base, engine, get_db
 from security import (
     ADMIN_TOKEN_HOURS,
@@ -1561,10 +1565,32 @@ def reset_password(request: dict, req: Request, db: Session = Depends(get_db)):
 def validate_text(req: ValidateTextRequest):
     if len(req.text or "") > MAX_THREAT_CONTENT_LEN:
         raise HTTPException(413, f"Text too long (max {MAX_THREAT_CONTENT_LEN} characters)")
-    if not req.text.strip():
+    text = req.text.strip()
+    if not text:
         raise HTTPException(status_code=422, detail="text cannot be empty")
-    ml_result = validator.predict(req.text)
-    result = claude_analyzer.hybrid_predict(req.text, ml_result)
+
+    # URL checks → VirusTotal first (authoritative for URL reputation). The Bangla
+    # text model is the wrong tool for URLs and causes false positives; VT fixes that.
+    looks_like_url = (req.type or "").lower() == "url" or bool(_URL_RE.match(text))
+    if looks_like_url:
+        vt = virustotal.check_url(text)
+        if vt is not None:  # VT has a verdict → trust it
+            if vt["is_threat"]:
+                return ValidateTextResponse(
+                    is_threat=True, confidence=vt["confidence"], category="phishing",
+                    reasons=[f"VirusTotal: {vt['malicious']} malicious / {vt['suspicious']} suspicious engines"],
+                    explanation="VirusTotal-এর একাধিক security engine এই লিংকটিকে ক্ষতিকর হিসেবে চিহ্নিত করেছে।",
+                    source="virustotal",
+                )
+            return ValidateTextResponse(
+                is_threat=False, confidence=vt["confidence"], category="safe",
+                reasons=[], explanation="VirusTotal-এ এই লিংকটি নিরাপদ পাওয়া গেছে।",
+                source="virustotal",
+            )
+        # VT unavailable / unknown URL → fall through to ML+LLM
+
+    ml_result = validator.predict(text)
+    result = claude_analyzer.hybrid_predict(text, ml_result)
     return ValidateTextResponse(**result)
 
 

@@ -62,8 +62,8 @@ def check_url(url: str) -> dict | None:
     total = malicious + suspicious + harmless + stats.get("undetected", 0) or 1
 
     is_threat = malicious >= 1 or suspicious >= 2
-    # User-facing confidence = how sure we are of the verdict (not the raw engine share —
-    # a single reputable engine flagging a URL is already a strong signal).
+    # `confidence` is a RISK score (0 = safe, 1 = definitely phishing) — the whole
+    # app's gauge interprets it that way. So safe URLs must be LOW, threats HIGH.
     if is_threat:
         if malicious >= 3:
             conf = 0.97
@@ -72,7 +72,7 @@ def check_url(url: str) -> dict | None:
         else:  # suspicious-only
             conf = 0.72
     else:
-        conf = 0.96  # clean across all engines → high-confidence safe
+        conf = 0.03  # clean across all engines → very low risk
 
     result = {
         "is_threat": is_threat,

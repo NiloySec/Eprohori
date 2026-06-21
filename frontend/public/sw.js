@@ -1,6 +1,6 @@
 // Bump this version on caching-strategy changes to purge old caches.
-const CACHE = 'eprohori-v2'
-const STATIC = ['/icon.svg', '/manifest.json', '/logo.svg']
+const CACHE = 'eprohori-v3'
+const STATIC = ['/icon.svg', '/manifest.json', '/logo.png']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(STATIC)).then(() => self.skipWaiting()))

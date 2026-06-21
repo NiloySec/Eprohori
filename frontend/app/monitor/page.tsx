@@ -138,6 +138,7 @@ export default function MonitorPage() {
   })
   const sorted = [...filteredDivisions].sort((a, b) => b.threat_count - a.threat_count)
   const sortedDistricts = [...districts].sort((a, b) => b.threats - a.threats)
+  const selectedDistrict = districtSel ? districts.find(d => d.name === districtSel) ?? null : null
   const total  = filteredDivisions.reduce((sum, d) => sum + d.threat_count, 0)
   const catTotals = divisions.reduce((acc, d) => {
     Object.entries(d.categories).forEach(([cat, count]) => { acc[cat] = (acc[cat] || 0) + count })
@@ -473,7 +474,7 @@ export default function MonitorPage() {
               </div>
               <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="text-xs text-slate-400 mb-1">{t('most_affected')}</p>
-                <p className="font-semibold text-white">{sorted[0]?.name ?? '—'}</p>
+                <p className="font-semibold text-white">{sortedDistricts[0]?.name_bn || sortedDistricts[0]?.name || '—'}</p>
               </div>
               <div className="pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="text-xs text-slate-400 mb-1">{t('top_threat_type')}</p>
@@ -530,7 +531,9 @@ export default function MonitorPage() {
             {selected ? (
               <>
                 {t('showing_threats_in')}{' '}
-                <span style={{ color: '#00e5c4' }}>{selected.name}</span>
+                <span style={{ color: '#00e5c4' }}>
+                  {selectedDistrict ? (selectedDistrict.name_bn || selectedDistrict.name) : selected.name}
+                </span>
               </>
             ) : t('all_threats_title')}
           </h2>

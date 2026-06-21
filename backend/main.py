@@ -1143,28 +1143,82 @@ def get_divisions(
     return result
 
 
-# 20 key districts: (name, name_bn, division, lat, lng, weight-within-division)
+# All 64 districts: (name, name_bn, division, lat, lng, weight-within-division)
+# Weights are population/activity shares and sum to ~1.0 per division, so distributed
+# district counts add back up to the division's verified-threat total.
 DISTRICTS = [
-    ("Dhaka",        "ঢাকা",         "Dhaka",      23.8103, 90.4125, 0.45),
-    ("Gazipur",      "গাজীপুর",       "Dhaka",      24.0023, 90.4264, 0.25),
-    ("Narayanganj",  "নারায়ণগঞ্জ",   "Dhaka",      23.6238, 90.5000, 0.20),
-    ("Tangail",      "টাঙ্গাইল",      "Dhaka",      24.2513, 89.9167, 0.10),
-    ("Chattogram",   "চট্টগ্রাম",     "Chittagong", 22.3569, 91.7832, 0.50),
-    ("Cumilla",      "কুমিল্লা",      "Chittagong", 23.4607, 91.1809, 0.25),
-    ("Cox's Bazar",  "কক্সবাজার",     "Chittagong", 21.4272, 92.0058, 0.15),
-    ("Noakhali",     "নোয়াখালী",     "Chittagong", 22.8696, 91.0995, 0.10),
-    ("Sylhet",       "সিলেট",         "Sylhet",     24.8949, 91.8687, 0.65),
-    ("Moulvibazar",  "মৌলভীবাজার",   "Sylhet",     24.4829, 91.7774, 0.35),
-    ("Rajshahi",     "রাজশাহী",       "Rajshahi",   24.3745, 88.6042, 0.50),
-    ("Bogura",       "বগুড়া",         "Rajshahi",   24.8466, 89.3773, 0.30),
-    ("Pabna",        "পাবনা",         "Rajshahi",   24.0064, 89.2372, 0.20),
-    ("Khulna",       "খুলনা",         "Khulna",     22.8456, 89.5403, 0.55),
-    ("Jashore",      "যশোর",          "Khulna",     23.1664, 89.2081, 0.45),
-    ("Barishal",     "বরিশাল",        "Barishal",   22.7010, 90.3535, 0.70),
-    ("Patuakhali",   "পটুয়াখালী",    "Barishal",   22.3596, 90.3296, 0.30),
-    ("Mymensingh",   "ময়মনসিংহ",     "Mymensingh", 24.7471, 90.4203, 1.00),
-    ("Rangpur",      "রংপুর",         "Rangpur",    25.7439, 89.2752, 0.60),
-    ("Dinajpur",     "দিনাজপুর",      "Rangpur",    25.6217, 88.6354, 0.40),
+    # ── Dhaka (13) ──
+    ("Dhaka",          "ঢাকা",          "Dhaka",      23.8103, 90.4125, 0.28),
+    ("Gazipur",        "গাজীপুর",        "Dhaka",      24.0023, 90.4264, 0.14),
+    ("Narayanganj",    "নারায়ণগঞ্জ",    "Dhaka",      23.6238, 90.5000, 0.12),
+    ("Tangail",        "টাঙ্গাইল",       "Dhaka",      24.2513, 89.9167, 0.08),
+    ("Kishoreganj",    "কিশোরগঞ্জ",      "Dhaka",      24.4449, 90.7766, 0.07),
+    ("Narsingdi",      "নরসিংদী",        "Dhaka",      23.9322, 90.7150, 0.07),
+    ("Munshiganj",     "মুন্সিগঞ্জ",     "Dhaka",      23.5422, 90.5305, 0.05),
+    ("Faridpur",       "ফরিদপুর",        "Dhaka",      23.6070, 89.8429, 0.05),
+    ("Manikganj",      "মানিকগঞ্জ",      "Dhaka",      23.8617, 90.0003, 0.04),
+    ("Gopalganj",      "গোপালগঞ্জ",      "Dhaka",      23.0050, 89.8266, 0.03),
+    ("Madaripur",      "মাদারীপুর",      "Dhaka",      23.1641, 90.1897, 0.03),
+    ("Rajbari",        "রাজবাড়ী",       "Dhaka",      23.7574, 89.6444, 0.02),
+    ("Shariatpur",     "শরীয়তপুর",      "Dhaka",      23.2423, 90.4348, 0.02),
+    # ── Chittagong (11) ──
+    ("Chattogram",     "চট্টগ্রাম",      "Chittagong", 22.3569, 91.7832, 0.32),
+    ("Cumilla",        "কুমিল্লা",       "Chittagong", 23.4607, 91.1809, 0.16),
+    ("Cox's Bazar",    "কক্সবাজার",      "Chittagong", 21.4272, 92.0058, 0.10),
+    ("Brahmanbaria",   "ব্রাহ্মণবাড়িয়া","Chittagong", 23.9571, 91.1119, 0.09),
+    ("Noakhali",       "নোয়াখালী",      "Chittagong", 22.8696, 91.0995, 0.08),
+    ("Chandpur",       "চাঁদপুর",        "Chittagong", 23.2333, 90.6712, 0.07),
+    ("Feni",           "ফেনী",          "Chittagong", 23.0159, 91.3976, 0.05),
+    ("Lakshmipur",     "লক্ষ্মীপুর",     "Chittagong", 22.9447, 90.8282, 0.05),
+    ("Rangamati",      "রাঙ্গামাটি",     "Chittagong", 22.6533, 92.1730, 0.03),
+    ("Khagrachhari",   "খাগড়াছড়ি",      "Chittagong", 23.1193, 91.9847, 0.03),
+    ("Bandarban",      "বান্দরবান",      "Chittagong", 22.1953, 92.2184, 0.02),
+    # ── Rajshahi (8) ──
+    ("Rajshahi",       "রাজশাহী",        "Rajshahi",   24.3745, 88.6042, 0.22),
+    ("Bogura",         "বগুড়া",         "Rajshahi",   24.8466, 89.3773, 0.20),
+    ("Pabna",          "পাবনা",          "Rajshahi",   24.0064, 89.2372, 0.14),
+    ("Sirajganj",      "সিরাজগঞ্জ",      "Rajshahi",   24.4534, 89.7007, 0.13),
+    ("Naogaon",        "নওগাঁ",          "Rajshahi",   24.7936, 88.9318, 0.10),
+    ("Natore",         "নাটোর",          "Rajshahi",   24.4206, 89.0000, 0.09),
+    ("Chapainawabganj","চাঁপাইনবাবগঞ্জ", "Rajshahi",   24.5965, 88.2775, 0.07),
+    ("Joypurhat",      "জয়পুরহাট",       "Rajshahi",   25.0968, 89.0227, 0.05),
+    # ── Khulna (10) ──
+    ("Khulna",         "খুলনা",          "Khulna",     22.8456, 89.5403, 0.22),
+    ("Jashore",        "যশোর",           "Khulna",     23.1664, 89.2081, 0.16),
+    ("Kushtia",        "কুষ্টিয়া",       "Khulna",     23.9013, 89.1206, 0.13),
+    ("Satkhira",       "সাতক্ষীরা",      "Khulna",     22.7185, 89.0705, 0.10),
+    ("Jhenaidah",      "ঝিনাইদহ",        "Khulna",     23.5450, 89.1726, 0.09),
+    ("Bagerhat",       "বাগেরহাট",       "Khulna",     22.6516, 89.7859, 0.07),
+    ("Chuadanga",      "চুয়াডাঙ্গা",     "Khulna",     23.6402, 88.8413, 0.07),
+    ("Magura",         "মাগুরা",         "Khulna",     23.4855, 89.4198, 0.06),
+    ("Narail",         "নড়াইল",         "Khulna",     23.1728, 89.5126, 0.05),
+    ("Meherpur",       "মেহেরপুর",       "Khulna",     23.7622, 88.6318, 0.05),
+    # ── Barishal (6) ──
+    ("Barishal",       "বরিশাল",         "Barishal",   22.7010, 90.3535, 0.34),
+    ("Patuakhali",     "পটুয়াখালী",     "Barishal",   22.3596, 90.3296, 0.18),
+    ("Bhola",          "ভোলা",           "Barishal",   22.6859, 90.6482, 0.17),
+    ("Pirojpur",       "পিরোজপুর",       "Barishal",   22.5841, 89.9720, 0.12),
+    ("Barguna",        "বরগুনা",         "Barishal",   22.0953, 90.1121, 0.10),
+    ("Jhalokati",      "ঝালকাঠি",        "Barishal",   22.6406, 90.1987, 0.09),
+    # ── Sylhet (4) ──
+    ("Sylhet",         "সিলেট",          "Sylhet",     24.8949, 91.8687, 0.40),
+    ("Moulvibazar",    "মৌলভীবাজার",     "Sylhet",     24.4829, 91.7774, 0.22),
+    ("Habiganj",       "হবিগঞ্জ",        "Sylhet",     24.3745, 91.4155, 0.21),
+    ("Sunamganj",      "সুনামগঞ্জ",      "Sylhet",     25.0658, 91.3950, 0.17),
+    # ── Rangpur (8) ──
+    ("Rangpur",        "রংপুর",          "Rangpur",    25.7439, 89.2752, 0.22),
+    ("Dinajpur",       "দিনাজপুর",       "Rangpur",    25.6217, 88.6354, 0.20),
+    ("Kurigram",       "কুড়িগ্রাম",      "Rangpur",    25.8054, 89.6362, 0.13),
+    ("Gaibandha",      "গাইবান্ধা",      "Rangpur",    25.3288, 89.5285, 0.13),
+    ("Nilphamari",     "নীলফামারী",      "Rangpur",    25.9310, 88.8560, 0.10),
+    ("Thakurgaon",     "ঠাকুরগাঁও",      "Rangpur",    26.0337, 88.4616, 0.08),
+    ("Panchagarh",     "পঞ্চগড়",        "Rangpur",    26.3411, 88.5542, 0.07),
+    ("Lalmonirhat",    "লালমনিরহাট",     "Rangpur",    25.9923, 89.2847, 0.07),
+    # ── Mymensingh (4) ──
+    ("Mymensingh",     "ময়মনসিংহ",      "Mymensingh", 24.7471, 90.4203, 0.42),
+    ("Jamalpur",       "জামালপুর",       "Mymensingh", 24.9375, 89.9371, 0.24),
+    ("Netrokona",      "নেত্রকোণা",      "Mymensingh", 24.8703, 90.7279, 0.18),
+    ("Sherpur",        "শেরপুর",         "Mymensingh", 25.0205, 90.0153, 0.16),
 ]
 
 
@@ -1174,7 +1228,7 @@ def get_districts(
     type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    """20 key districts. Counts are the division totals distributed by
+    """All 64 districts. Counts are the division totals distributed by
     population/activity weight (threats are reported at division level)."""
     cutoff = _timeframe_cutoff(timeframe)
     div_counts: dict[str, int] = {}

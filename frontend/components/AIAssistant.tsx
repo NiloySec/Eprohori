@@ -441,7 +441,7 @@ function BotAvatar({ size = 28 }: { size?: number }) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/logo.svg"
+        src="/logo-icon.png"
         alt="Eprohori"
         width={Math.round(size * 0.66)}
         height={Math.round(size * 0.66)}
@@ -813,7 +813,7 @@ export default function AIAssistant() {
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.svg" alt="Eprohori" width={22} height={22} style={{ display: 'block' }} />
+                <img src="/logo-icon.png" alt="Eprohori" width={22} height={22} style={{ display: 'block' }} />
               </span>
             )}
           </span>

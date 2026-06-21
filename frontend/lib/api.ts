@@ -832,7 +832,7 @@ export async function validateText(
   try {
     const data = await api<any>('/validate/text', {
       method: 'POST',
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, type }),   // forward type so URLs hit the VT+heuristic pipeline
     })
     return adaptValidation(data)
   } catch {

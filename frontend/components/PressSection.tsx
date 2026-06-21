@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function PressSection() {
   return (
     <section className="py-16 px-6">
@@ -22,8 +24,8 @@ export default function PressSection() {
           <PartnerCard
             icon="📰"
             title="সাংবাদিক"
-            desc="সাইবার ক্রাইম coverage-এর জন্য data, expert interview, press kit"
-            cta="Media kit চান?"
+            desc="সাইবার ক্রাইম coverage-এর জন্য data ও expert interview"
+            cta="যোগাযোগ করুন"
           />
           <PartnerCard
             icon="🔬"
@@ -34,13 +36,13 @@ export default function PressSection() {
         </div>
 
         <div className="mt-10 text-center">
-          <a
-            href="mailto:eprohori.tech@gmail.com?subject=Eprohori Partnership Inquiry"
+          <Link
+            href="/partner"
             className="inline-flex items-center gap-2 px-7 py-3 rounded-xl font-semibold transition"
             style={{ border: '1.5px solid rgba(0,229,196,0.4)', color: '#00e5c4', backgroundColor: 'rgba(0,229,196,0.06)' }}
           >
-            ✉️ eprohori.tech@gmail.com
-          </a>
+            🤝 যোগাযোগ ফর্ম খুলুন
+          </Link>
         </div>
       </div>
     </section>
@@ -49,11 +51,11 @@ export default function PressSection() {
 
 function PartnerCard({ icon, title, desc, cta }: { icon: string; title: string; desc: string; cta: string }) {
   return (
-    <div className="rounded-2xl p-6 bg-slate-900/40 border border-slate-800 hover:border-cyan-500/30 transition group">
+    <Link href="/partner" className="block rounded-2xl p-6 bg-slate-900/40 border border-slate-800 hover:border-cyan-500/30 transition group">
       <div className="text-4xl mb-3">{icon}</div>
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
       <p className="text-sm text-slate-400 mb-4 leading-relaxed">{desc}</p>
       <span className="text-xs text-cyan-400 group-hover:underline">{cta} →</span>
-    </div>
+    </Link>
   )
 }

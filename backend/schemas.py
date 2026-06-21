@@ -91,6 +91,16 @@ class ValidateTextResponse(BaseModel):
     source: str = "ml"                  # "ml" or "ml+claude"
 
 
+class PartnerInquiryRequest(BaseModel):
+    """Outreach from government agencies, journalists, or researchers."""
+    name: str
+    organization: Optional[str] = None
+    role: str = "other"   # government | journalist | researcher | other
+    email: str
+    phone: Optional[str] = None
+    message: str
+
+
 class ValidateProfileRequest(BaseModel):
     """13 numeric profile-activity fields (kept for API back-compat)."""
     friends: int = 0

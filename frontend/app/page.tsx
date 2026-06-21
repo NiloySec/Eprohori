@@ -9,13 +9,6 @@ import { useLanguage } from '@/lib/LanguageContext'
 import SavedFeedback from '@/components/SavedFeedback'
 
 /* ── Demo fallback data (shown when backend has no records yet) ── */
-const DEMO = {
-  today_reports:     3_742,
-  active_threats:    128,
-  alerted_people:    12_589,
-  district_coverage: 64,
-}
-
 const TAGLINES = ['ফিশিং থেকে সুরক্ষিত', 'স্ক্যাম চিহ্নিত করুন', 'দেশকে নিরাপদ রাখুন']
 
 /* ── Hooks ─────────────────────────────────────────────────────── */
@@ -149,13 +142,13 @@ export default function HomePage() {
   const [scanResult, setScanResult]     = useState<ValidationResult | null>(null)
   const [showExplain, setShowExplain]   = useState(false)
 
-  /* When stats loaded but backend has no records, fall back to DEMO numbers */
+  /* Real live values from /api/stats (no demo fallback — keep the numbers honest & dynamic) */
   const D = stats
     ? {
-        today_reports:     stats.today_reports     || DEMO.today_reports,
-        active_threats:    stats.active_threats    || DEMO.active_threats,
-        alerted_people:    stats.alerted_people    || DEMO.alerted_people,
-        district_coverage: stats.district_coverage || DEMO.district_coverage,
+        today_reports:     stats.today_reports     ?? 0,
+        active_threats:    stats.active_threats    ?? 0,
+        alerted_people:    stats.alerted_people    ?? 0,
+        district_coverage: stats.district_coverage ?? 0,
       }
     : { today_reports: 0, active_threats: 0, alerted_people: 0, district_coverage: 0 }
 
@@ -479,15 +472,14 @@ export default function HomePage() {
             {stats === null
               ? Array(4).fill(0).map((_, i) => <StatCardSkeleton key={i} />)
               : [
-                  { label: t('stat_today'),     value: today,     icon: '📊', color: '#00e5c4', trend: '+12%', grad: 'rgba(0,229,196,0.08)' },
-                  { label: t('stat_threats'),   value: active,    icon: '⚠️', color: '#ff4444', trend: '+5%',  grad: 'rgba(255,68,68,0.07)' },
-                  { label: t('stat_alerted'),   value: alerted,   icon: '👥', color: '#22c55e', trend: '+8%',  grad: 'rgba(34,197,94,0.07)'  },
-                  { label: t('stat_districts'), value: districts, icon: '🗺️', color: '#3b82f6', trend: '৬৪/৬৪', grad: 'rgba(59,130,246,0.07)' },
+                  { label: t('stat_today'),     value: today,     icon: '📊', color: '#00e5c4', grad: 'rgba(0,229,196,0.08)' },
+                  { label: t('stat_threats'),   value: active,    icon: '⚠️', color: '#ff4444', grad: 'rgba(255,68,68,0.07)' },
+                  { label: t('stat_alerted'),   value: alerted,   icon: '👥', color: '#22c55e', grad: 'rgba(34,197,94,0.07)'  },
+                  { label: t('stat_districts'), value: districts, icon: '🗺️', color: '#3b82f6', grad: 'rgba(59,130,246,0.07)' },
                 ].map((s, idx) => (
                   <div
                     key={s.label}
                     className="rounded-xl p-5 hover-reveal fade-in-up"
-                    data-tooltip={s.trend}
                     style={{
                       background: `linear-gradient(135deg, ${s.grad} 0%, rgba(13,24,41,0.9) 100%)`,
                       border: `1px solid ${s.color}22`,
@@ -498,10 +490,7 @@ export default function HomePage() {
                     <div className="font-heading font-bold text-3xl mb-1 count-glow" style={{ color: s.color }}>
                       {s.value.toLocaleString('bn-BD')}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-slate-400">{s.label}</div>
-                      <span className="text-xs font-semibold" style={{ color: '#22c55e' }}>↑ {s.trend}</span>
-                    </div>
+                    <div className="text-xs text-slate-400">{s.label}</div>
                   </div>
                 ))}
           </div>

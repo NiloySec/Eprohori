@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Footer() {
   return (
@@ -6,9 +7,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-heading text-xl font-bold text-white mb-3">
-              <span style={{ color: '#00e5c4' }}>E</span>prohori
-            </h3>
+            <Image
+              src="/logo.png"
+              alt="Eprohori"
+              width={150}
+              height={47}
+              className="mb-3"
+              style={{ objectFit: 'contain', height: 'auto' }}
+            />
             <p className="text-slate-400 text-sm leading-relaxed">
               বাংলাদেশের সাইবার সুরক্ষা — আপনার হাতে।
               একসাথে আমরা বাংলাদেশকে সাইবার অপরাধমুক্ত করব।

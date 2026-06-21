@@ -614,6 +614,31 @@ export async function fetchThreatById(id: number, _viewerEmail?: string): Promis
   }
 }
 
+export async function submitPartnerInquiry(data: {
+  name: string
+  organization?: string
+  role: string
+  email: string
+  phone?: string
+  message: string
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/partner-inquiry`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      let detail = 'পাঠানো যায়নি — পরে আবার চেষ্টা করুন।'
+      try { const j = await res.json(); if (j?.detail) detail = j.detail } catch { /* ignore */ }
+      return { success: false, error: detail }
+    }
+    return { success: true }
+  } catch {
+    return { success: false, error: 'নেটওয়ার্ক সমস্যা — পরে আবার চেষ্টা করুন।' }
+  }
+}
+
 export async function submitThreat(data: {
   type: string
   detail: string

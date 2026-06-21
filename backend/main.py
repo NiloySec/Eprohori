@@ -61,6 +61,7 @@ from schemas import (
     CheckPhoneResponse,
     DistrictOut,
     DivisionOut,
+    PartnerInquiryRequest,
     QuizResult,
     QuizSubmission,
     RangerOut,
@@ -78,6 +79,7 @@ from seed import seed_db
 from notification_service import (
     digest_alert_template,
     otp_email_template,
+    partner_inquiry_template,
     report_result_email_template,
     report_safe_email_template,
     send_email,
@@ -302,6 +304,31 @@ def impact_feedback(request: dict, req: Request, db: Session = Depends(get_db)):
     db.commit()
     saved_total = db.query(func.count(ImpactFeedback.id)).filter(ImpactFeedback.saved == True).scalar() or 0  # noqa: E712
     return {"success": True, "saved_count": saved_total}
+
+
+@app.post("/api/partner-inquiry", tags=["marketing"])
+async def partner_inquiry(payload: PartnerInquiryRequest, req: Request):
+    """Outreach from government agencies, journalists, or researchers — emails the team."""
+    throttle(req, "partner-inquiry", max_hits=5, window_sec=600)
+    name = (payload.name or "").strip()
+    email = (payload.email or "").strip()
+    message = (payload.message or "").strip()
+    if not name or "@" not in email or "." not in email.split("@")[-1] or len(message) < 5:
+        raise HTTPException(400, "নাম, সঠিক ইমেইল ও বার্তা দিন।")
+    role = payload.role if payload.role in {"government", "journalist", "researcher", "other"} else "other"
+    to_addr = os.getenv("PARTNER_INQUIRY_TO", "eprohori.tech@gmail.com")
+    html = partner_inquiry_template(
+        name=name,
+        organization=(payload.organization or "").strip(),
+        role=role,
+        email=email,
+        phone=(payload.phone or "").strip(),
+        message=message,
+    )
+    result = await send_email(to_addr, f"নতুন যোগাযোগ অনুরোধ — {name}", html)
+    if not result.get("success"):
+        raise HTTPException(502, "এই মুহূর্তে বার্তা পাঠানো যায়নি — পরে আবার চেষ্টা করুন।")
+    return {"success": True}
 
 
 @app.get("/api/stats", response_model=StatsOut, tags=["stats"])

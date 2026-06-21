@@ -140,21 +140,66 @@ async def send_email(
 
 # ── Email templates ──────────────────────────────────────────────────────────
 
-# Brand header: inline SVG shield+E logo (no external image hosting needed)
-EMAIL_LOGO_HTML = """
+# Brand header: the main navbar logo (hosted on the site, same image everywhere)
+EMAIL_LOGO_URL = os.getenv("EMAIL_LOGO_URL", "https://eprohori.tech/logo.png")
+EMAIL_LOGO_HTML = f"""
         <div style="text-align:center;margin-bottom:24px">
-          <svg width="60" height="60" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-            <rect width="120" height="120" rx="26" fill="#0a1628"/>
-            <path d="M60 10 L96 24 L96 58 Q96 88 60 104 Q24 88 24 58 L24 24 Z"
-              fill="none" stroke="#00e5c4" stroke-width="3"/>
-            <text x="60" y="72" text-anchor="middle"
-              font-family="Arial Black, Arial, sans-serif" font-size="42"
-              fill="#00e5c4">E</text>
-          </svg>
-          <div style="color:#00e5c4;font-size:18px;
-            font-weight:bold;margin-top:8px">EPROHORI</div>
+          <img src="{EMAIL_LOGO_URL}" alt="Eprohori" width="180"
+            style="display:inline-block;max-width:180px;height:auto;border:0;outline:none" />
         </div>
 """
+
+
+_ROLE_LABELS_BN = {
+    "government": "সরকারি সংস্থা",
+    "journalist": "সাংবাদিক",
+    "researcher": "গবেষক",
+    "other": "অন্যান্য",
+}
+
+
+def partner_inquiry_template(
+    name: str, organization: str, role: str,
+    email: str, phone: str, message: str,
+) -> str:
+    """Internal notification email sent to the team when an org/journalist/researcher writes in."""
+    def esc(s: str) -> str:
+        return (s or "—").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    role_bn = _ROLE_LABELS_BN.get(role, role or "—")
+    msg_html = esc(message).replace("\n", "<br/>")
+    row = (
+        "<tr><td style='padding:6px 0;color:#94a3b8;width:120px;vertical-align:top'>{k}</td>"
+        "<td style='padding:6px 0;color:#e2e8f0'>{v}</td></tr>"
+    )
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family:Arial,sans-serif;background:#060d1a;color:#e2e8f0;padding:40px 20px;margin:0">
+      <div style="max-width:520px;margin:0 auto;background:#0d1829;border-radius:16px;
+                  border:1px solid rgba(0,229,196,0.2);padding:36px">
+        {EMAIL_LOGO_HTML}
+        <h2 style="color:#fff;font-size:18px;text-align:center;margin:0 0 6px">নতুন যোগাযোগ অনুরোধ</h2>
+        <p style="color:#00e5c4;text-align:center;font-size:13px;margin:0 0 24px">{role_bn}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          {row.format(k="নাম", v=esc(name))}
+          {row.format(k="প্রতিষ্ঠান", v=esc(organization))}
+          {row.format(k="ধরন", v=role_bn)}
+          {row.format(k="ইমেইল", v=esc(email))}
+          {row.format(k="ফোন", v=esc(phone))}
+        </table>
+        <div style="margin-top:20px;padding:16px;background:rgba(255,255,255,0.03);
+                    border:1px solid rgba(255,255,255,0.06);border-radius:12px">
+          <p style="color:#94a3b8;font-size:12px;margin:0 0 8px">বার্তা</p>
+          <p style="color:#e2e8f0;font-size:14px;line-height:1.6;margin:0">{msg_html}</p>
+        </div>
+        <p style="color:#475569;font-size:11px;text-align:center;margin-top:24px">
+          Eprohori — eprohori.tech থেকে স্বয়ংক্রিয়ভাবে পাঠানো
+        </p>
+      </div>
+    </body>
+    </html>
+    """
 
 
 def otp_email_template(name: str, otp: str, purpose: str) -> str:

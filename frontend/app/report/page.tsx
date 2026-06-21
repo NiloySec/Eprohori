@@ -187,6 +187,7 @@ export default function ThreatsPage() {
               <input
                 value={form.detail}
                 onChange={e => setForm(f => ({ ...f, detail: e.target.value }))}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit() } }}
                 placeholder={threatType ? TYPE_PLACEHOLDER[threatType] : t('form_detail_label')}
                 className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500"
                 style={inputStyle}
@@ -203,6 +204,7 @@ export default function ThreatsPage() {
                   type="email"
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit() } }}
                   placeholder="you@example.com"
                   className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500"
                   style={inputStyle}
@@ -225,6 +227,7 @@ export default function ThreatsPage() {
                   <input
                     value={form.platform}
                     onChange={e => setForm(f => ({ ...f, platform: e.target.value }))}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSubmit() } }}
                     placeholder="যেমন: Imo, Viber, TikTok..."
                     className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500"
                     style={inputStyle}

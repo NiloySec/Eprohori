@@ -327,6 +327,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
     onChange: (v: string) => void,
     type = 'text',
     placeholder = '',
+    onEnter?: () => void,
   ) => {
     const isPassword = type === 'password'
     const shown = isPassword && pwVisible[label]
@@ -338,6 +339,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
             type={isPassword ? (shown ? 'text' : 'password') : type}
             value={value}
             onChange={e => onChange(e.target.value)}
+            onKeyDown={onEnter ? e => { if (e.key === 'Enter') { e.preventDefault(); onEnter() } } : undefined}
             placeholder={placeholder}
             className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-slate-500"
             style={{ ...inputStyle, paddingRight: isPassword ? 44 : undefined }}
@@ -405,7 +407,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
               {forgotStep === 'email' ? (
                 <>
                   <p className="text-xs text-slate-400">আপনার রেজিস্টার্ড ইমেইলে একটি ৬-ডিজিট OTP পাঠানো হবে।</p>
-                  {field('ইমেইল', forgotEmail, setForgotEmail, 'email', 'you@example.com')}
+                  {field('ইমেইল', forgotEmail, setForgotEmail, 'email', 'you@example.com', handleForgotSend)}
                   {forgotErr && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {forgotErr}</p>}
                   <button onClick={handleForgotSend} disabled={forgotBusy} className="btn-primary w-full py-3">
                     {forgotBusy ? 'পাঠানো হচ্ছে...' : 'OTP পাঠান →'}
@@ -414,8 +416,8 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
               ) : (
                 <>
                   {forgotMsg && <p className="text-xs" style={{ color: '#22c55e' }}>✅ {forgotMsg}</p>}
-                  {field('OTP (৬ ডিজিট)', forgotOtp, setForgotOtp, 'text', '১২৩৪৫৬')}
-                  {field('নতুন পাসওয়ার্ড', forgotPass, setForgotPass, 'password', 'কমপক্ষে ৮ অক্ষর')}
+                  {field('OTP (৬ ডিজিট)', forgotOtp, setForgotOtp, 'text', '১২৩৪৫৬', handleForgotReset)}
+                  {field('নতুন পাসওয়ার্ড', forgotPass, setForgotPass, 'password', 'কমপক্ষে ৮ অক্ষর', handleForgotReset)}
                   {forgotErr && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {forgotErr}</p>}
                   <button onClick={handleForgotReset} disabled={forgotBusy} className="btn-primary w-full py-3">
                     {forgotBusy ? 'রিসেট হচ্ছে...' : 'পাসওয়ার্ড রিসেট করুন'}
@@ -429,8 +431,8 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
           ) : tab === 'login' ? (
             <>
               <h2 className="font-heading text-xl font-bold text-white">{t('login_title')}</h2>
-              {field(t('email_label'), loginEmail, setLoginEmail, 'email', 'you@example.com')}
-              {field(t('password_label'), loginPassword, setLoginPassword, 'password', '••••••••')}
+              {field(t('email_label'), loginEmail, setLoginEmail, 'email', 'you@example.com', handleLogin)}
+              {field(t('password_label'), loginPassword, setLoginPassword, 'password', '••••••••', handleLogin)}
               {loginError && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {loginError}</p>}
               <button onClick={handleLogin} className="btn-primary w-full py-3">{t('login_btn')} →</button>
               <button
@@ -443,14 +445,14 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
           ) : (
             <>
               <h2 className="font-heading text-xl font-bold text-white">{t('register_title')}</h2>
-              {field(t('name_label'), regName, setRegName, 'text', 'আপনার নাম')}
-              {field(t('email_label'), regEmail, setRegEmail, 'email', 'you@example.com')}
-              {field('ফোন নম্বর', regPhone, setRegPhone, 'tel', '01XXXXXXXXX')}
+              {field(t('name_label'), regName, setRegName, 'text', 'আপনার নাম', handleSendOTP)}
+              {field(t('email_label'), regEmail, setRegEmail, 'email', 'you@example.com', handleSendOTP)}
+              {field('ফোন নম্বর', regPhone, setRegPhone, 'tel', '01XXXXXXXXX', handleSendOTP)}
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-1.5">{t('district_label')}</label>
                 <DistrictSelect value={regDistrict} onChange={setRegDistrict} />
               </div>
-              {field(t('password_label'), regPassword, setRegPassword, 'password', 'কমপক্ষে ৮ অক্ষর')}
+              {field(t('password_label'), regPassword, setRegPassword, 'password', 'কমপক্ষে ৮ অক্ষর', handleSendOTP)}
 
               {/* Live password strength checklist */}
               {regPassword.length > 0 && (
@@ -470,7 +472,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
                 </div>
               )}
 
-              {field('পাসওয়ার্ড নিশ্চিত করুন', regConfirm, setRegConfirm, 'password', '••••••••')}
+              {field('পাসওয়ার্ড নিশ্চিত করুন', regConfirm, setRegConfirm, 'password', '••••••••', handleSendOTP)}
 
               {regError && <p className="text-xs font-semibold" style={{ color: '#ff4444' }}>⚠️ {regError}</p>}
 
@@ -498,6 +500,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
                   <input
                     value={otpInput}
                     onChange={e => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleVerify() } }}
                     placeholder="6-digit OTP"
                     inputMode="numeric"
                     className="w-full px-4 py-3 rounded-xl text-center text-lg font-bold text-white tracking-widest placeholder-slate-600"
@@ -1080,6 +1083,7 @@ export default function AccountPage() {
                 <input
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveProfile() } }}
                   className="w-full px-4 py-2.5 rounded-xl text-sm text-white"
                   style={inputStyle}
                 />
@@ -1089,6 +1093,7 @@ export default function AccountPage() {
                 <input
                   value={editPhone}
                   onChange={e => setEditPhone(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveProfile() } }}
                   placeholder="01XXXXXXXXX"
                   className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-600"
                   style={inputStyle}
@@ -1188,6 +1193,7 @@ export default function AccountPage() {
                 type="password"
                 value={pwOld}
                 onChange={e => setPwOld(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitPasswordChange() } }}
                 placeholder="বর্তমান পাসওয়ার্ড"
                 className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-600"
                 style={inputStyle}
@@ -1196,6 +1202,7 @@ export default function AccountPage() {
                 type="password"
                 value={pwNew}
                 onChange={e => setPwNew(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitPasswordChange() } }}
                 placeholder="নতুন পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর)"
                 className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-600"
                 style={inputStyle}
@@ -1204,6 +1211,7 @@ export default function AccountPage() {
                 type="password"
                 value={pwConfirm}
                 onChange={e => setPwConfirm(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitPasswordChange() } }}
                 placeholder="নতুন পাসওয়ার্ড নিশ্চিত করুন"
                 className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-slate-600"
                 style={inputStyle}

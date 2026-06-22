@@ -648,6 +648,14 @@ export default function MonitorPage() {
                       ⚡ স্ক্যাম ওয়েভ
                     </span>
                   )}
+                  {!isSafe && th.alerted && (
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-bold"
+                      style={{ backgroundColor: 'rgba(0,229,196,0.14)', color: '#00e5c4', border: '1px solid rgba(0,229,196,0.4)' }}
+                    >
+                      🔔 সতর্কতা জারি
+                    </span>
+                  )}
                   <span className="text-xs text-slate-500">{th.type}</span>
                   {!isSafe && (
                     <span

@@ -36,6 +36,7 @@ class ThreatOut(BaseModel):
     status: str
     up_votes: int
     is_campaign: int = 0
+    alerted: bool = False          # a district-wide alert was issued for this threat
     screenshot: Optional[str] = None
     created_at: datetime
 

@@ -7,6 +7,7 @@ import { fetchAlerts, fetchDivisions, fetchDistricts, fetchThreats, fetchActivit
 import type { Alert, DivisionData, DistrictData, Threat, ActivityItem } from '@/lib/api'
 import { AlertCardSkeleton, ThreatCardSkeleton } from '@/components/Skeleton'
 import { useLanguage } from '@/lib/LanguageContext'
+import { timeAgo } from '@/lib/format'
 
 const Map = dynamic(() => import('@/components/BangladeshDivisionMap'), { ssr: false })
 
@@ -25,13 +26,6 @@ const CAT_TYPE: Partial<Record<CatFilter, string>> = {
 const PLATFORM_LABEL: Record<CatFilter, string> = {
   all: 'সব প্ল্যাটফর্ম', sms: 'এসএমএস', email: 'ই-মেইল', messenger: 'মেসেঞ্জার',
   whatsapp: 'হোয়াটসঅ্যাপ', telegram: 'টেলিগ্রাম', website: 'ওয়েবসাইট', other: 'অন্যান্য',
-}
-
-function timeAgo(iso: string) {
-  const ts = /Z$|[+]/.test(iso) ? iso : iso + "Z"; const diff = (Date.now() - new Date(ts).getTime()) / 60000
-  if (diff < 60)   return `${Math.floor(diff)} মিনিট আগে`
-  if (diff < 1440) return `${Math.floor(diff / 60)} ঘণ্টা আগে`
-  return `${Math.floor(diff / 1440)} দিন আগে`
 }
 
 export default function MonitorPage() {

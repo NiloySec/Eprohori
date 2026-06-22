@@ -258,6 +258,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
         return response
 
 
@@ -697,7 +698,8 @@ sent_alerts_cache: set[str] = set()
 
 
 async def send_alert_emails(threat_id: int) -> int:
-    """Email the reporter + opt-in users in the affected district.
+    """Email opt-in users about a verified threat — hybrid routing:
+    critical / scam-wave → nationwide; high → the affected district only.
     Returns the number of emails actually sent."""
     from database import SessionLocal
     db = SessionLocal()
@@ -722,12 +724,18 @@ async def send_alert_emails(threat_id: int) -> int:
         # about the threat they reported. They get a separate result/confirmation
         # email instead. This alert is a *warning* for everyone else.
 
-        # ALL opt-in users nationwide (not just the affected district) — excluding the reporter
-        opt_in_users = db.query(User).filter(
+        # Hybrid routing: critical or a scam-wave is a national danger → alert everyone;
+        # a plain "high" threat → only the affected district's opt-in users (relevant,
+        # less alert fatigue). If the district is unknown, fall back to national.
+        national = severity == "critical" or (t.is_campaign or 0) == 1
+        target_district = (t.district or "").strip()
+        q = db.query(User).filter(
             User.notify_alerts == True,  # noqa: E712
             User.email.isnot(None),
-        ).all()
-        for u in opt_in_users:
+        )
+        if not national and target_district:
+            q = q.filter(func.lower(User.district) == target_district.lower())
+        for u in q.all():
             if u.email and u.email != t.reporter_email:
                 recipients.setdefault(u.email, u.name)
 

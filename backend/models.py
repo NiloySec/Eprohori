@@ -18,6 +18,7 @@ class Threat(Base):
     screenshot = Column(Text, nullable=True)        # optional base64 evidence image
     district = Column(String, nullable=True)        # reporter-selected district (region = parent division)
     human_reviewed = Column(Boolean, default=False) # True once an admin manually approved/rejected — safe for ML feedback
+    alerted = Column(Boolean, default=False)        # True once a district-wide user alert has been dispatched (corroboration gate)
     created_at = Column(DateTime, server_default=func.now())
 
 

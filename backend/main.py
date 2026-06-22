@@ -177,6 +177,7 @@ async def lifespan(app: FastAPI):
             ("screenshot",     "ALTER TABLE threats ADD COLUMN screenshot TEXT"),
             ("district",       "ALTER TABLE threats ADD COLUMN district VARCHAR"),
             ("human_reviewed", "ALTER TABLE threats ADD COLUMN human_reviewed BOOLEAN DEFAULT FALSE"),
+            ("alerted",        "ALTER TABLE threats ADD COLUMN alerted BOOLEAN DEFAULT FALSE"),
         ])
         seed_db()
         phone_checker.load_blacklist()
@@ -671,6 +672,20 @@ ALERT_CRITICAL_MIN = 0.90   # 90-100% → instant email on auto-verify
 ALERT_HIGH_MIN     = 0.70   # 70-89%  → email after admin verification
 
 
+# Corroboration gate for OUTBOUND district-wide alerts. Verifying a report only
+# pollutes the DB if wrong (cheap, reversible). Mass-alerting a whole district on
+# a single false auto-verify erodes trust (expensive, public). So a lone first
+# report verifies + shows on the monitor, but the mass alert is HELD until the
+# threat is corroborated by ANY of:
+#   • a 2nd clustered report (up_votes >= 1)
+#   • a detected scam-wave burst (is_campaign)
+#   • a human admin (human_reviewed)
+def _is_corroborated(threat) -> bool:
+    return bool(getattr(threat, "human_reviewed", False)) \
+        or (threat.is_campaign or 0) == 1 \
+        or (threat.up_votes or 0) >= 1
+
+
 def get_severity(confidence: float) -> str:
     """Single source of truth for severity labels."""
     if confidence >= 0.90: return "critical"
@@ -943,6 +958,15 @@ def create_threat(
         if len(day_times) > DAILY_REVIEW_THRESHOLD and dup.status == "verified":
             dup.status = "pending"  # over-reported → human scrutiny
 
+        # Corroboration reached (this is the 2nd+ report) → release a previously
+        # held district alert on an auto-verified threat.
+        dup_conf = (dup.confidence or 0)
+        if dup_conf > 1:
+            dup_conf = dup_conf / 100
+        if dup.status == "verified" and not dup.alerted and dup_conf >= ALERT_HIGH_MIN and _is_corroborated(dup):
+            dup.alerted = True
+            background_tasks.add_task(send_alert_emails, dup.id)
+
         db.commit()
         db.refresh(dup)
         response.status_code = 200  # clustered into existing threat
@@ -1012,8 +1036,12 @@ def create_threat(
                 send_threat_alert, t.type, t.region or "", t.content or "", severity, conf_pct
             )
 
-        # 5b. NEW: District-wide user emails for 70%+ auto-verified threats
-        if confidence_norm >= ALERT_HIGH_MIN:
+        # 5b. District-wide user emails for 70%+ verified threats — but ONLY when
+        # corroborated. A lone first auto-verify shows on the monitor and the mass
+        # alert WAITS for a 2nd report / burst / admin (see _is_corroborated).
+        if confidence_norm >= ALERT_HIGH_MIN and _is_corroborated(t):
+            t.alerted = True
+            db.commit()
             background_tasks.add_task(send_alert_emails, t.id)
 
         # 5c. Reporter result email (existing)
@@ -1862,7 +1890,9 @@ async def verify_threat(
     conf = (t.confidence or 0)
     if conf > 1:
         conf = conf / 100
-    if conf >= ALERT_HIGH_MIN:
+    if conf >= ALERT_HIGH_MIN and not t.alerted:
+        t.alerted = True
+        db.commit()
         background_tasks.add_task(send_alert_emails, t.id)
         return {"verified": True, "emails_sent": True, "severity": get_severity(conf)}
     return {"verified": True, "emails_sent": False, "severity": get_severity(conf)}

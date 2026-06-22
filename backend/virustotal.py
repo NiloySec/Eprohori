@@ -59,7 +59,6 @@ def check_url(url: str) -> dict | None:
     malicious = stats.get("malicious", 0)
     suspicious = stats.get("suspicious", 0)
     harmless = stats.get("harmless", 0)
-    total = malicious + suspicious + harmless + stats.get("undetected", 0) or 1
 
     # A SINGLE engine flag is noise — legit sites (e.g. domain marketplaces like
     # afternic.com) routinely get 1 low-quality engine false-flag. Require corroboration:

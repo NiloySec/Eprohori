@@ -200,17 +200,6 @@ class BroadcastRequest(BaseModel):
     severity: str = "medium"
 
 
-class QuizSubmission(BaseModel):
-    answers: dict[str, str]   # {"q1": "b", "q2": "a", "q3": "c"}
-
-
-class QuizResult(BaseModel):
-    passed: bool
-    score: int
-    total: int
-    xp_earned: int
-
-
 class DailyQuizOut(BaseModel):
     date: str
     questions: list[dict]          # [{id, q, options:[{key,text}]}]

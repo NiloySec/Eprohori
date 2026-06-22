@@ -34,7 +34,6 @@ function getCircleRadius(count: number) {
 interface Props {
   divisions: DivisionData[]
   districts?: DistrictData[]
-  selectedDivision: string | null
   onSelectDivision: (div: DivisionData | null) => void
 }
 
@@ -129,7 +128,7 @@ function buildCircles(
   })
 }
 
-export default function BangladeshDivisionMap({ divisions, districts, selectedDivision, onSelectDivision }: Props) {
+export default function BangladeshDivisionMap({ divisions, districts, onSelectDivision }: Props) {
   const mapRef        = useRef<HTMLDivElement>(null)
   const leafletRef    = useRef<any>(null)       // Leaflet L module
   const mapInstRef    = useRef<any>(null)       // map instance

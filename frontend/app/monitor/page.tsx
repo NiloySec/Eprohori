@@ -136,7 +136,6 @@ export default function MonitorPage() {
     if (catFilter === 'all') return d
     return { ...d, threat_count: d.categories[catFilter] ?? 0 }
   })
-  const sorted = [...filteredDivisions].sort((a, b) => b.threat_count - a.threat_count)
   const sortedDistricts = [...districts].sort((a, b) => b.threats - a.threats)
   const selectedDistrict = districtSel ? districts.find(d => d.name === districtSel) ?? null : null
   const total  = filteredDivisions.reduce((sum, d) => sum + d.threat_count, 0)
@@ -382,7 +381,6 @@ export default function MonitorPage() {
               divisions={filteredDivisions}
               districts={districts}
               onSelectDivision={setSelected}
-              selectedDivision={selected?.division_en ?? null}
             />
           </div>
 

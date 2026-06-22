@@ -5,7 +5,6 @@ Endpoints: /api/stats, /api/threats, /api/alerts, /api/rangers,
            /api/check/phone, /api/admin/*
 """
 
-import hashlib
 import os
 import re
 import secrets
@@ -23,7 +22,7 @@ import jwt
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
@@ -45,7 +44,7 @@ from security import (
     _bearer,
     _EMAIL_RE,
     _hash_password,
-    _ip_throttle,
+    _ip_throttle,   # noqa: F401 — re-exported for tests (rate-limit reset)
     _verify_password,
     create_token,
     get_current_user,
@@ -66,8 +65,6 @@ from schemas import (
     PartnerInquiryRequest,
     QuizDailyResult,
     QuizDailySubmit,
-    QuizResult,
-    QuizSubmission,
     RangerOut,
     StatsOut,
     StatusResponse,
@@ -1122,25 +1119,6 @@ def list_rangers(
         r.rank = skip + i + 1
         out.append(r)
     return out
-
-
-@app.post("/api/rangers/quiz", response_model=QuizResult, tags=["rangers"])
-def submit_quiz(payload: QuizSubmission):
-    """
-    3-question quiz. Correct answers are fixed for the demo.
-    q1: What is phishing?  → b
-    q2: Safe URL starts with? → a
-    q3: OTP should be shared with? → c (nobody)
-    """
-    correct = {"q1": "b", "q2": "a", "q3": "c"}
-    score = sum(1 for k, v in correct.items() if payload.answers.get(k) == v)
-    passed = score >= 2
-    return QuizResult(
-        passed=passed,
-        score=score,
-        total=3,
-        xp_earned=score * 50,
-    )
 
 
 # ── Daily cybersecurity quiz (5 rotating questions/day, XP once/day) ───────────

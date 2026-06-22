@@ -84,23 +84,6 @@ function useScrollReveal() {
   }, [])
 }
 
-/* ── Helpers ────────────────────────────────────────────────────── */
-function timeAgo(iso: string) {
-  const ts = /Z$|[+]/.test(iso) ? iso : iso + "Z"; const diff = (Date.now() - new Date(ts).getTime()) / 60000
-  if (diff < 60)   return `${Math.floor(diff)} মিনিট আগে`
-  if (diff < 1440) return `${Math.floor(diff / 60)} ঘণ্টা আগে`
-  return `${Math.floor(diff / 1440)} দিন আগে`
-}
-
-const sevColor: Record<string, string> = {
-  critical: '#ff4444', high: '#f59e0b', medium: '#3b82f6', low: '#22c55e',
-}
-const sevLabel: Record<string, string> = {
-  critical: 'জরুরি', high: 'উচ্চ', medium: 'মাঝারি', low: 'কম',
-}
-const typeIcon: Record<string, string> = { SMS: '💬', URL: '🔗', Facebook: '👤', Website: '🌐' }
-
-
 /* ── Signal analyser (client-side, no backend call) ────────────── */
 interface Signal { label: string; matched: boolean }
 

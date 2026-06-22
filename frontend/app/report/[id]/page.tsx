@@ -24,12 +24,6 @@ const TYPE_ICON: Record<string, string> = {
   Website: '🌐',
 }
 
-function timeAgo(iso: string) {
-  const ts = /Z$|[+]/.test(iso) ? iso : iso + "Z"; const diff = (Date.now() - new Date(ts).getTime()) / 60000
-  if (diff < 60) return `${Math.floor(diff)} মিনিট আগে`
-  if (diff < 1440) return `${Math.floor(diff / 60)} ঘণ্টা আগে`
-  return `${Math.floor(diff / 1440)} দিন আগে`
-}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('bn-BD', {

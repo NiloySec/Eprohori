@@ -32,6 +32,7 @@ import validator
 import phone_checker
 import virustotal
 import url_heuristics
+import domain_cache
 
 # Matches http(s) URLs and bare domains like example.com/path
 _URL_RE = re.compile(r"^(https?://|www\.)\S+$|^[a-z0-9-]+(\.[a-z0-9-]+)+(/\S*)?$", re.IGNORECASE)
@@ -51,7 +52,7 @@ from security import (
     require_admin,
     throttle,
 )
-from models import AdminAudit, Alert, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
+from models import AdminAudit, Alert, DomainReputation, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
 import quiz_bank
 from schemas import (
     ActivityOut,
@@ -1313,23 +1314,42 @@ def get_districts(
     type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    """All 64 districts. Counts are the division totals distributed by
-    population/activity weight (threats are reported at division level)."""
+    """All 64 districts. Real district-tagged reports are counted directly; legacy
+    division-only reports (no district) are distributed by population weight so the
+    map stays meaningful while honouring actual per-district data."""
     cutoff = _timeframe_cutoff(timeframe)
-    div_counts: dict[str, int] = {}
-    for div in DIVISIONS:
-        q = db.query(func.count(Threat.id)).filter(
-            Threat.region == div, Threat.status == "verified"
-        )
+
+    def _apply(q):
         if cutoff:
             q = q.filter(Threat.created_at >= cutoff)
         if type:
             q = q.filter(Threat.type == type)
-        div_counts[div] = q.scalar() or 0
+        return q
+
+    # 1. Exact counts for reports tagged with a real district
+    direct: dict[str, int] = {}
+    rows = _apply(
+        db.query(Threat.district, func.count(Threat.id))
+        .filter(Threat.status == "verified", Threat.district.isnot(None), Threat.district != "")
+        .group_by(Threat.district)
+    ).all()
+    for dname, c in rows:
+        direct[dname] = c or 0
+
+    # 2. Legacy reports WITHOUT a district → distribute across the division by weight
+    div_nulldist: dict[str, int] = {}
+    for div in DIVISIONS:
+        q = _apply(
+            db.query(func.count(Threat.id)).filter(
+                Threat.region == div, Threat.status == "verified",
+                (Threat.district.is_(None)) | (Threat.district == ""),
+            )
+        )
+        div_nulldist[div] = q.scalar() or 0
 
     result = []
     for name, name_bn, division, lat, lng, weight in DISTRICTS:
-        count = round(div_counts.get(division, 0) * weight)
+        count = (direct.get(name, 0)) + round(div_nulldist.get(division, 0) * weight)
         color = "#ff4444" if count > 15 else ("#f59e0b" if count > 5 else "#22c55e")
         result.append(DistrictOut(
             name=name, name_bn=name_bn, division=division,
@@ -1729,7 +1749,7 @@ def reset_password(request: dict, req: Request, db: Session = Depends(get_db)):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.post("/api/validate/text", response_model=ValidateTextResponse, tags=["ai"])
-def validate_text(req: ValidateTextRequest):
+def validate_text(req: ValidateTextRequest, db: Session = Depends(get_db)):
     if len(req.text or "") > MAX_THREAT_CONTENT_LEN:
         raise HTTPException(413, f"Text too long (max {MAX_THREAT_CONTENT_LEN} characters)")
     text = req.text.strip()
@@ -1740,39 +1760,80 @@ def validate_text(req: ValidateTextRequest):
     # text model is the wrong tool for URLs and causes false positives; VT fixes that.
     looks_like_url = (req.type or "").lower() == "url" or bool(_URL_RE.match(text))
     if looks_like_url:
+        domain = domain_cache.normalize_domain(text)
+
+        # 0. Persistent cache + admin allow/deny list (fast path — saves VT quota).
+        if domain:
+            rep = domain_cache.lookup(db, domain)
+            if rep and domain_cache.is_fresh(rep):
+                if rep.listed == "black":
+                    return ValidateTextResponse(
+                        is_threat=True, confidence=max(rep.confidence or 0.9, 0.9), category="phishing",
+                        reasons=["ব্ল্যাকলিস্টেড ডোমেইন"],
+                        explanation="এই ডোমেইনটি Eprohori-র ব্ল্যাকলিস্টে আছে — এড়িয়ে চলুন।", source="blacklist",
+                    )
+                if rep.listed == "white":
+                    return ValidateTextResponse(
+                        is_threat=False, confidence=0.02, category="safe",
+                        reasons=[], explanation="এই ডোমেইনটি যাচাইকৃত নিরাপদ (হোয়াইটলিস্ট)।", source="whitelist",
+                    )
+                if rep.verdict in ("malicious", "suspicious"):
+                    return ValidateTextResponse(
+                        is_threat=True, confidence=rep.confidence or 0.85, category="phishing",
+                        reasons=["পূর্বে যাচাইকৃত — সন্দেহজনক/ক্ষতিকর ডোমেইন"],
+                        explanation="এই লিংকটি আগে যাচাইয়ে সন্দেহজনক পাওয়া গিয়েছিল — সতর্ক থাকুন।", source="cache",
+                    )
+                if rep.verdict == "safe":
+                    return ValidateTextResponse(
+                        is_threat=False, confidence=rep.confidence or 0.03, category="safe",
+                        reasons=[], explanation="এই লিংকটি আগে যাচাইয়ে নিরাপদ পাওয়া গিয়েছিল।", source="cache",
+                    )
+
         vt = virustotal.check_url(text)
         h = url_heuristics.analyze(text)   # brand-impersonation / lookalike check
 
+        resp: ValidateTextResponse
+        cache_verdict: Optional[str] = None   # malicious | safe | None (don't cache "unverified")
+
         # 1. VT flagged it → definite threat
         if vt is not None and vt["is_threat"]:
-            return ValidateTextResponse(
+            resp = ValidateTextResponse(
                 is_threat=True, confidence=vt["confidence"], category="phishing",
                 reasons=[f"VirusTotal: {vt['malicious']} malicious / {vt['suspicious']} suspicious engines"],
                 explanation="VirusTotal-এর security engine এই লিংকটিকে ক্ষতিকর হিসেবে চিহ্নিত করেছে।",
                 source="virustotal",
             )
+            cache_verdict = "malicious"
         # 2. Brand impersonation overrides a VT "clean" — a fresh lookalike
         #    (e.g. bkash.reward.xyz) isn't in VT's malicious DB yet, but is still dangerous.
-        if h:
-            return ValidateTextResponse(
+        elif h:
+            resp = ValidateTextResponse(
                 is_threat=True, confidence=h["confidence"], category="phishing",
                 reasons=h["reasons"],
                 explanation="এই লিংকটি পরিচিত ব্র্যান্ডের ছদ্মবেশ/সন্দেহজনক প্যাটার্ন দেখাচ্ছে — সতর্ক থাকুন, তথ্য দেবেন না।",
                 source="heuristic",
             )
+            cache_verdict = "malicious"
         # 3. VT clean + no impersonation → safe
-        if vt is not None:
-            return ValidateTextResponse(
+        elif vt is not None:
+            resp = ValidateTextResponse(
                 is_threat=False, confidence=vt["confidence"], category="safe",
                 reasons=[], explanation="VirusTotal-এ এই লিংকটি নিরাপদ পাওয়া গেছে।",
                 source="virustotal",
             )
-        # 4. Unknown to VT + no heuristic signal → honest "unverified"
-        return ValidateTextResponse(
-            is_threat=False, confidence=0.0, category="unverified",
-            reasons=[], explanation="এই লিংকটি এখনো যাচাই করা যায়নি — পরিচিত হুমকি তালিকায় নেই। তবুও সতর্ক থাকুন।",
-            source="unverified",
-        )
+            cache_verdict = "safe"
+        # 4. Unknown to VT + no heuristic signal → honest "unverified" (not cached)
+        else:
+            resp = ValidateTextResponse(
+                is_threat=False, confidence=0.0, category="unverified",
+                reasons=[], explanation="এই লিংকটি এখনো যাচাই করা যায়নি — পরিচিত হুমকি তালিকায় নেই। তবুও সতর্ক থাকুন।",
+                source="unverified",
+            )
+
+        # Persist the verdict (domain-only, no user link) for fast future lookups.
+        if domain and cache_verdict:
+            domain_cache.upsert(db, domain, cache_verdict, resp.source, resp.confidence)
+        return resp
 
     ml_result = validator.predict(text)
     result = claude_analyzer.hybrid_predict(text, ml_result)
@@ -1830,6 +1891,32 @@ def admin_backup(_admin: dict = Depends(require_admin), db: Session = Depends(ge
         media_type="application/json",
         headers={"Content-Disposition": f'attachment; filename="{fname}"'},
     )
+
+
+@app.post("/api/admin/reputation", tags=["admin"])
+def set_domain_reputation(payload: dict, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
+    """Admin sets a domain's allow/deny listing. payload: {domain, listed: 'white'|'black'|'none'}."""
+    domain = domain_cache.normalize_domain((payload.get("domain") or "").strip())
+    listed = (payload.get("listed") or "").lower().strip()
+    if not domain:
+        raise HTTPException(400, "সঠিক domain দিন।")
+    if listed not in ("white", "black", "none"):
+        raise HTTPException(400, "listed must be 'white', 'black', or 'none'.")
+    rep = db.query(DomainReputation).filter(DomainReputation.domain == domain).first()
+    new_listed = None if listed == "none" else listed
+    verdict = "malicious" if listed == "black" else ("safe" if listed == "white" else (rep.verdict if rep else "unknown"))
+    conf = 0.95 if listed == "black" else (0.02 if listed == "white" else (rep.confidence if rep else 0.0))
+    if rep:
+        rep.listed = new_listed
+        rep.verdict = verdict
+        rep.confidence = conf
+        rep.source = "admin"
+    else:
+        db.add(DomainReputation(domain=domain, verdict=verdict, source="admin",
+                                confidence=conf, listed=new_listed, hit_count=0))
+    db.commit()
+    _log_audit(db, admin.get("sub", "admin"), f"reputation:{listed}", domain)
+    return {"success": True, "domain": domain, "listed": new_listed}
 
 
 @app.get("/api/admin/pending", response_model=list[ThreatOut], tags=["admin"])

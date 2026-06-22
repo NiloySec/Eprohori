@@ -53,6 +53,24 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+class DomainReputation(Base):
+    """Persistent verdict cache per DOMAIN (privacy-safe: host only, no path/query,
+    not linked to any user). Speeds up repeat scans, saves VirusTotal quota, and
+    backs the dynamic whitelist/blacklist."""
+    __tablename__ = "domain_reputation"
+
+    id = Column(Integer, primary_key=True, index=True)
+    domain = Column(String, unique=True, index=True, nullable=False)  # normalized host
+    verdict = Column(String, default="unknown")   # safe | malicious | suspicious | unknown
+    source = Column(String, default="")           # virustotal | heuristic | admin | report
+    confidence = Column(Float, default=0.0)       # risk score 0-1
+    listed = Column(String, nullable=True)        # "white" | "black" | None (admin override)
+    hit_count = Column(Integer, default=0)
+    last_checked = Column(DateTime, server_default=func.now())
+    expires_at = Column(DateTime, nullable=True)  # cached verdict goes stale after this
+    created_at = Column(DateTime, server_default=func.now())
+
+
 class QuizCompletion(Base):
     """One row per user per day they finish the daily quiz (caps XP at once/day)."""
     __tablename__ = "quiz_completions"

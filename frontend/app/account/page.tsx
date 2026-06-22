@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword, adminLogin } from '@/lib/api'
+import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword, adminLogin, fetchDailyQuiz, submitDailyQuiz } from '@/lib/api'
+import type { DailyQuiz, DailyQuizResult } from '@/lib/api'
 import type { Ranger, MyReport } from '@/lib/api'
 import DistrictSelect from '@/components/DistrictSelect'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -529,6 +530,129 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
 
 // ── Account page ─────────────────────────────────────────────────────────────
 
+// ── Daily cybersecurity quiz ──────────────────────────────────────────────────
+function DailyQuizView({ email, onXp }: { email: string; onXp: (totalXp: number) => void }) {
+  const [quiz, setQuiz] = useState<DailyQuiz | null>(null)
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [result, setResult] = useState<DailyQuizResult | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    fetchDailyQuiz(email)
+      .then(q => { setQuiz(q); setLoading(false) })
+      .catch(() => { setErr('কুইজ লোড করা যায়নি — পরে চেষ্টা করুন।'); setLoading(false) })
+  }, [email])
+
+  const allAnswered = !!quiz && quiz.questions.every(q => answers[String(q.id)])
+
+  const submit = async () => {
+    if (!quiz || submitting || !allAnswered) return
+    setSubmitting(true); setErr('')
+    try {
+      const r = await submitDailyQuiz(email, answers)
+      setResult(r)
+      onXp(r.total_xp)
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'জমা দেওয়া যায়নি।')
+    } finally { setSubmitting(false) }
+  }
+
+  const card = { background: 'rgba(13,24,41,0.85)', border: '1px solid rgba(255,255,255,0.06)' }
+
+  if (loading) {
+    return <div className="rounded-2xl p-8 text-center text-slate-400" style={card}>কুইজ লোড হচ্ছে…</div>
+  }
+  if (err && !quiz) {
+    return <div className="rounded-2xl p-8 text-center" style={card}><p className="text-sm" style={{ color: '#ff6b6b' }}>⚠️ {err}</p></div>
+  }
+  if (!quiz) return null
+
+  // Already completed today (and not just-submitted)
+  if (quiz.already_done && !result) {
+    return (
+      <div className="rounded-2xl p-8 text-center fade-in-up" style={card}>
+        <div className="text-5xl mb-3">✅</div>
+        <h3 className="font-heading text-xl font-bold text-white mb-2">আজকের কুইজ সম্পন্ন!</h3>
+        <p className="text-sm text-slate-400 mb-1">গতবার স্কোর: <span style={{ color: '#00e5c4', fontWeight: 700 }}>{quiz.last_score ?? 0}/5</span></p>
+        <p className="text-xs text-slate-500">🗓️ আগামীকাল নতুন ৫টি প্রশ্ন নিয়ে আবার আসুন — প্রতিদিন XP অর্জন করুন!</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl p-5 flex items-center gap-3 fade-in-up" style={card}>
+        <span className="text-3xl">🧠</span>
+        <div>
+          <h3 className="font-heading text-lg font-bold text-white">আজকের সাইবার কুইজ</h3>
+          <p className="text-xs text-slate-400">প্রতিদিন ৫টি নতুন প্রশ্ন • প্রতি সঠিক উত্তরে <span style={{ color: '#00e5c4' }}>+২০ XP</span></p>
+        </div>
+        <span className="ml-auto text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(0,229,196,0.12)', color: '#00e5c4', border: '1px solid rgba(0,229,196,0.3)' }}>
+          {quiz.total_xp} XP
+        </span>
+      </div>
+
+      {quiz.questions.map((q, qi) => {
+        const picked = answers[String(q.id)]
+        const correctKey = result?.correct[String(q.id)]
+        return (
+          <div key={q.id} className="rounded-2xl p-5 fade-in-up" style={card}>
+            <p className="text-sm font-semibold text-white mb-3">{qi + 1}. {q.q}</p>
+            <div className="space-y-2">
+              {q.options.map(opt => {
+                const isPicked = picked === opt.key
+                const isCorrect = result && correctKey === opt.key
+                const isWrongPick = result && isPicked && correctKey !== opt.key
+                let bg = 'rgba(255,255,255,0.03)', bd = 'rgba(255,255,255,0.08)', col = '#cbd5e1'
+                if (isCorrect) { bg = 'rgba(34,197,94,0.14)'; bd = 'rgba(34,197,94,0.5)'; col = '#4ade80' }
+                else if (isWrongPick) { bg = 'rgba(255,68,68,0.14)'; bd = 'rgba(255,68,68,0.5)'; col = '#ff6b6b' }
+                else if (isPicked) { bg = 'rgba(0,229,196,0.12)'; bd = 'rgba(0,229,196,0.45)'; col = '#00e5c4' }
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => { if (!result) setAnswers(a => ({ ...a, [String(q.id)]: opt.key })) }}
+                    disabled={!!result}
+                    className="w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all"
+                    style={{ background: bg, border: `1px solid ${bd}`, color: col, cursor: result ? 'default' : 'pointer' }}
+                  >
+                    <span style={{ fontWeight: 700, marginRight: 8, textTransform: 'uppercase' }}>{opt.key}.</span>
+                    {opt.text}
+                    {isCorrect && <span style={{ float: 'right' }}>✓</span>}
+                    {isWrongPick && <span style={{ float: 'right' }}>✗</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+
+      {err && <p className="text-sm text-center" style={{ color: '#ff6b6b' }}>⚠️ {err}</p>}
+
+      {result ? (
+        <div className="rounded-2xl p-6 text-center fade-in-up" style={{ background: 'rgba(0,229,196,0.06)', border: '1px solid rgba(0,229,196,0.25)' }}>
+          <div className="text-4xl mb-2">{result.score >= 4 ? '🎉' : result.score >= 2 ? '👍' : '📚'}</div>
+          <p className="font-heading text-xl font-bold text-white">স্কোর: {result.score}/{result.total}</p>
+          <p className="text-sm mt-1" style={{ color: '#00e5c4', fontWeight: 700 }}>+{result.xp_earned} XP অর্জিত!</p>
+          <p className="text-xs text-slate-400 mt-1">মোট XP: {result.total_xp} • 🗓️ আগামীকাল নতুন প্রশ্ন</p>
+        </div>
+      ) : (
+        <button
+          onClick={submit}
+          disabled={!allAnswered || submitting}
+          className="btn-primary w-full py-3"
+          style={{ opacity: allAnswered && !submitting ? 1 : 0.5 }}
+        >
+          {submitting ? 'জমা হচ্ছে…' : allAnswered ? 'উত্তর জমা দিন →' : 'সব প্রশ্নের উত্তর দিন'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function AccountPage() {
   const { t, lang, setLang } = useLanguage()
   const [auth, setAuth]       = useState<AuthUser | null>(null)
@@ -609,7 +733,7 @@ export default function AccountPage() {
   // Account deletion (danger zone)
   const router = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [view, setView] = useState<'overview' | 'settings' | 'reports' | 'leaderboard'>('overview')
+  const [view, setView] = useState<'overview' | 'quiz' | 'settings' | 'reports' | 'leaderboard'>('overview')
   const [deleting, setDeleting] = useState(false)
   const [deleted, setDeleted] = useState(false)
 
@@ -811,6 +935,7 @@ export default function AccountPage() {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {([
           ['overview', '🎖️ প্রোফাইল'],
+          ['quiz', '🧠 কুইজ'],
           ['reports', '📋 রিপোর্ট'],
           ['leaderboard', '🏆 র‍্যাংকিং'],
           ['settings', '⚙️ সেটিংস'],
@@ -862,6 +987,20 @@ export default function AccountPage() {
           ))}
         </div>
       </div>
+      )}
+
+      {/* ── Daily quiz ── */}
+      {view === 'quiz' && (
+        <DailyQuizView
+          email={auth.email}
+          onXp={(totalXp) => {
+            setAuth(prev => (prev ? { ...prev, xp: totalXp } : prev))
+            try {
+              const p = JSON.parse(localStorage.getItem('eprohori_profile') || 'null')
+              if (p) { p.xp = totalXp; localStorage.setItem('eprohori_profile', JSON.stringify(p)) }
+            } catch { /* ignore */ }
+          }}
+        />
       )}
 
       {/* ── Account settings ── */}

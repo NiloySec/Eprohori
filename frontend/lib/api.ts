@@ -811,6 +811,44 @@ export async function fetchRangers(): Promise<Ranger[]> {
   }
 }
 
+// ── Daily quiz ─────────────────────────────────────────────────────────────
+
+export interface DailyQuizQuestion {
+  id: number
+  q: string
+  options: { key: string; text: string }[]
+}
+export interface DailyQuiz {
+  date: string
+  questions: DailyQuizQuestion[]
+  already_done: boolean
+  total_xp: number
+  last_score: number | null
+}
+export interface DailyQuizResult {
+  score: number
+  total: number
+  xp_earned: number
+  total_xp: number
+  correct: Record<string, string>
+  already_done: boolean
+}
+
+export async function fetchDailyQuiz(email?: string): Promise<DailyQuiz> {
+  const qs = email ? `?email=${encodeURIComponent(email)}` : ''
+  return api<DailyQuiz>(`/quiz/daily${qs}`)
+}
+
+export async function submitDailyQuiz(
+  email: string,
+  answers: Record<string, string>,
+): Promise<DailyQuizResult> {
+  return api<DailyQuizResult>('/quiz/daily', {
+    method: 'POST',
+    body: JSON.stringify({ email, answers }),
+  })
+}
+
 // ── Division heatmap ───────────────────────────────────────────────────────
 
 export async function fetchDivisions(timeframe?: string): Promise<DivisionData[]> {

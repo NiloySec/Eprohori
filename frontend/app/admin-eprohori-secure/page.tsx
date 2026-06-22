@@ -340,7 +340,7 @@ export default function AdminPage() {
                   className="w-full bg-transparent outline-none text-white placeholder-slate-600 text-sm resize-none" />
               </Field>
               <Field label="তীব্রতা" icon="🚦">
-                <select value={broadcast.severity} onChange={e => setBroadcast(b => ({ ...b, severity: e.target.value }))}
+                <select aria-label="তীব্রতা" value={broadcast.severity} onChange={e => setBroadcast(b => ({ ...b, severity: e.target.value }))}
                   className="w-full bg-transparent outline-none text-white text-sm">
                   <option value="critical" className="bg-slate-900">🚨 জরুরি (Critical)</option>
                   <option value="high" className="bg-slate-900">⚠️ উচ্চ (High)</option>

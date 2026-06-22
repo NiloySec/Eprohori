@@ -26,4 +26,15 @@ describe('timeAgo', () => {
     const twoDaysAgo = new Date(Date.now() - 2 * 86400 * 1000).toISOString()
     expect(timeAgo(twoDaysAgo)).toBe('2 দিন আগে')
   })
+  it('treats a timestamp without timezone as UTC', () => {
+    const recent = new Date(Date.now() - 5 * 60 * 1000).toISOString().replace('Z', '')
+    expect(timeAgo(recent)).toBe('5 মিনিট আগে')
+  })
+})
+
+describe('toBnDigits — large numbers', () => {
+  it('converts thousands with separators preserved', () => {
+    expect(toBnDigits('12,589')).toBe('১২,৫৮৯')
+    expect(toBnDigits(1000000)).toBe('১০০০০০০')
+  })
 })

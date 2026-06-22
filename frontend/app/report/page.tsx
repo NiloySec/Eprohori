@@ -167,6 +167,7 @@ export default function ThreatsPage() {
                 {t('form_type_label')} *
               </label>
               <select
+                aria-label={t('form_type_label')}
                 value={threatType}
                 onChange={e => { setThreatType(e.target.value as ThreatType); setSubmitResult(null); setSubmitSuccess(false) }}
                 className="w-full px-4 py-3 rounded-xl text-sm text-white"

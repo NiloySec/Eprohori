@@ -390,6 +390,7 @@ export default function MonitorPage() {
                   <h3 className="font-heading text-lg font-bold gradient-text">{selected.name}</h3>
                   <button
                     onClick={() => setSelected(null)}
+                    aria-label="নির্বাচন বন্ধ করুন"
                     className="w-6 h-6 flex items-center justify-center rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-all text-sm"
                   >✕</button>
                 </div>
@@ -564,6 +565,7 @@ export default function MonitorPage() {
             </span>
             {/* Platform filter */}
             <select
+              aria-label="প্ল্যাটফর্ম ফিল্টার"
               value={catFilter}
               onChange={e => setCatFilter(e.target.value as CatFilter)}
               className="px-3 py-1.5 rounded-full text-xs font-semibold outline-none"
@@ -575,6 +577,7 @@ export default function MonitorPage() {
             </select>
             {/* District filter (filters by the district's parent division) */}
             <select
+              aria-label="জেলা ফিল্টার"
               value={districtSel}
               onChange={e => {
                 const name = e.target.value
@@ -707,6 +710,7 @@ export default function MonitorPage() {
               </div>
               <button
                 onClick={() => setSelectedAlert(null)}
+                aria-label="অ্যালার্ট বন্ধ করুন"
                 className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-all text-xl"
               >×</button>
             </div>

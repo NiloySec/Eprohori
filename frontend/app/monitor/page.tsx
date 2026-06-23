@@ -571,6 +571,21 @@ export default function MonitorPage() {
                 <option key={c} value={c}>{PLATFORM_LABEL[c]}</option>
               ))}
             </select>
+            {/* Time filter (same state as the map) */}
+            {(['24h', '3d', '7d', '15d', '30d'] as TimeFilter[]).map(f => (
+              <button
+                key={f}
+                onClick={() => setTimeFilter(f)}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: timeFilter === f ? '#00e5c4' : 'rgba(255,255,255,0.05)',
+                  color: timeFilter === f ? '#060d1a' : '#94a3b8',
+                  border: timeFilter === f ? '1px solid #00e5c4' : '1px solid transparent',
+                }}
+              >
+                {TIME_LABELS[f]}
+              </button>
+            ))}
           </div>
         </div>
 

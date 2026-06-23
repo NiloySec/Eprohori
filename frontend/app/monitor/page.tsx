@@ -51,9 +51,8 @@ export default function MonitorPage() {
   const [divisions, setDivisions]   = useState<DivisionData[]>([])
   const [districts, setDistricts]   = useState<DistrictData[]>([])
   const [selected, setSelected]     = useState<DivisionData | null>(null)
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h')
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('30d')
   const [catFilter, setCatFilter]   = useState<CatFilter>('all')
-  const [districtSel, setDistrictSel] = useState('')  // threat-list district filter
   const [threats, setThreats]       = useState<Threat[]>([])
   const [threatsLoading, setThreatsLoading] = useState(false)
 
@@ -131,7 +130,6 @@ export default function MonitorPage() {
     return { ...d, threat_count: d.categories[catFilter] ?? 0 }
   })
   const sortedDistricts = [...districts].sort((a, b) => b.threats - a.threats)
-  const selectedDistrict = districtSel ? districts.find(d => d.name === districtSel) ?? null : null
   const total  = filteredDivisions.reduce((sum, d) => sum + d.threat_count, 0)
   const catTotals = divisions.reduce((acc, d) => {
     Object.entries(d.categories).forEach(([cat, count]) => { acc[cat] = (acc[cat] || 0) + count })
@@ -334,7 +332,7 @@ export default function MonitorPage() {
 
       {/* ── Section 4: Threat Map ── */}
       <section className="mb-14">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8">
           <h2 className="font-heading text-2xl font-bold text-white">{t('threat_map')}</h2>
           <div className="flex flex-wrap gap-2 sm:ml-auto">
             {(['24h', '3d', '7d', '15d', '30d'] as TimeFilter[]).map(f => (
@@ -524,9 +522,7 @@ export default function MonitorPage() {
             {selected ? (
               <>
                 {t('showing_threats_in')}{' '}
-                <span style={{ color: '#00e5c4' }}>
-                  {selectedDistrict ? (selectedDistrict.name_bn || selectedDistrict.name) : selected.name}
-                </span>
+                <span style={{ color: '#00e5c4' }}>{selected.name}</span>
               </>
             ) : t('all_threats_title')}
           </h2>
@@ -574,24 +570,6 @@ export default function MonitorPage() {
               {(['all', 'sms', 'email', 'messenger', 'whatsapp', 'telegram', 'website', 'other'] as CatFilter[]).map(c => (
                 <option key={c} value={c}>{PLATFORM_LABEL[c]}</option>
               ))}
-            </select>
-            {/* District filter (filters by the district's parent division) */}
-            <select
-              aria-label="জেলা ফিল্টার"
-              value={districtSel}
-              onChange={e => {
-                const name = e.target.value
-                setDistrictSel(name)
-                if (!name) { setSelected(null); return }
-                const dist = districts.find(d => d.name === name)
-                const div = dist ? divisions.find(x => x.division_en === dist.division) ?? null : null
-                setSelected(div)
-              }}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold outline-none"
-              style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', color: '#94a3b8' }}
-            >
-              <option value="">সব জেলা</option>
-              {districts.map(d => <option key={d.name} value={d.name}>{d.name_bn || d.name}</option>)}
             </select>
           </div>
         </div>

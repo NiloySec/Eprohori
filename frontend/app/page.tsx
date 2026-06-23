@@ -186,10 +186,23 @@ export default function HomePage() {
              style={{ width: 800, height: 800, borderRadius: '50%',
                       background: 'rgba(0,229,196,0.15)', filter: 'blur(120px)', opacity: 0.3 }} />
 
-        <div className="relative max-w-4xl mx-auto px-4 text-center py-20 md:py-28 z-10">
+        <div className="relative max-w-4xl mx-auto px-4 text-center py-16 md:py-20 z-10">
+          {/* Eyebrow — live crowdsourced badge with rotating tagline */}
+          <div className="flex justify-center mb-5 fade-in-up-1">
+            <span
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold"
+              style={{ background: 'rgba(0,229,196,0.1)', border: '1px solid rgba(0,229,196,0.3)', color: '#00e5c4' }}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#00e5c4' }} />
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#00e5c4' }} />
+              </span>
+              ✦ {tagline}
+            </span>
+          </div>
           {/* Headline — Bengali needs smaller sizes + looser line-height to avoid overflow */}
           <h1
-            className={`font-heading mb-6 gradient-text fade-in-up-1 max-w-5xl mx-auto ${
+            className={`font-heading mb-4 gradient-text fade-in-up-1 max-w-5xl mx-auto ${
               lang === 'bn'
                 ? 'bn-heading text-3xl md:text-5xl lg:text-6xl font-semibold'
                 : 'text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight'
@@ -209,26 +222,16 @@ export default function HomePage() {
             {t('hero_subtitle')}
           </h2>
           <p
-            className="mb-10 fade-in-up-2"
-            style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)', lineHeight: '1.7', maxWidth: '560px', margin: '0 auto 2.5rem', color: '#94a3b8' }}
+            className="fade-in-up-2"
+            style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)', lineHeight: '1.7', maxWidth: '560px', margin: '0 auto 2rem', color: '#94a3b8' }}
           >
             {t('hero_desc').split('\n').map((line, i) => (
               <span key={i}>{line}{i === 0 && <br />}</span>
             ))}
           </p>
 
-          {/* Typing tagline */}
-          <div className="mb-10 h-9 flex items-center justify-center fade-in-up-3">
-            <span
-              className="inline-block text-lg font-medium typing-cursor"
-              style={{ color: '#00e5c4', minWidth: '2ch' }}
-            >
-              ✦ {tagline}
-            </span>
-          </div>
-
-          {/* CTA Buttons — 2 only */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 fade-in-up-4">
+          {/* CTA Buttons — primary solid, secondary ghost */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8 fade-in-up-4">
             <Link
               href="/report"
               className="btn-primary px-8 py-3.5"
@@ -239,12 +242,21 @@ export default function HomePage() {
             <button
               onClick={() => document.getElementById('quick-scan')?.scrollIntoView({ behavior: 'smooth' })}
               className="px-8 py-3.5 rounded-xl font-heading font-bold text-base transition-all"
-              style={{ border: '1.5px solid rgba(0,229,196,0.4)', color: '#00e5c4', backgroundColor: 'rgba(0,229,196,0.06)' }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(0,229,196,0.12)')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(0,229,196,0.06)')}
+              style={{ border: '1px solid rgba(148,163,184,0.25)', color: '#cbd5e1', backgroundColor: 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,229,196,0.5)'; e.currentTarget.style.color = '#00e5c4' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(148,163,184,0.25)'; e.currentTarget.style.color = '#cbd5e1' }}
             >
               {t('validate_btn')}
             </button>
+          </div>
+
+          {/* Live trust strip — real platform numbers */}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 fade-in-up-4" style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+            <span>🛡️ <b style={{ color: '#fff' }}>{active.toLocaleString('bn-BD')}</b> সক্রিয় হুমকি</span>
+            <span style={{ opacity: 0.3 }}>•</span>
+            <span>👥 <b style={{ color: '#fff' }}>{alerted.toLocaleString('bn-BD')}</b> জন সতর্ক</span>
+            <span style={{ opacity: 0.3 }}>•</span>
+            <span>🗺️ <b style={{ color: '#fff' }}>{districts.toLocaleString('bn-BD')}</b>/৬৪ জেলা</span>
           </div>
         </div>
       </section>

@@ -354,7 +354,7 @@ export const translations = {
     monitor_title: 'থ্রেট মনিটর',
     monitor_subtitle: 'লাইভ সতর্কতা ও হুমকির মানচিত্র',
     active_alerts: 'সক্রিয় সতর্কতা',
-    threat_map: 'সাইবার হুমকি মানচিত্র',
+    threat_map: 'Bangladesh Threat Map',
     no_alerts: 'এই মুহূর্তে কোনো সক্রিয় সতর্কতা নেই',
     last_updated: 'সর্বশেষ আপডেট',
     most_affected: 'সর্বাধিক আক্রান্ত এলাকা',

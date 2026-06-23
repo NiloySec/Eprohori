@@ -334,23 +334,6 @@ export default function MonitorPage() {
       <section className="mb-14">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8">
           <h2 className="font-heading text-2xl font-bold text-white">{t('threat_map')}</h2>
-          <div className="flex flex-wrap gap-2 sm:ml-auto">
-            {(['24h', '3d', '7d', '15d', '30d'] as TimeFilter[]).map(f => (
-              <button
-                key={f}
-                onClick={() => setTimeFilter(f)}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  backgroundColor: timeFilter === f ? '#00e5c4' : 'rgba(255,255,255,0.05)',
-                  color: timeFilter === f ? '#060d1a' : '#94a3b8',
-                  boxShadow: timeFilter === f ? '0 0 12px rgba(0,229,196,0.3)' : 'none',
-                  border: timeFilter === f ? '1px solid #00e5c4' : '1px solid transparent',
-                }}
-              >
-                {TIME_LABELS[f]}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4">

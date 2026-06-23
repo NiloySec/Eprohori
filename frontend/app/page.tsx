@@ -197,7 +197,7 @@ export default function HomePage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#00e5c4' }} />
                 <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#00e5c4' }} />
               </span>
-              ✦ {tagline}
+              {tagline}
             </span>
           </div>
           {/* Headline — Bengali needs smaller sizes + looser line-height to avoid overflow */}
@@ -250,13 +250,27 @@ export default function HomePage() {
             </button>
           </div>
 
-          {/* Live trust strip — real platform numbers */}
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 fade-in-up-4" style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-            <span>🛡️ <b style={{ color: '#fff' }}>{active.toLocaleString('bn-BD')}</b> সক্রিয় হুমকি</span>
-            <span style={{ opacity: 0.3 }}>•</span>
-            <span>👥 <b style={{ color: '#fff' }}>{alerted.toLocaleString('bn-BD')}</b> জন সতর্ক</span>
-            <span style={{ opacity: 0.3 }}>•</span>
-            <span>🗺️ <b style={{ color: '#fff' }}>{districts.toLocaleString('bn-BD')}</b>/৬৪ জেলা</span>
+          {/* Live stat bar — real platform numbers, clean professional layout */}
+          <div
+            className="inline-flex items-stretch fade-in-up-4 rounded-2xl overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            {[
+              { value: active, label: 'সক্রিয় হুমকি' },
+              { value: alerted, label: 'মানুষ সতর্ক' },
+              { value: districts, label: 'জেলা কভারেজ', suffix: '/৬৪' },
+            ].map((s, i) => (
+              <div
+                key={s.label}
+                className="px-5 sm:px-7 py-3 text-center"
+                style={{ borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}
+              >
+                <div className="font-heading font-bold" style={{ fontSize: '1.35rem', color: '#fff', lineHeight: 1.1 }}>
+                  {s.value.toLocaleString('bn-BD')}{s.suffix || ''}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 3 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

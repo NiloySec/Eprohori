@@ -148,8 +148,9 @@ export default function BangladeshDivisionMap({ divisions, districts, onSelectDi
       if (!mapRef.current || mapInstRef.current) return
 
       const map = L.map(mapRef.current, {
-        center: [23.7, 90.35],
+        center: [23.8, 90.35],
         zoom: 7,
+        zoomSnap: 0.1,            // allow fractional zoom so fitBounds fits exactly
         zoomControl: false,
         scrollWheelZoom: false,
         dragging: false,          // fixed map — won't pan or hijack page scroll
@@ -163,6 +164,14 @@ export default function BangladeshDivisionMap({ divisions, districts, onSelectDi
         attribution: '©OpenStreetMap ©CartoDB',
         maxZoom: 12,
       }).addTo(map)
+
+      // Fit the whole country so the northern districts aren't clipped at the top.
+      const BD_BOUNDS: [[number, number], [number, number]] = [[20.4, 87.8], [27.0, 92.9]]
+      const fit = () => { try { map.invalidateSize(); map.fitBounds(BD_BOUNDS, { padding: [16, 16] }) } catch {} }
+      fit()
+      // Re-fit after the container settles its size (avoids top-clipping on first paint).
+      setTimeout(fit, 300)
+      setTimeout(fit, 900)
 
       const group = L.layerGroup().addTo(map)
 

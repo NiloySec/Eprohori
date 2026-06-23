@@ -352,9 +352,9 @@ export const translations = {
     // ── Threat Monitor page ───────────────────────────────────────────────
     nav_monitor: 'মনিটর',
     monitor_title: 'থ্রেট মনিটর',
-    monitor_subtitle: 'লাইভ সতর্কতা ও থ্রেট মানচিত্র',
+    monitor_subtitle: 'লাইভ সতর্কতা ও হুমকির মানচিত্র',
     active_alerts: 'সক্রিয় সতর্কতা',
-    threat_map: 'বাংলাদেশ থ্রেট মানচিত্র',
+    threat_map: 'বাংলাদেশের হুমকির মানচিত্র',
     no_alerts: 'এই মুহূর্তে কোনো সক্রিয় সতর্কতা নেই',
     last_updated: 'সর্বশেষ আপডেট',
     most_affected: 'সর্বাধিক আক্রান্ত এলাকা',

@@ -777,6 +777,16 @@ export default function AccountPage() {
   const handlePhoto = (file: File | null) => {
     setPhotoError('')
     if (!file || !auth) return
+    // Profile photo can be changed at most once every 30 days.
+    const MONTH_MS = 30 * 24 * 3600 * 1000
+    try {
+      const last = Number(localStorage.getItem('ep_photo_changed_at') || 0)
+      if (last && Date.now() - last < MONTH_MS) {
+        const days = Math.ceil((MONTH_MS - (Date.now() - last)) / (24 * 3600 * 1000))
+        setPhotoError(`ছবি মাসে একবার পরিবর্তন করা যায় — ${days} দিন পর আবার চেষ্টা করুন।`)
+        return
+      }
+    } catch { /* ignore */ }
     if (file.size > 2 * 1024 * 1024) {
       setPhotoError('সর্বোচ্চ ২MB ছবি আপলোড করা যাবে')
       return
@@ -785,6 +795,7 @@ export default function AccountPage() {
     reader.onload = () => {
       const updated = { ...auth, avatar: reader.result as string }
       localStorage.setItem('ep_auth', JSON.stringify(updated))
+      try { localStorage.setItem('ep_photo_changed_at', String(Date.now())) } catch { /* ignore */ }
       setAuth(updated)
     }
     reader.readAsDataURL(file)
@@ -822,8 +833,12 @@ export default function AccountPage() {
   }
 
   // ── Logged-in derived data ──
-  const totalReports  = reports.length || auth.reports || 0
-  const verifiedCount = reports.filter(r => r.isPhishing).length
+  // Authoritative count = the user's server-side reports (by email); fall back to
+  // local/auth only while the server list is still loading.
+  const totalReports  = myServerReports.length || reports.length || auth.reports || 0
+  const verifiedCount = myServerReports.length
+    ? myServerReports.filter(r => r.status === 'verified').length
+    : reports.filter(r => r.isPhishing).length
   const protectedPpl  = totalReports * 27
   let xp = auth.xp ?? 0
   try {

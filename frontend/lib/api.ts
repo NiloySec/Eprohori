@@ -297,13 +297,20 @@ function adaptValidation(v: any): ValidationResult {
   const conf: number =
     v.confidence > 1 ? Math.round(v.confidence) : Math.round(v.confidence * 100)
   const reasons: string[] = v.reasons || []
+  const explanation: string = v.explanation || ''
+  const detail: string = reasons.join('; ')
+  // Prefer the backend's human explanation (the "why"), then append specific
+  // indicators. This makes URL verdicts actually define + explain the risk.
+  const unverified = v.category === 'unverified' || v.source === 'unverified'
   const reason: string =
+    (explanation && detail ? `${explanation} (${detail})` : explanation) ||
     v.reason ||
-    (reasons.length
-      ? reasons.join('। ')
-      : isPhishing
-      ? 'AI বিশ্লেষণে সন্দেহজনক প্যাটার্ন পাওয়া গেছে।'
-      : 'বার্তাটি নিরাপদ মনে হচ্ছে।')
+    (detail ||
+      (unverified
+        ? 'এই লিংকটি এখনো যাচাই করা যায়নি — পরিচিত হুমকি তালিকায় নেই। তবুও সতর্ক থাকুন।'
+        : isPhishing
+        ? 'AI বিশ্লেষণে সন্দেহজনক প্যাটার্ন পাওয়া গেছে।'
+        : 'যাচাইয়ে নিরাপদ পাওয়া গেছে।'))
   const risk: ValidationResult['risk_level'] =
     conf >= 80 ? 'critical' : conf >= 60 ? 'high' : conf >= 30 ? 'medium' : 'safe'
   const actions: string[] =

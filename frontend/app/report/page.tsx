@@ -26,7 +26,7 @@ const TYPE_PLACEHOLDER: Record<Exclude<ThreatType, ''>, string> = {
   whatsapp:  'WhatsApp বার্তা বা লিংক paste করুন...',
   telegram:  'Telegram বার্তা বা লিংক paste করুন...',
   website:   'সন্দেহজনক ওয়েবসাইটের URL...',
-  other:     'হুমকির বিবরণ লিখুন...',
+  other:     'হুমকির বিষয়বস্তু লিখুন...',
 }
 
 export default function ThreatsPage() {
@@ -239,7 +239,7 @@ export default function ThreatsPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-1.5">বিবরণ</label>
+              <label className="block text-sm font-semibold text-slate-300 mb-1.5">অতিরিক্ত বিবরণ <span className="text-xs font-normal text-slate-500">(ঐচ্ছিক)</span></label>
               <textarea
                 value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}

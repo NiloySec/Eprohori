@@ -12,7 +12,7 @@ export const translations = {
     lang_toggle: 'বাংলা',
 
     // ── Hero ──────────────────────────────────────────────────────────────
-    hero_title: "Bangladesh's Cyber Security Platform",
+    hero_title: "Bangladesh's Community-Powered|Cyber Threat Platform",
     hero_subtitle: 'One alert, everyone safe',
     hero_desc: 'Detect, report, and prevent phishing, scams and cyber threats — keep Bangladesh safe together.',
     hero_description: 'Detect, report, and prevent phishing, scams and cyber threats — keep Bangladesh safe together.',
@@ -200,7 +200,7 @@ export const translations = {
     lang_toggle: 'English',
 
     // ── Hero ──────────────────────────────────────────────────────────────
-    hero_title: 'বাংলাদেশের ক্রাউডসোর্সড সাইবার থ্রেট প্ল্যাটফর্ম',
+    hero_title: "Bangladesh's Community-Powered|Cyber Threat Platform",
     hero_subtitle: 'একজনের সতর্কতা, সবার সুরক্ষা',
     hero_desc: 'ফিশিং, স্ক্যাম ও সাইবার হুমকি শনাক্ত করুন, রিপোর্ট করুন এবং বাংলাদেশকে নিরাপদ রাখুন।',
     hero_description: 'ফিশিং, স্ক্যাম ও সাইবার হুমকি শনাক্ত করুন, রিপোর্ট করুন এবং বাংলাদেশকে নিরাপদ রাখুন।',

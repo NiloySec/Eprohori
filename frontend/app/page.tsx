@@ -213,23 +213,16 @@ export default function HomePage() {
                 : { lineHeight: '1.05', letterSpacing: '-0.03em' }
             }
           >
-            {t('hero_title')}
+            {t('hero_title').split('|').map((line, i) => (
+              <span key={i} style={{ display: 'block' }}>{line}</span>
+            ))}
           </h1>
           <h2
-            className="font-heading font-medium mb-4 text-white fade-in-up-2"
+            className="font-heading font-medium mb-8 text-white fade-in-up-2"
             style={{ fontSize: 'clamp(1.05rem,2.4vw,1.5rem)', lineHeight: '1.35', letterSpacing: '-0.015em' }}
           >
             {t('hero_subtitle')}
           </h2>
-          <p
-            className="fade-in-up-2"
-            style={{ fontSize: 'clamp(0.9rem,1.6vw,1.05rem)', lineHeight: '1.7', maxWidth: '560px', margin: '0 auto 2rem', color: '#94a3b8' }}
-          >
-            {t('hero_desc').split('\n').map((line, i) => (
-              <span key={i}>{line}{i === 0 && <br />}</span>
-            ))}
-          </p>
-
           {/* CTA Buttons — primary solid, secondary ghost */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8 fade-in-up-4">
             <Link
@@ -248,29 +241,6 @@ export default function HomePage() {
             >
               {t('validate_btn')}
             </button>
-          </div>
-
-          {/* Live stat bar — real platform numbers, clean professional layout */}
-          <div
-            className="inline-flex items-stretch fade-in-up-4 rounded-2xl overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            {[
-              { value: active, label: 'সক্রিয় হুমকি' },
-              { value: alerted, label: 'মানুষ সতর্ক' },
-              { value: districts, label: 'জেলা কভারেজ', suffix: '/৬৪' },
-            ].map((s, i) => (
-              <div
-                key={s.label}
-                className="px-5 sm:px-7 py-3 text-center"
-                style={{ borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}
-              >
-                <div className="font-heading font-bold" style={{ fontSize: '1.35rem', color: '#fff', lineHeight: 1.1 }}>
-                  {s.value.toLocaleString('bn-BD')}{s.suffix || ''}
-                </div>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 3 }}>{s.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

@@ -35,6 +35,7 @@ interface Props {
   divisions: DivisionData[]
   districts?: DistrictData[]
   onSelectDivision: (div: DivisionData | null) => void
+  onSelectDistrict?: (d: DistrictData) => void
 }
 
 // Backend division names → frontend division_en slugs
@@ -54,21 +55,18 @@ function getDistrictRadius(count: number) {
   return 7
 }
 
-// District-level circles: hover tooltip, click selects the parent division.
+// District-level circles: hover tooltip, click selects that DISTRICT.
 function buildDistrictCircles(
   L: any,
   group: any,
   districts: DistrictData[],
-  divisions: DivisionData[],
-  onSelectRef: React.MutableRefObject<(div: DivisionData | null) => void>
+  onSelectDistrictRef: React.MutableRefObject<((d: DistrictData) => void) | undefined>
 ) {
   group.clearLayers()
 
   districts.forEach(d => {
     const color  = getCircleColor(d.threats)
     const radius = getDistrictRadius(d.threats)
-    const slug   = DIV_SLUG[d.division.toLowerCase()] ?? d.division.toLowerCase()
-    const divData = divisions.find(x => x.division_en === slug) ?? null
 
     const circle = L.circleMarker([d.lat, d.lng], {
       radius,
@@ -86,7 +84,7 @@ function buildDistrictCircles(
       { className: 'leaflet-tooltip-dark', direction: 'top', offset: [0, -radius], sticky: false }
     )
 
-    circle.on('click', () => { onSelectRef.current(divData) })
+    circle.on('click', () => { onSelectDistrictRef.current?.(d) })
     group.addLayer(circle)
   })
 }
@@ -128,16 +126,18 @@ function buildCircles(
   })
 }
 
-export default function BangladeshDivisionMap({ divisions, districts, onSelectDivision }: Props) {
+export default function BangladeshDivisionMap({ divisions, districts, onSelectDivision, onSelectDistrict }: Props) {
   const mapRef        = useRef<HTMLDivElement>(null)
   const leafletRef    = useRef<any>(null)       // Leaflet L module
   const mapInstRef    = useRef<any>(null)       // map instance
   const circleGrpRef  = useRef<any>(null)       // LayerGroup for circles
-  const onSelectRef   = useRef(onSelectDivision) // always-current callback
+  const onSelectRef   = useRef(onSelectDivision) // always-current callback (division fallback)
+  const onSelectDistrictRef = useRef(onSelectDistrict) // district click callback
   const dataRef       = useRef({ divisions, districts }) // latest data for async init
 
   // Keep refs in sync without triggering re-renders
   useEffect(() => { onSelectRef.current = onSelectDivision }, [onSelectDivision])
+  useEffect(() => { onSelectDistrictRef.current = onSelectDistrict }, [onSelectDistrict])
   useEffect(() => { dataRef.current = { divisions, districts } }, [divisions, districts])
 
   // ── Init map once ────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ export default function BangladeshDivisionMap({ divisions, districts, onSelectDi
       // Draw with the latest data (props may have updated while leaflet loaded)
       const { divisions: divs, districts: dists } = dataRef.current
       if (dists && dists.length > 0) {
-        buildDistrictCircles(L, group, dists, divs, onSelectRef)
+        buildDistrictCircles(L, group, dists, onSelectDistrictRef)
       } else {
         buildCircles(L, group, divs, onSelectRef)
       }
@@ -205,7 +205,7 @@ export default function BangladeshDivisionMap({ divisions, districts, onSelectDi
     const group = circleGrpRef.current
     if (!L || !group) return
     if (districts && districts.length > 0) {
-      buildDistrictCircles(L, group, districts, divisions, onSelectRef)
+      buildDistrictCircles(L, group, districts, onSelectDistrictRef)
     } else {
       buildCircles(L, group, divisions, onSelectRef)
     }

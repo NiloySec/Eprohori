@@ -78,6 +78,7 @@ export interface Threat {
   description?: string
   is_campaign?: boolean     // burst of reports — active scam wave
   alerted?: boolean         // a district-wide alert was issued for this threat
+  up_votes?: number         // how many times this threat was reported (clustered)
   screenshot?: string       // base64 evidence image (data URL)
 }
 
@@ -239,6 +240,7 @@ function adaptThreat(t: any): Threat | null {
     description: t.description || content,
     is_campaign: Boolean(t.is_campaign),
     alerted: Boolean(t.alerted),
+    up_votes: t.up_votes ?? 0,
     screenshot: t.screenshot || undefined,
   }
 }

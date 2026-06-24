@@ -147,21 +147,26 @@ export default function ThreatDetailPage() {
     )
   }
 
-  // Build timeline from actual created_at (UTC-normalised), full date+time
+  // Honest, status-driven timeline — reflects what actually happened to THIS
+  // report (no fabricated steps; pending reports don't claim alerts were sent).
   const buildTimeline = (t: Threat) => {
     const iso = /Z$|[+]/.test(t.created_at) ? t.created_at : t.created_at + 'Z'
-    const base = new Date(iso)
-    const add = (mins: number) =>
-      new Date(base.getTime() + mins * 60000).toLocaleString('bn-BD', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
-    return [
-      { time: add(0),  title: 'হুমকি শনাক্ত',       desc: 'ব্যবহারকারী রিপোর্ট পাওয়া গেছে',        color: '#f59e0b' },
-      { time: add(5),  title: 'AI বিশ্লেষণ শুরু',   desc: 'মেশিন লার্নিং মডেল বিশ্লেষণ করছে',       color: '#a855f7' },
-      { time: add(8),  title: 'প্যাটার্ন মিলেছে',    desc: `${t.confidence}% নিশ্চিতে ফিশিং চিহ্নিত`, color: '#ff4444' },
-      { time: add(15), title: 'কমিউনিটি সতর্কতা',   desc: 'সকল ব্যবহারকারীকে সতর্ক করা হয়েছে',    color: '#22c55e' },
+    const at = new Date(iso).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })
+    const events = [
+      { time: at, title: 'রিপোর্ট জমা হয়েছে', desc: 'ব্যবহারকারীর রিপোর্ট গৃহীত', color: '#f59e0b' },
+      { time: at, title: 'AI বিশ্লেষণ', desc: `${t.confidence}% ঝুঁকি স্কোর`, color: '#a855f7' },
     ]
+    if (t.status === 'verified') {
+      events.push({ time: at, title: 'যাচাই সম্পন্ন', desc: 'হুমকি হিসেবে নিশ্চিত হয়েছে', color: '#ff4444' })
+      if (t.alerted) {
+        events.push({ time: at, title: 'কমিউনিটি সতর্ক', desc: 'সংশ্লিষ্ট ব্যবহারকারীদের সতর্ক করা হয়েছে', color: '#22c55e' })
+      }
+    } else if (t.status === 'rejected') {
+      events.push({ time: at, title: 'যাচাই: নিরাপদ', desc: 'পর্যালোচনায় ঝুঁকিপূর্ণ পাওয়া যায়নি', color: '#22c55e' })
+    } else {
+      events.push({ time: '—', title: 'যাচাই অপেক্ষমাণ', desc: 'প্রশাসনিক পর্যালোচনার অপেক্ষায়', color: '#64748b' })
+    }
+    return events
   }
 
   return (
@@ -284,9 +289,9 @@ export default function ThreatDetailPage() {
                 { label: 'প্রথম শনাক্ত', value: formatDate(threat.created_at) },
                 { label: 'বিভাগ', value: threat.division || '—' },
                 { label: 'প্ল্যাটফর্ম', value: threat.platform || threat.type },
-                { label: 'স্ট্যাটাস', value: threat.status === 'verified' ? 'যাচাইকৃত' : 'পেন্ডিং' },
-                { label: 'রিপোর্ট সংখ্যা', value: `${Math.floor(Math.random() * 40) + 5} জন` },
-                { label: 'AI নিশ্চিতি', value: `${threat.confidence}%` },
+                { label: 'স্ট্যাটাস', value: threat.status === 'verified' ? 'যাচাইকৃত' : threat.status === 'rejected' ? 'নিরাপদ (যাচাইকৃত)' : 'পেন্ডিং' },
+                { label: 'রিপোর্ট সংখ্যা', value: `${(threat.up_votes ?? 0) + 1} জন` },
+                { label: 'AI ঝুঁকি স্কোর', value: `${threat.confidence}%` },
               ].map(item => (
                 <div key={item.label}>
                   <p className="text-xs text-slate-500 mb-0.5">{item.label}</p>

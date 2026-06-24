@@ -50,7 +50,7 @@ export default function MonitorPage() {
   // ── Map / threat state ──
   const [divisions, setDivisions]   = useState<DivisionData[]>([])
   const [districts, setDistricts]   = useState<DistrictData[]>([])
-  const [selected, setSelected]     = useState<DivisionData | null>(null)
+  const [selectedDistrict, setSelectedDistrict] = useState<DistrictData | null>(null)
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('30d')
   const [catFilter, setCatFilter]   = useState<CatFilter>('all')
   const [threats, setThreats]       = useState<Threat[]>([])
@@ -148,10 +148,9 @@ export default function MonitorPage() {
   })()
   const distColors = ['#00e5c4', '#f59e0b', '#a855f7', '#3b82f6', '#ff4444', '#22c55e']
 
+  // The threat list is INDEPENDENT of the map selection (only search filters it).
   const listedThreats = threats.filter(th => {
-    if (selected && th.division !== selected.name) return false
     if (search && !th.detail.toLowerCase().includes(search.toLowerCase())) return false
-
     return true
   })
 
@@ -355,77 +354,37 @@ export default function MonitorPage() {
             <Map
               divisions={filteredDivisions}
               districts={districts}
-              onSelectDivision={setSelected}
+              onSelectDivision={() => {}}
+              onSelectDistrict={setSelectedDistrict}
             />
           </div>
 
           {/* Filters + stats — 35% */}
           <div className="space-y-4" style={{ flex: '1 1 35%' }}>
-            {/* Selected division card */}
-            {selected ? (
+            {/* Selected district card — driven by the map / high-risk click only */}
+            {selectedDistrict ? (
               <div
                 className="rounded-xl p-4 slide-down"
-                style={{ background: 'rgba(17,31,53,0.9)', border: '1px solid rgba(0,229,196,0.25)' }}
+                style={{ background: 'rgba(17,31,53,0.9)', border: `1px solid ${selectedDistrict.color}55` }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-heading text-lg font-bold gradient-text">{selected.name}</h3>
+                  <h3 className="font-heading text-lg font-bold gradient-text">
+                    {selectedDistrict.name_bn || selectedDistrict.name}
+                  </h3>
                   <button
-                    onClick={() => setSelected(null)}
+                    onClick={() => setSelectedDistrict(null)}
                     aria-label="নির্বাচন বন্ধ করুন"
                     className="w-6 h-6 flex items-center justify-center rounded-full text-slate-500 hover:text-white hover:bg-white/10 transition-all text-sm"
                   >✕</button>
                 </div>
-                <p className="text-3xl font-bold text-white mb-1">{selected.threat_count}</p>
+                <p className="text-4xl font-bold mb-1" style={{ color: selectedDistrict.color }}>
+                  {selectedDistrict.threats}
+                </p>
                 <p className="text-xs text-slate-400 mb-3">{t('total_threats_label')} ({TIME_LABELS[timeFilter]})</p>
-                <div className="space-y-2">
-                  {Object.entries(selected.categories).map(([cat, count]) => (
-                    <div key={cat}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-400">{cat}</span>
-                        <span className="text-white font-semibold">{count}</span>
-                      </div>
-                      <div className="h-1.5 rounded-full" style={{ backgroundColor: 'rgba(30,58,95,0.6)' }}>
-                        <div
-                          className="h-1.5 rounded-full transition-all duration-700"
-                          style={{
-                            width: `${selected.threat_count > 0 ? (count / selected.threat_count) * 100 : 0}%`,
-                            background: 'linear-gradient(90deg, #00e5c488, #00e5c4)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-2 text-xs text-slate-400 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span>🗺️ বিভাগ:</span>
+                  <span className="text-white font-semibold">{selectedDistrict.division}</span>
                 </div>
-
-                {/* District-level breakdown within the selected division */}
-                {(() => {
-                  const dl = districts
-                    .filter(d => d.division === selected.division_en)
-                    .sort((a, b) => b.threats - a.threats)
-                  if (dl.length === 0) return null
-                  const max = Math.max(...dl.map(d => d.threats), 1)
-                  return (
-                    <div className="mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                      <p className="text-xs text-slate-400 mb-2">📍 জেলাভিত্তিক বিভাজন</p>
-                      <div className="space-y-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
-                        {dl.map(d => (
-                          <div key={d.name}>
-                            <div className="flex justify-between text-xs mb-1">
-                              <span className="text-slate-300">{d.name_bn || d.name}</span>
-                              <span className="text-white font-semibold">{d.threats}</span>
-                            </div>
-                            <div className="h-1.5 rounded-full" style={{ backgroundColor: 'rgba(30,58,95,0.6)' }}>
-                              <div
-                                className="h-1.5 rounded-full transition-all duration-700"
-                                style={{ width: `${(d.threats / max) * 100}%`, background: `linear-gradient(90deg, ${d.color}88, ${d.color})` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })()}
               </div>
             ) : (
               <div
@@ -433,7 +392,7 @@ export default function MonitorPage() {
                 style={{ background: 'rgba(17,31,53,0.7)', border: '1px dashed rgba(0,229,196,0.2)' }}
               >
                 <p className="text-3xl mb-2">🗺️</p>
-                <p className="text-sm text-slate-400">{t('click_division')}</p>
+                <p className="text-sm text-slate-400">মানচিত্রে একটি জেলায় ক্লিক করুন</p>
               </div>
             )}
 
@@ -473,10 +432,7 @@ export default function MonitorPage() {
                 {sortedDistricts.slice(0, 5).map((d, i) => (
                   <button
                     key={d.name}
-                    onClick={() => {
-                      const div = divisions.find(x => x.division_en === d.division) ?? null
-                      setSelected(div)
-                    }}
+                    onClick={() => setSelectedDistrict(d)}
                     className="w-full flex items-center gap-3 p-2 rounded-lg text-left transition-all hover:bg-white/5"
                   >
                     <span
@@ -502,26 +458,12 @@ export default function MonitorPage() {
       <section>
         <div className="flex items-center gap-3 mb-5 flex-wrap">
           <h2 className="font-heading text-2xl font-bold text-white">
-            {selected ? (
-              <>
-                {t('showing_threats_in')}{' '}
-                <span style={{ color: '#00e5c4' }}>{selected.name}</span>
-              </>
-            ) : t('all_threats_title')}
+            {t('all_threats_title')}
           </h2>
           {catFilter !== 'all' && (
             <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(0,229,196,0.12)', color: '#00e5c4' }}>
               {CAT_LABEL[catFilter]}
             </span>
-          )}
-          {selected && (
-            <button
-              onClick={() => setSelected(null)}
-              className="ml-auto text-xs px-3 py-1 rounded-full transition-all hover:bg-white/5"
-              style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}
-            >
-              {t('clear_filter')}
-            </button>
           )}
         </div>
 

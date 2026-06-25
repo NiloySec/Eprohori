@@ -87,6 +87,24 @@ function useScrollReveal() {
 /* ── Signal analyser (client-side, no backend call) ────────────── */
 interface Signal { label: string; matched: boolean }
 
+const BRAND_REAL_DOMAINS: [RegExp, string][] = [
+  [/bkash|bikash|b-kash/, 'https://www.bkash.com/'],
+  [/nagad/, 'https://nagad.com.bd/'],
+  [/surecash/, 'https://www.surecash.net/'],
+  [/rocket|dutch.?bangla|dbbl/, 'https://www.dutchbanglabank.com/'],
+  [/bank.?asia/, 'https://www.bankasia-bd.com/'],
+  [/islami.?bank/, 'https://www.islamibankbd.com/'],
+  [/sonali.?bank/, 'https://www.sonalibank.com.bd/'],
+]
+
+function getRealDomain(text: string): string | null {
+  const t = text.toLowerCase()
+  for (const [pattern, url] of BRAND_REAL_DOMAINS) {
+    if (pattern.test(t)) return url
+  }
+  return null
+}
+
 function analyzeSignals(text: string): Signal[] {
   const t = text.toLowerCase()
   return [
@@ -361,20 +379,35 @@ export default function HomePage() {
                     <div className="flex flex-col items-center gap-1 flex-shrink-0">
                       <ConfidenceMeter value={scanResult.confidence} size={120} />
                       {scanTab === 'url' && scanInput && (
-                        <a
-                          href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-mono text-center block"
-                          style={{ color: '#64748b', maxWidth: 120, wordBreak: 'break-all', textDecoration: 'none' }}
-                          onMouseOver={e => (e.currentTarget.style.color = '#00e5c4')}
-                          onMouseOut={e => (e.currentTarget.style.color = '#64748b')}
-                        >
-                          🔗 {(() => {
-                            try { return new URL(scanInput).hostname }
-                            catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
-                          })()}
-                        </a>
+                        <div className="flex flex-col items-center gap-1 mt-1">
+                          <a
+                            href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-mono text-center block"
+                            style={{ color: '#64748b', maxWidth: 120, wordBreak: 'break-all', textDecoration: 'none' }}
+                            onMouseOver={e => (e.currentTarget.style.color = '#00e5c4')}
+                            onMouseOut={e => (e.currentTarget.style.color = '#64748b')}
+                          >
+                            🔗 {(() => {
+                              try { return new URL(scanInput).hostname }
+                              catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
+                            })()}
+                          </a>
+                          {getRealDomain(scanInput) && (
+                            <a
+                              href={getRealDomain(scanInput)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-center block"
+                              style={{ color: '#22c55e', maxWidth: 120, wordBreak: 'break-all', textDecoration: 'none', lineHeight: 1.3 }}
+                              onMouseOver={e => (e.currentTarget.style.textDecoration = 'underline')}
+                              onMouseOut={e => (e.currentTarget.style.textDecoration = 'none')}
+                            >
+                              ✅ আসল: {getRealDomain(scanInput)!.replace('https://', '').replace(/\/$/, '')}
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div className="flex-1">

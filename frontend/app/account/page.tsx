@@ -927,7 +927,7 @@ export default function AccountPage() {
       </div>
 
       {/* ── Stats row ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'মোট রিপোর্ট',      value: String(totalReports),          icon: '📊', color: '#00e5c4' },
           { label: 'যাচাইকৃত রিপোর্ট', value: String(verifiedCount),         icon: '✅', color: '#22c55e' },

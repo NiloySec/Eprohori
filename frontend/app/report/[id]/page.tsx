@@ -284,7 +284,7 @@ export default function ThreatDetailPage() {
             <p className="text-xs font-bold mb-4 uppercase tracking-widest" style={{ color: '#64748b' }}>
               তথ্য সারসংক্ষেপ
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 { label: 'প্রথম শনাক্ত', value: formatDate(threat.created_at) },
                 { label: 'বিভাগ', value: threat.division || '—' },

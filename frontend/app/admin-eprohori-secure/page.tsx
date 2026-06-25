@@ -233,7 +233,7 @@ export default function AdminPage() {
 
       {/* Stat cards — full pilot tracking */}
       {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           <StatCard icon="👥" label="নিবন্ধিত user" value={stats.rangers_count ?? 0} accent="#a78bfa" hint="Total registered" />
           <StatCard icon="📊" label="মোট রিপোর্ট" value={stats.total_threats ?? 0} accent="#00e5c4" hint="All-time reports" />
           <StatCard icon="📥" label="আজকের রিপোর্ট" value={stats.today_reports} accent="#22d3ee" hint="Today" />

@@ -117,6 +117,7 @@ export default function Navbar() {
               alt="EProhori"
               width={160}
               height={50}
+              className="w-[120px] sm:w-[160px]"
               style={{ objectFit: 'contain' }}
               priority
             />

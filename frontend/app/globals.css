@@ -36,6 +36,8 @@
 
 * { box-sizing: border-box; }
 
+html, body { overflow-x: hidden; max-width: 100vw; }
+
 body {
   background-color: #050810;
   color: #f1f5f9;

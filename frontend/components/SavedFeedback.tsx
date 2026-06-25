@@ -34,7 +34,7 @@ export default function SavedFeedback({ source = 'app' }: { source?: string }) {
     <div className="rounded-xl p-4"
       style={{ background: 'rgba(0,229,196,0.05)', border: '1px solid rgba(0,229,196,0.2)' }}>
       <p className="text-sm text-slate-200 mb-3 text-center font-medium">
-        এই তথ্য কি আপনাকে কোনো scam থেকে বাঁচিয়েছে?
+        এই তথ্য আপনার কোনো উপকারে এসেছে?
       </p>
       <div className="flex gap-2 justify-center">
         <button
@@ -42,7 +42,7 @@ export default function SavedFeedback({ source = 'app' }: { source?: string }) {
           className="px-5 py-2 rounded-lg text-sm font-bold transition hover:brightness-110"
           style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.35)' }}
         >
-          ✅ হ্যাঁ, বেঁচেছি
+          ✅ হ্যাঁ
         </button>
         <button
           onClick={() => send(false)}

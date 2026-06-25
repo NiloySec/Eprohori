@@ -9,6 +9,7 @@ import os
 import re
 import secrets
 import threading
+import time
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
@@ -52,7 +53,7 @@ from security import (
     require_admin,
     throttle,
 )
-from models import AdminAudit, Alert, DomainReputation, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
+from models import AdminAudit, Alert, DomainReputation, GlobalStat, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
 import quiz_bank
 from schemas import (
     ActivityOut,
@@ -356,13 +357,15 @@ def get_stats(db: Session = Depends(get_db)):
     active = db.query(Threat).filter(Threat.status == "verified").count()
     rangers = db.query(User).count()
     saved_count = db.query(func.count(ImpactFeedback.id)).filter(ImpactFeedback.saved == True).scalar() or 0  # noqa: E712
+    alerts_stat = db.query(GlobalStat).filter(GlobalStat.key == "alerts_sent").first()
+    alerted_people = alerts_stat.value if alerts_stat else 0
     # Known threats = phishing entries already in the training dataset + verified reports
     blocked_count = DATASET_BLOCKED_BASE + active
     return StatsOut(
         total_threats=total,
         today_reports=today_count,
         active_threats=active,
-        alerted_people=total * 27,
+        alerted_people=alerted_people,
         district_coverage=64,
         rangers_count=rangers,
         pending_count=db.query(Threat).filter(Threat.status == "pending").count(),
@@ -440,6 +443,17 @@ def list_threats(
     if cutoff:
         q = q.filter(Threat.created_at >= cutoff)
     return q.order_by(Threat.created_at.desc()).offset(skip).limit(limit).all()
+
+
+@app.get("/api/threats/version", tags=["threats"])
+def threat_version(db: Session = Depends(get_db)):
+    """Lightweight version token for extension sync — returns count of verified URL threats.
+    Extension polls this on every navigation; full list download only when count changes."""
+    count = db.query(func.count(Threat.id)).filter(
+        Threat.status == "verified",
+        Threat.type == "url",
+    ).scalar() or 0
+    return {"version": count}
 
 
 @app.get("/api/threats/trending", response_model=list[TrendingScamOut], tags=["threats"])
@@ -553,10 +567,7 @@ def get_threat(
     t = db.query(Threat).filter(Threat.id == threat_id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Threat not found")
-    # Public can only see verified threats
-    if t.status == "verified":
-        return t
-    # Unverified: viewer must prove they are the reporter (or admin) via JWT
+    # Determine viewer identity
     viewer_email: Optional[str] = None
     is_admin_viewer = False
     if creds:
@@ -566,6 +577,14 @@ def get_threat(
             is_admin_viewer = payload.get("role") == "admin"
         except jwt.InvalidTokenError:
             pass
+
+    # Public can only see verified threats — strip reporter identity from public view
+    if t.status == "verified":
+        out = ThreatOut.model_validate(t)
+        if not is_admin_viewer and viewer_email != (t.reporter_email or "").lower():
+            out.reporter_email = None
+        return out
+    # Unverified: viewer must prove they are the reporter (or admin) via JWT
     if is_admin_viewer:
         return t
     if viewer_email and viewer_email == (t.reporter_email or "").lower():
@@ -701,8 +720,27 @@ def get_severity(confidence: float) -> str:
     return "safe"
 
 
-# Per-threat per-recipient dedup so re-verifying the same threat doesn't re-spam
-sent_alerts_cache: set[str] = set()
+# Per-threat per-recipient dedup so re-verifying the same threat doesn't re-spam.
+# Stored as {key: timestamp}; entries older than 24h are ignored (TTL).
+sent_alerts_cache: dict[str, float] = {}
+_ALERT_DEDUP_TTL = 86400  # 24 hours
+
+# Simple per-IP sliding-window rate limiter: {ip: [timestamps]}
+_rate_windows: dict[str, list] = {}
+_rate_lock = threading.Lock()
+
+
+def throttle(request: Request, limit: int = 60, window_sec: int = 60) -> None:
+    """Raise 429 if the caller's IP exceeds `limit` calls within `window_sec`."""
+    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+    now = time.time()
+    with _rate_lock:
+        hits = _rate_windows.get(ip, [])
+        hits = [t for t in hits if now - t < window_sec]
+        if len(hits) >= limit:
+            raise HTTPException(status_code=429, detail="Too many requests — please wait before scanning again")
+        hits.append(now)
+        _rate_windows[ip] = hits
 
 
 async def send_alert_emails(threat_id: int) -> int:
@@ -770,11 +808,13 @@ async def send_alert_emails(threat_id: int) -> int:
         )
 
         sent = 0
+        now_time = time.time()
         for email, name in recipients.items():
             alert_key = f"{t.id}_{email}"
-            if alert_key in sent_alerts_cache:
+            last_sent = sent_alerts_cache.get(alert_key, 0)
+            if now_time - last_sent < _ALERT_DEDUP_TTL:
                 continue
-            sent_alerts_cache.add(alert_key)
+            sent_alerts_cache[alert_key] = now_time
             try:
                 result = await send_email(email, subject, html, name)
                 if result.get("success"):
@@ -782,6 +822,14 @@ async def send_alert_emails(threat_id: int) -> int:
             except Exception as e:  # noqa: BLE001
                 print(f"[alert] failed {email}: {e}")
         print(f"[alert] {severity} -> {sent}/{len(recipients)} sent for threat #{t.id}")
+        # Persist real alert count to DB so /api/stats shows accurate "alerted people"
+        if sent > 0:
+            stat = db.query(GlobalStat).filter(GlobalStat.key == "alerts_sent").first()
+            if stat:
+                stat.value += sent
+            else:
+                db.add(GlobalStat(key="alerts_sent", value=sent))
+            db.commit()
         return sent
     finally:
         db.close()
@@ -962,6 +1010,16 @@ def create_threat(
     if dup:
         dup.up_votes = (dup.up_votes or 0) + 1  # report count grows → credibility
 
+        # If this submission comes with a more thorough scan result (e.g. VT+ML > ML-only),
+        # update the stored confidence so admin always sees the best available score.
+        if payload.confidence and payload.confidence > 0:
+            new_conf = payload.confidence if payload.confidence <= 1.0 else payload.confidence / 100
+            old_conf = (dup.confidence or 0)
+            if old_conf > 1:
+                old_conf = old_conf / 100
+            if new_conf > old_conf:
+                dup.confidence = new_conf
+
         # Campaign detection: burst of reports on one cluster = active scam wave
         times = [ts for ts in _recent_reports.get(dup.id, []) if now_ts - ts < CAMPAIGN_WINDOW_SEC]
         times.append(now_ts)
@@ -1021,9 +1079,14 @@ def create_threat(
             pass
 
     # If the frontend passed a confidence from a previous scan (e.g. Quick Scan on home page),
-    # store it as the final score so the user always sees the same number they already saw.
+    # store it so the user always sees the same number they already saw.
     # ML confidence is still used for triage (auto-verify threshold), NOT overwritten.
-    stored_confidence = payload.confidence if (payload.confidence and payload.confidence > 0) else confidence
+    # Always normalize to 0.0-1.0 — frontend sends /100 already, but guard against raw ints.
+    if payload.confidence and payload.confidence > 0:
+        incoming = payload.confidence if payload.confidence <= 1.0 else payload.confidence / 100
+        stored_confidence = min(max(incoming, 0.0), 1.0)
+    else:
+        stored_confidence = confidence  # ML result is always 0.0-1.0
 
     # ── 4. AI triage: auto-verify / admin queue ──────────────────────────────
     # ≥90% confidence → auto-verified + instant alert.
@@ -1763,7 +1826,8 @@ def reset_password(request: dict, req: Request, db: Session = Depends(get_db)):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.post("/api/validate/text", response_model=ValidateTextResponse, tags=["ai"])
-def validate_text(req: ValidateTextRequest, db: Session = Depends(get_db)):
+def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depends(get_db)):
+    throttle(request, limit=30, window_sec=60)  # 30 scans/min per IP (VirusTotal quota guard)
     if len(req.text or "") > MAX_THREAT_CONTENT_LEN:
         raise HTTPException(413, f"Text too long (max {MAX_THREAT_CONTENT_LEN} characters)")
     text = req.text.strip()
@@ -1813,8 +1877,8 @@ def validate_text(req: ValidateTextRequest, db: Session = Depends(get_db)):
         if vt is not None and vt["is_threat"]:
             resp = ValidateTextResponse(
                 is_threat=True, confidence=vt["confidence"], category="phishing",
-                reasons=[f"VirusTotal: {vt['malicious']} malicious / {vt['suspicious']} suspicious engines"],
-                explanation="VirusTotal-এর security engine এই লিংকটিকে ক্ষতিকর হিসেবে চিহ্নিত করেছে।",
+                reasons=[f"EProhori: {vt['malicious']}টি ক্ষতিকর ও {vt['suspicious']}টি সন্দেহজনক ইঞ্জিন শনাক্ত করেছে"],
+                explanation="EProhori বিশ্লেষণে এই লিংকটি ক্ষতিকর হিসেবে চিহ্নিত হয়েছে।",
                 source="virustotal",
             )
             cache_verdict = "malicious"
@@ -1824,7 +1888,7 @@ def validate_text(req: ValidateTextRequest, db: Session = Depends(get_db)):
             resp = ValidateTextResponse(
                 is_threat=True, confidence=h["confidence"], category="phishing",
                 reasons=h["reasons"],
-                explanation="এই লিংকটি পরিচিত ব্র্যান্ডের ছদ্মবেশ/সন্দেহজনক প্যাটার্ন দেখাচ্ছে — সতর্ক থাকুন, তথ্য দেবেন না।",
+                explanation="EProhori বিশ্লেষণে এই লিংকটি পরিচিত ব্র্যান্ডের ছদ্মবেশ দেখাচ্ছে — সতর্ক থাকুন, তথ্য দেবেন না।",
                 source="heuristic",
             )
             cache_verdict = "malicious"
@@ -1832,7 +1896,7 @@ def validate_text(req: ValidateTextRequest, db: Session = Depends(get_db)):
         elif vt is not None:
             resp = ValidateTextResponse(
                 is_threat=False, confidence=vt["confidence"], category="safe",
-                reasons=[], explanation="VirusTotal-এ এই লিংকটি নিরাপদ পাওয়া গেছে।",
+                reasons=[], explanation="EProhori বিশ্লেষণে এই লিংকটি নিরাপদ পাওয়া গেছে।",
                 source="virustotal",
             )
             cache_verdict = "safe"

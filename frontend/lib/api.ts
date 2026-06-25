@@ -295,9 +295,10 @@ function adaptTrending(t: any): TrendingScam {
 
 function adaptValidation(v: any): ValidationResult {
   const isPhishing: boolean = v.is_threat ?? v.is_phishing ?? false
-  // Backend: 0.0-1.0 float; frontend: 0-100 int
-  const conf: number =
-    v.confidence > 1 ? Math.round(v.confidence) : Math.round(v.confidence * 100)
+  // Backend: 0.0-1.0 float; frontend: 0-100 int; clamp to valid range
+  const conf: number = Math.max(0, Math.min(100,
+    v.confidence > 1 ? Math.round(v.confidence) : Math.round((v.confidence || 0) * 100)
+  ))
   const reasons: string[] = v.reasons || []
   const explanation: string = v.explanation || ''
   const detail: string = reasons.join('; ')

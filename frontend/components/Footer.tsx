@@ -69,6 +69,16 @@ export default function Footer() {
                 background-color: rgba(0,229,196,0.08);
                 border-color: rgba(0,229,196,0.4);
               }
+              .ep-attribution {
+                font-size: 11px;
+                color: rgba(148,163,184,0.45);
+              }
+              .ep-vt-link {
+                color: rgba(148,163,184,0.55);
+                text-decoration: none;
+                transition: color .15s;
+              }
+              .ep-vt-link:hover { color: #94a3b8; }
             `}</style>
           </div>
           <div>
@@ -111,6 +121,17 @@ export default function Footer() {
         >
           <p>© ২০২৬ EProhori. সর্বস্বত্ব সংরক্ষিত।</p>
           <p className="mt-2 sm:mt-0">বাংলাদেশের সাইবার সুরক্ষা — আপনার হাতে</p>
+        </div>
+        <div className="mt-3 text-center ep-attribution">
+          Powered by EProhori AI · URL scanning data by{' '}
+          <a
+            href="https://www.virustotal.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ep-vt-link"
+          >
+            VirusTotal
+          </a>
         </div>
       </div>
     </footer>

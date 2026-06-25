@@ -57,6 +57,19 @@ export default function ThreatsPage() {
         setForm(f => ({ ...f, detail: pre.text }))
         if (typeof pre.confidence === 'number') setPrefillConfidence(pre.confidence)
         sessionStorage.removeItem('ep_prefill_report')
+        return  // sessionStorage takes priority — skip URL params
+      }
+    } catch { /* ignore */ }
+    // Pre-fill from browser extension — passes ?content=URL&type=website&confidence=88
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const content = params.get('content')
+      if (content) {
+        setThreatType((params.get('type') as ThreatType) || 'website')
+        setForm(f => ({ ...f, detail: content }))
+        const conf = parseFloat(params.get('confidence') || '')
+        if (!isNaN(conf)) setPrefillConfidence(conf)
+        window.history.replaceState({}, '', '/report')  // clean URL after reading
       }
     } catch { /* ignore */ }
   }, [])
@@ -72,20 +85,11 @@ export default function ThreatsPage() {
     setSubmitting(true)
     setSubmitResult(null)
 
-    // Save the report and run type-specific AI validation in parallel.
-    // If the user came from the home page scan, reuse that confidence score (no second ML run).
     const vtype = threatType === 'website' ? 'url' : 'sms'
-    const savePromise = reportThreat({
-      type: threatType,
-      detail: form.detail,
-      division: DISTRICT_TO_DIVISION[form.district] || form.district,
-      platform: form.platform,
-      description: form.description,
-      reporterEmail: form.email.trim() || undefined,
-      confidence: prefillConfidence ?? undefined,
-    })
 
     let res: ValidationResult
+    let savePromise: Promise<void>
+
     if (prefillConfidence !== null) {
       // Reuse the scan score the user already saw — no second ML run
       const isPhishing = prefillConfidence >= 50
@@ -100,8 +104,28 @@ export default function ThreatsPage() {
           ? ['লিংকে ক্লিক করবেন না', 'ব্যক্তিগত তথ্য দেবেন না', 'সন্দেহজনক বার্তা ফরওয়ার্ড করবেন না']
           : ['সতর্ক থাকুন', 'অপরিচিত লিংক এড়িয়ে চলুন'],
       }
+      // Confidence already known — start save immediately with the correct score
+      savePromise = reportThreat({
+        type: threatType,
+        detail: form.detail,
+        division: DISTRICT_TO_DIVISION[form.district] || form.district,
+        platform: form.platform,
+        description: form.description,
+        reporterEmail: form.email.trim() || undefined,
+        confidence: prefillConfidence,
+      })
     } else {
+      // No prefill — run ML/VT analysis first so the stored score matches what we show
       res = await validateText(form.detail, vtype)
+      savePromise = reportThreat({
+        type: threatType,
+        detail: form.detail,
+        division: DISTRICT_TO_DIVISION[form.district] || form.district,
+        platform: form.platform,
+        description: form.description,
+        reporterEmail: form.email.trim() || undefined,
+        confidence: res.confidence,
+      })
     }
     await savePromise
 

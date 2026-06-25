@@ -29,7 +29,7 @@ else:
 
 JWT_ALG = "HS256"
 USER_TOKEN_HOURS = 24 * 7   # user sessions: 7 days
-ADMIN_TOKEN_HOURS = 1       # admin sessions: 1 hour (auto-logout)
+ADMIN_TOKEN_HOURS = 8       # admin sessions: 8 hours (one workday)
 
 _bearer = HTTPBearer(auto_error=False)
 

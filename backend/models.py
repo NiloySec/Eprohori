@@ -101,6 +101,15 @@ class PhoneBlacklist(Base):
     phone_number = Column(String, unique=True, index=True)
 
 
+class GlobalStat(Base):
+    """Single-row counters for platform-wide stats that need accurate tracking."""
+    __tablename__ = "global_stats"
+
+    key = Column(String, primary_key=True)   # e.g. "alerts_sent"
+    value = Column(Integer, default=0)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
 class ImpactFeedback(Base):
     """'Did EProhori save you from a scam?' — the pilot's core impact metric."""
     __tablename__ = "impact_feedback"

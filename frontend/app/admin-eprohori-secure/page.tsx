@@ -35,6 +35,12 @@ export default function AdminPage() {
         fetchAdminPendingThreats(),
         fetchStats(),
       ])
+      // Token expired → force re-login
+      if (tErr?.includes('403')) {
+        setAdminToken(null)
+        setAuthed(false)
+        return
+      }
       setFetchError(tErr)
       setThreats(t)
       setStats(s)
@@ -241,7 +247,7 @@ export default function AdminPage() {
           <StatCard icon="🚨" label="যাচাইকৃত হুমকি" value={stats.active_threats} accent="#ef4444" hint="Verified threats" />
           <StatCard icon="🔔" label="সতর্ক মানুষ" value={stats.alerted_people ?? 0} accent="#f59e0b" hint="People alerted" />
           <StatCard icon="🛡️" label="বাঁচানো" value={stats.saved_count ?? 0} accent="#22c55e" hint="'EProhori saved me'" />
-          <StatCard icon="⏳" label="পেন্ডিং রিভিউ" value={pending.length} accent="#fb923c" hint="Awaiting decision" />
+          <StatCard icon="⏳" label="পেন্ডিং রিভিউ" value={stats.pending_count ?? pending.length} accent="#fb923c" hint="Awaiting decision" />
           <StatCard icon="✓" label="অনুমোদিত (session)" value={approved.length} accent="#4ade80" hint="This session" />
         </div>
       )}

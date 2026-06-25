@@ -248,7 +248,7 @@ def otp_email_template(name: str, otp: str, purpose: str) -> str:
         <p style="color:#64748b;font-size:12px;
                   text-align:center;margin:0">
           If you didn't request this, ignore this email.
-          <br>© 2025 EProhori · Bangladesh
+          <br>© 2026 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -264,7 +264,7 @@ def user_alert_email_template(
     severity: str,
     threat_id: int,
 ) -> str:
-    """District-wide user alert. Differentiated styling for critical vs high."""
+    """District-wide user alert — compact layout so all details render without email-client clipping."""
     is_critical = severity == "critical"
     accent = "#ff4444" if is_critical else "#f59e0b"
     icon = "🚨" if is_critical else "⚠️"
@@ -273,7 +273,7 @@ def user_alert_email_template(
            if is_critical
            else "EProhori has verified this threat. Stay alert.")
 
-    safety_tips = [
+    tips = [
         "কোনো সন্দেহজনক লিংকে ক্লিক করবেন না",
         "OTP/PIN/পাসওয়ার্ড কারো সাথে শেয়ার করবেন না",
         "অপরিচিত নম্বর/ইমেইল-এর অনুরোধ যাচাই করুন",
@@ -281,66 +281,80 @@ def user_alert_email_template(
         "প্রতারিত হলে হেল্পলাইন 999 এ কল করুন",
     ]
     tips_html = "".join(
-        f'<li style="color:#94a3b8;font-size:13px;margin-bottom:6px">'
-        f'<span style="color:#00e5c4;margin-right:6px">▸</span>{t}</li>'
-        for t in safety_tips
+        f'<tr><td style="padding:5px 0;vertical-align:top">'
+        f'<span style="color:#00e5c4;margin-right:8px;font-size:13px">▸</span></td>'
+        f'<td style="color:#94a3b8;font-size:13px;padding:5px 0;line-height:1.5">{t}</td></tr>'
+        for t in tips
     )
 
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <body style="font-family:Arial,sans-serif;background:#060d1a;
-                 color:#e2e8f0;padding:40px 20px;margin:0">
-      <div style="max-width:560px;margin:0 auto;background:#0d1829;border-radius:16px;
-                  border:1px solid {accent}55;border-top:4px solid {accent};padding:36px">
-        {EMAIL_LOGO_HTML}
+    logo_url = EMAIL_LOGO_URL
 
-        <div style="background:{accent}15;border:1px solid {accent}44;
-                    border-radius:12px;padding:16px;margin-bottom:24px;text-align:center">
-          <p style="color:{accent};font-size:14px;font-weight:bold;
-                    text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px">
-            {icon} {label}
-          </p>
-          <p style="color:#94a3b8;font-size:12px;margin:0">{sub}</p>
-        </div>
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:20px;background:#060d1a;font-family:Arial,Helvetica,sans-serif">
+<div style="max-width:540px;margin:0 auto;background:#0d1829;border-radius:14px;border:1px solid {accent}44;border-top:3px solid {accent};overflow:hidden">
 
-        <table style="width:100%;margin-bottom:24px">
-          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">Type:</td>
-              <td style="color:#e2e8f0;font-size:13px;font-weight:bold;text-align:right">{threat_type.upper()}</td></tr>
-          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">District:</td>
-              <td style="color:#e2e8f0;font-size:13px;font-weight:bold;text-align:right">{district or 'Bangladesh'}</td></tr>
-          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">EProhori Confidence:</td>
-              <td style="color:{accent};font-size:13px;font-weight:bold;text-align:right">{confidence}%</td></tr>
-        </table>
+  <!-- Logo -->
+  <div style="text-align:center;padding:20px 24px 0">
+    <img src="{logo_url}" alt="EProhori" width="130" style="display:inline-block;max-width:130px;height:auto;border:0">
+  </div>
 
-        <div style="background:#060d1a;border-radius:10px;padding:14px;margin-bottom:24px;
-                    border-left:3px solid {accent}">
-          <p style="color:#94a3b8;font-size:12px;margin:0 0 6px">Threat detail:</p>
-          <p style="color:#e2e8f0;font-size:13px;margin:0;word-break:break-all">{detail}</p>
-        </div>
+  <!-- Alert banner -->
+  <div style="margin:16px 24px 0;background:{accent}18;border:1px solid {accent}44;border-radius:10px;padding:12px 16px;text-align:center">
+    <p style="margin:0 0 3px;color:{accent};font-size:13px;font-weight:bold;letter-spacing:0.4px">{icon} {label}</p>
+    <p style="margin:0;color:#94a3b8;font-size:12px">{sub}</p>
+  </div>
 
-        <p style="color:#00e5c4;font-size:13px;font-weight:bold;margin:0 0 10px">
-          🛡️ Stay Safe
-        </p>
-        <ul style="padding-left:0;list-style:none;margin:0 0 24px">{tips_html}</ul>
+  <!-- Info row: Type · District · Confidence -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0;padding:0 24px">
+    <tr>
+      <td style="background:#060d1a;padding:8px 10px;text-align:center;border-radius:8px 0 0 8px;width:33%">
+        <p style="margin:0;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Type</p>
+        <p style="margin:4px 0 0;color:#e2e8f0;font-size:13px;font-weight:bold">{threat_type.upper()}</p>
+      </td>
+      <td style="background:#060d1a;padding:8px 10px;text-align:center;width:33%;border-left:1px solid #1e293b;border-right:1px solid #1e293b">
+        <p style="margin:0;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">District</p>
+        <p style="margin:4px 0 0;color:#e2e8f0;font-size:13px;font-weight:bold">{district or 'Bangladesh'}</p>
+      </td>
+      <td style="background:#060d1a;padding:8px 10px;text-align:center;border-radius:0 8px 8px 0;width:33%">
+        <p style="margin:0;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">EProhori Confidence</p>
+        <p style="margin:4px 0 0;color:{accent};font-size:16px;font-weight:bold">{confidence}%</p>
+      </td>
+    </tr>
+  </table>
 
-        <a href="https://eprohori.tech/report/{threat_id}"
-           style="display:block;background:{accent};color:#060d1a;text-align:center;
-                  padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
-                  margin-bottom:20px">
-          View Full Details →
-        </a>
+  <!-- Threat detail -->
+  <div style="margin:14px 24px 0;background:#060d1a;border-radius:10px;padding:12px 14px;border-left:3px solid {accent}">
+    <p style="margin:0 0 5px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Threat Detail</p>
+    <p style="margin:0;color:#e2e8f0;font-size:13px;word-break:break-all;line-height:1.6">{detail}</p>
+  </div>
 
-        <p style="color:#64748b;font-size:11px;text-align:center;margin:0">
-          You're getting this because your district is affected.
-          <br>Manage notifications:
-          <a href="https://eprohori.tech/account" style="color:#00e5c4;text-decoration:none">Account settings</a>
-          <br>© 2025 EProhori · Bangladesh
-        </p>
-      </div>
-    </body>
-    </html>
-    """
+  <!-- Stay Safe tips -->
+  <div style="margin:14px 24px 0">
+    <p style="margin:0 0 8px;color:#00e5c4;font-size:13px;font-weight:bold">🛡️ Stay Safe</p>
+    <table style="width:100%;border-collapse:collapse">{tips_html}</table>
+  </div>
+
+  <!-- CTA button -->
+  <div style="margin:18px 24px 20px">
+    <a href="https://eprohori.tech/report/{threat_id}"
+       style="display:block;background:{accent};color:#060d1a;text-align:center;padding:13px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:14px">
+      View Full Details →
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <div style="border-top:1px solid #1e293b;padding:12px 24px;text-align:center">
+    <p style="margin:0;color:#475569;font-size:11px">
+      সারাদেশে এই সতর্কতা পাঠানো হয়েছে। <a href="https://eprohori.tech/account" style="color:#00e5c4;text-decoration:none">Manage notifications</a>
+      &nbsp;·&nbsp; © 2026 EProhori · Bangladesh
+    </p>
+  </div>
+
+</div>
+</body>
+</html>"""
 
 
 def report_result_email_template(
@@ -393,7 +407,7 @@ def report_result_email_template(
 
         <p style="color:#64748b;font-size:12px;text-align:center;margin:0">
           🛡️ Every report makes Bangladesh safer.
-          <br>© 2025 EProhori · Bangladesh
+          <br>© 2026 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -444,7 +458,7 @@ def report_approved_email_template(name: str, threat_type: str, district: str) -
 
         <p style="color:#64748b;font-size:12px;text-align:center;margin:0">
           🛡️ প্রতিটি রিপোর্ট বাংলাদেশকে নিরাপদ করে।
-          <br>© 2025 EProhori · Bangladesh
+          <br>© 2026 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -608,7 +622,7 @@ def threat_alert_template(
                   text-align:center;margin:0">
           You're receiving this because you're a
           registered EProhori community member.
-          <br>© 2025 EProhori · Bangladesh
+          <br>© 2026 EProhori · Bangladesh
         </p>
       </div>
     </body>

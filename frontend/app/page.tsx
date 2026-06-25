@@ -123,7 +123,6 @@ export default function HomePage() {
   const [scanInput, setScanInput]       = useState('')
   const [scanning, setScanning]         = useState(false)
   const [scanResult, setScanResult]     = useState<ValidationResult | null>(null)
-  const [showExplain, setShowExplain]   = useState(false)
 
   /* Real live values from /api/stats (no demo fallback — keep the numbers honest & dynamic) */
   const D = stats
@@ -151,7 +150,6 @@ export default function HomePage() {
     if (!scanInput.trim()) return
     setScanning(true)
     setScanResult(null)
-    setShowExplain(false)
     const res = await validateText(scanInput.trim(), scanTab)
     setScanResult(res)
     setScanning(false)
@@ -310,7 +308,7 @@ export default function HomePage() {
               {[{ key: 'url', label: t('scan_url_tab') }, { key: 'sms', label: t('scan_sms_tab') }].map(tab => (
                 <button
                   key={tab.key}
-                  onClick={() => { setScanTab(tab.key as 'url' | 'sms'); setScanResult(null); setScanInput(''); setShowExplain(false) }}
+                  onClick={() => { setScanTab(tab.key as 'url' | 'sms'); setScanResult(null); setScanInput('') }}
                   className="flex-1 py-3.5 font-semibold text-sm transition-all"
                   style={{
                     color: scanTab === tab.key ? '#00e5c4' : '#64748b',
@@ -362,6 +360,11 @@ export default function HomePage() {
                   <div className="flex items-center gap-6">
                     <ConfidenceMeter value={scanResult.confidence} size={120} />
                     <div className="flex-1">
+                      {scanTab === 'url' && scanInput && (() => { try { return new URL(scanInput).hostname } catch { return null } })() && (
+                        <p className="text-xs font-mono mb-2" style={{ color: '#64748b' }}>
+                          🔗 {(() => { try { return new URL(scanInput).hostname } catch { return scanInput } })()}
+                        </p>
+                      )}
                       <span
                         className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3"
                         style={{
@@ -375,44 +378,24 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* AI Explainability */}
-                  <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                    <button
-                      onClick={() => setShowExplain(v => !v)}
-                      className="flex items-center gap-2 text-xs font-semibold transition-colors"
-                      style={{ color: '#00e5c4' }}
-                    >
-                      <svg
-                        width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2.5"
-                        style={{ transform: showExplain ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                      {t('why_risk')}
-                    </button>
-                    {showExplain && (
-                      <div className="mt-3 slide-up">
-                        <p className="text-xs text-slate-400 mb-3">{t('signals_analysed')}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {analyzeSignals(scanInput).map(sig => (
-                            <span
-                              key={sig.label}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                              style={{
-                                backgroundColor: sig.matched ? 'rgba(255,68,68,0.12)' : 'rgba(34,197,94,0.10)',
-                                border: `1px solid ${sig.matched ? 'rgba(255,68,68,0.3)' : 'rgba(34,197,94,0.25)'}`,
-                                color: sig.matched ? '#ff6b6b' : '#4ade80',
-                              }}
-                            >
-                              <span>{sig.matched ? '🔴' : '🟢'}</span>
-                              {sig.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Matched signals — always visible, only reasons that fired */}
+                  {analyzeSignals(scanInput).some(s => s.matched) && (
+                    <div className="mt-4 pt-4 flex flex-wrap gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                      {analyzeSignals(scanInput).filter(s => s.matched).map(sig => (
+                        <span
+                          key={sig.label}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                          style={{
+                            backgroundColor: 'rgba(255,68,68,0.12)',
+                            border: '1px solid rgba(255,68,68,0.3)',
+                            color: '#ff6b6b',
+                          }}
+                        >
+                          🔴 {sig.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {scanResult.is_phishing && (
                   <div className="mt-3 space-y-3">

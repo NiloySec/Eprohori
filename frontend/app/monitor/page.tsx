@@ -336,12 +336,12 @@ export default function MonitorPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Map — 65% */}
+          {/* Map — 70% */}
           <div
             className="rounded-xl overflow-hidden"
             style={{
-              flex: '1 1 65%',
-              minHeight: '420px',
+              flex: '1 1 70%',
+              minHeight: '550px',
               position: 'relative',
               border: '1px solid rgba(0,229,196,0.12)',
               boxShadow: 'inset 0 0 40px rgba(0,229,196,0.04)',

@@ -268,10 +268,10 @@ def user_alert_email_template(
     is_critical = severity == "critical"
     accent = "#ff4444" if is_critical else "#f59e0b"
     icon = "🚨" if is_critical else "⚠️"
-    label = "CRITICAL THREAT — Eprohori Auto-Detected" if is_critical else "HIGH RISK THREAT — Verified by Admin"
-    sub = ("Eprohori confidence 90%+. Take immediate action."
+    label = "CRITICAL THREAT — Verified by Eprohori" if is_critical else "HIGH RISK THREAT — Verified by Eprohori"
+    sub = ("Eprohori has identified this as a critical threat. Take immediate action."
            if is_critical
-           else "Eprohori flagged + verified by Eprohori moderators.")
+           else "Eprohori has verified this threat. Stay alert.")
 
     safety_tips = [
         "কোনো সন্দেহজনক লিংকে ক্লিক করবেন না",

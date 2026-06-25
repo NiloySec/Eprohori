@@ -82,6 +82,7 @@ from notification_service import (
     digest_alert_template,
     otp_email_template,
     partner_inquiry_template,
+    report_approved_email_template,
     report_result_email_template,
     report_safe_email_template,
     send_email,
@@ -105,6 +106,13 @@ async def send_report_safe_email(to_email: str, name: str):
     html = report_safe_email_template(name)
     result = await send_email(to_email, "আপনার রিপোর্ট যাচাই হয়েছে — EProhori", html, name)
     print(f"[notify] report-safe email -> {to_email}: {result}")
+
+
+async def send_report_approved_email(to_email: str, name: str, threat_type: str, district: str):
+    """Confirmation to the reporter when admin manually approves their report."""
+    html = report_approved_email_template(name, threat_type, district)
+    result = await send_email(to_email, "আপনার রিপোর্ট অনুমোদিত হয়েছে ✅ — EProhori", html, name)
+    print(f"[notify] report-approved email -> {to_email}: {result}")
 
 
 def _bootstrap_admin():
@@ -711,7 +719,8 @@ async def send_alert_emails(threat_id: int) -> int:
         confidence = (t.confidence or 0)
         if confidence > 1:
             confidence = confidence / 100
-        if confidence < ALERT_HIGH_MIN:
+        # Admin-approved threats bypass the confidence threshold — human judgment overrides ML.
+        if confidence < ALERT_HIGH_MIN and not bool(getattr(t, "human_reviewed", False)):
             return 0  # below alert threshold — nothing to do
 
         severity = get_severity(confidence)
@@ -1964,6 +1973,19 @@ async def verify_threat(
     conf = (t.confidence or 0)
     if conf > 1:
         conf = conf / 100
+
+    # Notify the reporter that their report was approved
+    if t.reporter_email:
+        reporter = db.query(User).filter(User.email == t.reporter_email).first()
+        reporter_name = reporter.name if reporter else t.reporter_email.split("@")[0]
+        background_tasks.add_task(
+            send_report_approved_email,
+            t.reporter_email,
+            reporter_name,
+            t.type or "Unknown",
+            t.district or "",
+        )
+
     if not t.alerted:
         t.alerted = True
         db.commit()

@@ -401,6 +401,57 @@ def report_result_email_template(
     """
 
 
+def report_approved_email_template(name: str, threat_type: str, district: str) -> str:
+    """Sent to the reporter when an admin manually approves their report."""
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family:Arial,sans-serif;background:#060d1a;
+                 color:#e2e8f0;padding:40px 20px;margin:0">
+      <div style="max-width:520px;margin:0 auto;background:#0d1829;border-radius:16px;
+                  border:1px solid rgba(0,229,196,0.2);padding:40px">
+        {EMAIL_LOGO_HTML}
+        <h2 style="color:#ffffff;font-size:20px;margin:0 0 8px">
+          আপনার রিপোর্ট অনুমোদিত হয়েছে ✅
+        </h2>
+        <p style="color:#94a3b8;font-size:14px;margin:0 0 24px">
+          প্রিয় {name}, আপনাকে ধন্যবাদ। আমাদের EProhori টিম আপনার রিপোর্টটি
+          পর্যালোচনা করে অনুমোদন দিয়েছে — এটি এখন সবাইকে সতর্ক করার জন্য
+          সক্রিয় করা হয়েছে।
+        </p>
+
+        <div style="background:rgba(0,229,196,0.08);border:1px solid rgba(0,229,196,0.3);
+                    border-radius:12px;padding:20px;margin:0 0 24px">
+          <p style="color:#e2e8f0;font-size:14px;margin:0 0 8px">
+            <strong>ধরন:</strong> {threat_type.upper()}
+          </p>
+          <p style="color:#e2e8f0;font-size:14px;margin:0">
+            <strong>জেলা:</strong> {district or 'বাংলাদেশ'}
+          </p>
+        </div>
+
+        <p style="color:#cbd5e1;font-size:14px;line-height:1.7;margin:0 0 24px">
+          আপনার সতর্কতার কারণে হাজারো মানুষ এই হুমকি থেকে রক্ষা পাবে।
+          EProhori-এর সাথে থাকার জন্য আন্তরিক ধন্যবাদ।
+        </p>
+
+        <a href="https://eprohori.vercel.app/monitor"
+           style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
+                  padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
+                  margin-bottom:24px">
+          Monitor-এ দেখুন →
+        </a>
+
+        <p style="color:#64748b;font-size:12px;text-align:center;margin:0">
+          🛡️ প্রতিটি রিপোর্ট বাংলাদেশকে নিরাপদ করে।
+          <br>© 2025 EProhori · Bangladesh
+        </p>
+      </div>
+    </body>
+    </html>
+    """
+
+
 def report_safe_email_template(name: str) -> str:
     """Sent to the reporter when their report is reviewed and found to be safe."""
     return f"""

@@ -572,15 +572,41 @@ export default function MonitorPage() {
                   <span className="text-xs text-slate-500">{th.type}</span>
                 </div>
                 <p className="text-sm text-slate-200 mb-2">{th.detail}</p>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
-                  <span>📍 {th.division}</span>
-                  <span>{timeAgo(th.created_at)}</span>
-                  <span
-                    className="ml-auto px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
-                  >
-                    EProhori: {th.confidence}%
-                  </span>
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <span>📍 {th.division}</span>
+                    <span>{timeAgo(th.created_at)}</span>
+                  </div>
+                  {th.status === 'verified' && (
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'rgba(3,218,196,0.15)', color: '#00e5c4' }}
+                      >
+                        🔔 সুরক্ষিত জারি
+                      </span>
+                      <span
+                        className="px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'rgba(34,197,94,0.1)', color: '#22c55e' }}
+                      >
+                        ✅ যাচাইকৃত নিরাপদ
+                      </span>
+                      <span
+                        className="px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
+                      >
+                        EProhori: {th.confidence}%
+                      </span>
+                    </div>
+                  )}
+                  {th.status !== 'verified' && (
+                    <span
+                      className="px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
+                    >
+                      EProhori: {th.confidence}%
+                    </span>
+                  )}
                 </div>
               </button>
               )

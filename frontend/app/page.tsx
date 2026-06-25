@@ -376,39 +376,8 @@ export default function HomePage() {
                   }}
                 >
                   <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    <div className="flex-shrink-0">
                       <ConfidenceMeter value={scanResult.confidence} size={120} />
-                      {scanTab === 'url' && scanInput && (
-                        <div className="flex flex-col items-center gap-1 mt-1">
-                          <a
-                            href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-mono text-center block"
-                            style={{ color: '#64748b', maxWidth: 120, wordBreak: 'break-all', textDecoration: 'none' }}
-                            onMouseOver={e => (e.currentTarget.style.color = '#00e5c4')}
-                            onMouseOut={e => (e.currentTarget.style.color = '#64748b')}
-                          >
-                            🔗 {(() => {
-                              try { return new URL(scanInput).hostname }
-                              catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
-                            })()}
-                          </a>
-                          {getRealDomain(scanInput) && (
-                            <a
-                              href={getRealDomain(scanInput)!}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-center block"
-                              style={{ color: '#22c55e', maxWidth: 120, wordBreak: 'break-all', textDecoration: 'none', lineHeight: 1.3 }}
-                              onMouseOver={e => (e.currentTarget.style.textDecoration = 'underline')}
-                              onMouseOut={e => (e.currentTarget.style.textDecoration = 'none')}
-                            >
-                              ✅ আসল: {getRealDomain(scanInput)!.replace('https://', '').replace(/\/$/, '')}
-                            </a>
-                          )}
-                        </div>
-                      )}
                     </div>
                     <div className="flex-1">
                       <span
@@ -423,6 +392,56 @@ export default function HomePage() {
                       <p className="text-sm text-slate-300 leading-relaxed">{scanResult.reason}</p>
                     </div>
                   </div>
+
+                  {/* Domain comparison — scanned address vs. the real brand site */}
+                  {scanTab === 'url' && scanInput && (
+                    <div
+                      className="mt-4 rounded-lg overflow-hidden"
+                      style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <div
+                        className="flex items-center justify-between gap-3 px-4 py-2.5"
+                        style={{ background: 'rgba(255,68,68,0.06)' }}
+                      >
+                        <span className="text-xs flex-shrink-0" style={{ color: '#94a3b8' }}>
+                          🔗 স্ক্যান করা ঠিকানা
+                        </span>
+                        <a
+                          href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono font-semibold text-right"
+                          style={{ color: '#ff6b6b', wordBreak: 'break-all', textDecoration: 'none' }}
+                        >
+                          {(() => {
+                            try { return new URL(scanInput).hostname }
+                            catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
+                          })()}
+                        </a>
+                      </div>
+                      {getRealDomain(scanInput) && (
+                        <div
+                          className="flex items-center justify-between gap-3 px-4 py-2.5"
+                          style={{ background: 'rgba(34,197,94,0.06)', borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                        >
+                          <span className="text-xs flex-shrink-0" style={{ color: '#94a3b8' }}>
+                            ✅ আসল ঠিকানা
+                          </span>
+                          <a
+                            href={getRealDomain(scanInput)!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-mono font-semibold text-right inline-flex items-center gap-1"
+                            style={{ color: '#22c55e', wordBreak: 'break-all', textDecoration: 'none' }}
+                            onMouseOver={e => (e.currentTarget.style.textDecoration = 'underline')}
+                            onMouseOut={e => (e.currentTarget.style.textDecoration = 'none')}
+                          >
+                            {getRealDomain(scanInput)!.replace('https://', '').replace(/\/$/, '')} →
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Matched signals — always visible, only reasons that fired */}
                   {analyzeSignals(scanInput).some(s => s.matched) && (

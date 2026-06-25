@@ -575,6 +575,12 @@ export default function MonitorPage() {
                 <div className="flex items-center gap-3 text-xs text-slate-500">
                   <span>📍 {th.division}</span>
                   <span>{timeAgo(th.created_at)}</span>
+                  <span
+                    className="ml-auto px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
+                  >
+                    EProhori: {th.confidence}%
+                  </span>
                 </div>
               </button>
               )

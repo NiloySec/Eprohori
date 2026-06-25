@@ -358,16 +358,18 @@ export default function HomePage() {
                   }}
                 >
                   <div className="flex items-center gap-6">
-                    <ConfidenceMeter value={scanResult.confidence} size={120} />
-                    <div className="flex-1">
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <ConfidenceMeter value={scanResult.confidence} size={120} />
                       {scanTab === 'url' && scanInput && (
-                        <p className="text-xs font-mono mb-2" style={{ color: '#64748b' }}>
+                        <p className="text-xs font-mono text-center" style={{ color: '#64748b', maxWidth: 120, wordBreak: 'break-all' }}>
                           🔗 {(() => {
                             try { return new URL(scanInput).hostname }
                             catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
                           })()}
                         </p>
                       )}
+                    </div>
+                    <div className="flex-1">
                       <span
                         className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3"
                         style={{

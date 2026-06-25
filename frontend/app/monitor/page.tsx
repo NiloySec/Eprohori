@@ -537,41 +537,8 @@ export default function MonitorPage() {
                   animationDelay: `${idx * 0.04}s`,
                 }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  {isSafe ? (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-bold"
-                      style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
-                    >
-                      ✅ যাচাইকৃত নিরাপদ
-                    </span>
-                  ) : (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-bold"
-                      style={{ backgroundColor: `${SEV_COLOR[th.severity]}20`, color: SEV_COLOR[th.severity] }}
-                    >
-                      {SEV_LABEL[th.severity]}
-                    </span>
-                  )}
-                  {!isSafe && th.is_campaign && (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-bold sev-blink"
-                      style={{ backgroundColor: 'rgba(255,68,68,0.15)', color: '#ff4444', border: '1px solid rgba(255,68,68,0.35)' }}
-                    >
-                      ⚡ স্ক্যাম ওয়েভ
-                    </span>
-                  )}
-                  {!isSafe && th.alerted && (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-bold"
-                      style={{ backgroundColor: 'rgba(0,229,196,0.14)', color: '#00e5c4', border: '1px solid rgba(0,229,196,0.4)' }}
-                    >
-                      🔔 সতর্কতা জারি
-                    </span>
-                  )}
-                </div>
                 <p className="text-sm text-slate-300 mb-3">{th.detail}</p>
-                {/* Line 1: Location • Time • Type (left) | Alert badge (right) */}
+                {/* Line 1: Location • Time • Type (left) | Severity + Alert (right) */}
                 <div className="flex items-center justify-between gap-3 text-xs mb-2">
                   <div className="flex items-center gap-2 text-slate-500">
                     <span>📍 {th.division}</span>
@@ -580,14 +547,31 @@ export default function MonitorPage() {
                     <span>•</span>
                     <span>{th.type}</span>
                   </div>
-                  {th.alerted && (
-                    <span
-                      className="px-2 py-0.5 rounded-full whitespace-nowrap"
-                      style={{ backgroundColor: 'rgba(0,229,196,0.15)', color: '#00e5c4' }}
-                    >
-                      🔔 সতর্কতা জারি
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {isSafe ? (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full font-bold"
+                        style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
+                      >
+                        ✅ যাচাইকৃত নিরাপদ
+                      </span>
+                    ) : (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full font-bold"
+                        style={{ backgroundColor: `${SEV_COLOR[th.severity]}20`, color: SEV_COLOR[th.severity] }}
+                      >
+                        {SEV_LABEL[th.severity]}
+                      </span>
+                    )}
+                    {!isSafe && th.alerted && (
+                      <span
+                        className="px-2 py-0.5 rounded-full whitespace-nowrap"
+                        style={{ backgroundColor: 'rgba(0,229,196,0.15)', color: '#00e5c4' }}
+                      >
+                        🔔 সতর্কতা জারি
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {/* Line 2: Confidence % (right) */}
                 <div className="flex justify-end text-xs">

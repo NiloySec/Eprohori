@@ -324,7 +324,7 @@ def user_alert_email_template(
         </p>
         <ul style="padding-left:0;list-style:none;margin:0 0 24px">{tips_html}</ul>
 
-        <a href="https://eprohori.vercel.app/report/{threat_id}"
+        <a href="https://eprohori.tech/report/{threat_id}"
            style="display:block;background:{accent};color:#060d1a;text-align:center;
                   padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
                   margin-bottom:20px">
@@ -334,7 +334,7 @@ def user_alert_email_template(
         <p style="color:#64748b;font-size:11px;text-align:center;margin:0">
           You're getting this because your district is affected.
           <br>Manage notifications:
-          <a href="https://eprohori.vercel.app/account" style="color:#00e5c4;text-decoration:none">Account settings</a>
+          <a href="https://eprohori.tech/account" style="color:#00e5c4;text-decoration:none">Account settings</a>
           <br>© 2025 EProhori · Bangladesh
         </p>
       </div>
@@ -384,7 +384,7 @@ def report_result_email_template(
           </p>
         </div>
 
-        <a href="https://eprohori.vercel.app/monitor"
+        <a href="https://eprohori.tech/monitor"
            style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
                   padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
                   margin-bottom:24px">
@@ -435,7 +435,7 @@ def report_approved_email_template(name: str, threat_type: str, district: str) -
           EProhori-এর সাথে থাকার জন্য আন্তরিক ধন্যবাদ।
         </p>
 
-        <a href="https://eprohori.vercel.app/monitor"
+        <a href="https://eprohori.tech/monitor"
            style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
                   padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
                   margin-bottom:24px">
@@ -525,7 +525,7 @@ def digest_alert_template(items: list) -> str:
           {rows}
         </table>
         {more}
-        <a href="https://eprohori.vercel.app/monitor"
+        <a href="https://eprohori.tech/monitor"
            style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
                   padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px">
           View all on EProhori Monitor →
@@ -595,7 +595,7 @@ def threat_alert_template(
           </p>
         </div>
 
-        <a href="https://eprohori.vercel.app/monitor"
+        <a href="https://eprohori.tech/monitor"
            style="display:block;background:#00e5c4;
                   color:#060d1a;text-align:center;
                   padding:14px;border-radius:8px;

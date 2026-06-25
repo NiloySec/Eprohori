@@ -641,7 +641,7 @@ async def send_threat_alert(
 <b>EProhori Confidence:</b> {i['confidence']}%
 <b>Detail:</b> {i['detail'][:80]}...
 
-🔗 eprohori.vercel.app/monitor
+🔗 eprohori.tech/monitor
 """
     else:
         lines = "\n".join(
@@ -652,7 +652,7 @@ async def send_threat_alert(
 
 {lines}
 
-🔗 eprohori.vercel.app/monitor
+🔗 eprohori.tech/monitor
 """
     await send_telegram(telegram_msg)
 
@@ -866,7 +866,7 @@ async def send_campaign_alert(threat_type: str, division: str, detail: str, repo
     await send_telegram(
         f"⚡ <b>SCAM WAVE DETECTED</b>\n\n{report_count} reports in the last hour\n"
         f"<b>Type:</b> {threat_type}\n<b>Division:</b> {division or 'Unknown'}\n"
-        f"<b>Detail:</b> {detail[:80]}...\n\n🔗 eprohori.vercel.app/monitor"
+        f"<b>Detail:</b> {detail[:80]}...\n\n🔗 eprohori.tech/monitor"
     )
 
 
@@ -1010,8 +1010,6 @@ def create_threat(
         reporter_email = anon_email
 
     # ── 3. ML analysis ────────────────────────────────────────────────────────
-    # All text-bearing channels (sms/email/messenger/whatsapp/telegram/website/url)
-    # run through the text classifier — it operates on raw text regardless of source.
     confidence = 0.0
     ml_analyzed = False
     if payload.content:
@@ -1021,6 +1019,11 @@ def create_threat(
             ml_analyzed = True
         except Exception:
             pass
+
+    # If the frontend passed a confidence from a previous scan (e.g. Quick Scan on home page),
+    # store it as the final score so the user always sees the same number they already saw.
+    # ML confidence is still used for triage (auto-verify threshold), NOT overwritten.
+    stored_confidence = payload.confidence if (payload.confidence and payload.confidence > 0) else confidence
 
     # ── 4. AI triage: auto-verify / admin queue ──────────────────────────────
     # ≥90% confidence → auto-verified + instant alert.
@@ -1036,7 +1039,7 @@ def create_threat(
         type=payload.type,
         content=payload.content,
         region=payload.region,
-        confidence=confidence or payload.confidence or 0.0,
+        confidence=stored_confidence,
         status=status,
         up_votes=0,
         reporter_email=reporter_email or (payload.reporter_email or "").lower().strip() or None,

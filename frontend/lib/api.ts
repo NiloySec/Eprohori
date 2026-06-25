@@ -725,6 +725,7 @@ export async function reportThreat(data: {
   description?: string
   screenshot?: string
   reporterEmail?: string
+  confidence?: number
 }): Promise<void> {
   try {
     // Logged-in email takes precedence; otherwise use the email the anon user typed.
@@ -734,13 +735,15 @@ export async function reportThreat(data: {
       if (auth?.loggedIn && auth.email) reporterEmail = auth.email
     } catch { /* ignore */ }
 
-    const body = {
+    const body: Record<string, unknown> = {
       type: TYPE_DOWN[data.type] || data.type.toLowerCase(),
       content: data.detail,
       region: DIV_TO_EN[data.division] || data.division,
       screenshot: data.screenshot,
       reporter_email: reporterEmail,
     }
+    // Pass the scan confidence so the backend stores the score the user already saw
+    if (data.confidence != null) body.confidence = data.confidence / 100
     // Bearer token (if logged in) lets the backend apply reporter trust scoring
     await api('/threats', {
       method: 'POST',

@@ -423,6 +423,7 @@ export default function HomePage() {
                           sessionStorage.setItem('ep_prefill_report', JSON.stringify({
                             text: scanInput.trim(),
                             type: scanTab === 'url' ? 'website' : 'sms',
+                            confidence: scanResult?.confidence ?? null,
                           }))
                         } catch { /* ignore */ }
                       }}

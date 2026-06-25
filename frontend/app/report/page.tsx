@@ -38,6 +38,7 @@ export default function ThreatsPage() {
   const [submitResult, setSubmitResult] = useState<ValidationResult | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [loggedIn, setLoggedIn]     = useState(true)  // assume true until checked (hides anon email field)
+  const [prefillConfidence, setPrefillConfidence] = useState<number | null>(null)
 
   const [trending, setTrending]     = useState<TrendingScam[]>([])
   const [trendLoading, setTrendLoading] = useState(true)
@@ -54,6 +55,7 @@ export default function ThreatsPage() {
       if (pre?.text) {
         setThreatType((pre.type as ThreatType) || 'sms')
         setForm(f => ({ ...f, detail: pre.text }))
+        if (typeof pre.confidence === 'number') setPrefillConfidence(pre.confidence)
         sessionStorage.removeItem('ep_prefill_report')
       }
     } catch { /* ignore */ }
@@ -71,7 +73,8 @@ export default function ThreatsPage() {
     setSubmitResult(null)
 
     // Save the report and run type-specific AI validation in parallel.
-    // The district maps to its parent division so the heat map keeps working.
+    // If the user came from the home page scan, reuse that confidence score (no second ML run).
+    const vtype = threatType === 'website' ? 'url' : 'sms'
     const savePromise = reportThreat({
       type: threatType,
       detail: form.detail,
@@ -79,10 +82,27 @@ export default function ThreatsPage() {
       platform: form.platform,
       description: form.description,
       reporterEmail: form.email.trim() || undefined,
+      confidence: prefillConfidence ?? undefined,
     })
-    // Website → URL validator; all text channels (sms/email/messenger/...) → text validator
-    const vtype = threatType === 'website' ? 'url' : 'sms'
-    const res: ValidationResult = await validateText(form.detail, vtype)
+
+    let res: ValidationResult
+    if (prefillConfidence !== null) {
+      // Reuse the scan score the user already saw — no second ML run
+      const isPhishing = prefillConfidence >= 50
+      res = {
+        is_phishing: isPhishing,
+        confidence: prefillConfidence,
+        reason: isPhishing
+          ? 'EProhori বিশ্লেষণে এটি সন্দেহজনক হিসেবে চিহ্নিত হয়েছে।'
+          : 'যাচাইয়ে নিরাপদ পাওয়া গেছে।',
+        risk_level: prefillConfidence >= 80 ? 'critical' : prefillConfidence >= 60 ? 'high' : prefillConfidence >= 30 ? 'medium' : 'safe',
+        actions: isPhishing
+          ? ['লিংকে ক্লিক করবেন না', 'ব্যক্তিগত তথ্য দেবেন না', 'সন্দেহজনক বার্তা ফরওয়ার্ড করবেন না']
+          : ['সতর্ক থাকুন', 'অপরিচিত লিংক এড়িয়ে চলুন'],
+      }
+    } else {
+      res = await validateText(form.detail, vtype)
+    }
     await savePromise
 
     setSubmitResult(res)

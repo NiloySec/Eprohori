@@ -1,6 +1,6 @@
 ﻿'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { fetchThreats, fetchStats, approveThreat, rejectThreat, broadcastAlert, adminLogin, fetchAuditLog, getAdminToken, setAdminToken } from '@/lib/api'
+import { fetchAdminPendingThreats, fetchStats, approveThreat, rejectThreat, broadcastAlert, adminLogin, fetchAuditLog, getAdminToken, setAdminToken } from '@/lib/api'
 import type { Threat, Stats, AuditEntry } from '@/lib/api'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://eprohori-production.up.railway.app'
@@ -24,19 +24,20 @@ export default function AdminPage() {
   const [actionMsg, setActionMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [activeTab, setActiveTab] = useState<'pending' | 'broadcast' | 'audit' | 'tools'>('pending')
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   useEffect(() => { if (getAdminToken()) setAuthed(true) }, [])
 
   const loadAll = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true)
     try {
-      const [t, s] = await Promise.all([
-        fetchThreats({ status: 'pending', limit: 100 }),
+      const [{ threats: t, error: tErr }, s] = await Promise.all([
+        fetchAdminPendingThreats(),
         fetchStats(),
       ])
+      setFetchError(tErr)
       setThreats(t)
       setStats(s)
-      // Reset local approve/reject tracking — server is now the source of truth
       setApproved([])
       setRejected([])
     } finally {
@@ -51,10 +52,10 @@ export default function AdminPage() {
     loadAll()
   }, [authed, loadAll])
 
-  // Auto-refresh every 30s so new incoming reports appear without manual reload
+  // Auto-refresh every 10s for near-real-time pending report updates
   useEffect(() => {
     if (!authed) return
-    const id = setInterval(() => loadAll(true), 30000)
+    const id = setInterval(() => loadAll(true), 10000)
     return () => clearInterval(id)
   }, [authed, loadAll])
 
@@ -271,9 +272,16 @@ export default function AdminPage() {
 
       {/* Tab content */}
       {activeTab === 'pending' && (
-        <Panel title="অপেক্ষমাণ রিপোর্ট" subtitle="অনুমোদনের জন্য AI-যাচাইকৃত রিপোর্ট">
+        <Panel title="অপেক্ষমাণ রিপোর্ট" subtitle="EProhori-যাচাইকৃত রিপোর্ট — অনুমোদনের অপেক্ষায়">
+          {fetchError && (
+            <div className="mb-4 px-4 py-3 rounded-xl text-sm flex items-center gap-2"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}>
+              ⚠️ Backend সংযোগ সমস্যা: {fetchError} —{' '}
+              <button onClick={() => loadAll()} className="underline">আবার চেষ্টা করুন</button>
+            </div>
+          )}
           {loading ? <Empty text="লোড হচ্ছে..." />
-            : pending.length === 0 ? <Empty text="🎉 সব ক্লিয়ার! কোনো পেন্ডিং রিপোর্ট নেই।" />
+            : !fetchError && pending.length === 0 ? <Empty text="🎉 সব ক্লিয়ার! কোনো পেন্ডিং রিপোর্ট নেই।" />
             : (
               <div className="grid md:grid-cols-2 gap-3">
                 {pending.map(t => {

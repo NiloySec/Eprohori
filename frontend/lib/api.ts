@@ -588,6 +588,22 @@ export async function fetchThreats(params?: {
   }
 }
 
+// Admin-only: fetch pending threats — NO mock fallback so real reports are always shown
+export async function fetchAdminPendingThreats(): Promise<{ threats: Threat[]; error: string | null }> {
+  const token = getAdminToken()
+  if (!token) return { threats: [], error: 'Not authenticated' }
+  try {
+    const data = await api<any[]>('/threats?status=pending&limit=200', {
+      headers: bearerHeader(token),
+    })
+    const threats = data.map(adaptThreat).filter((t): t is Threat => t !== null)
+    return { threats, error: null }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Unknown error'
+    return { threats: [], error: msg }
+  }
+}
+
 export interface ActivityItem {
   id: number
   type: string

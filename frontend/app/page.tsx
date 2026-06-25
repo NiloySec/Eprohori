@@ -208,9 +208,11 @@ export default function HomePage() {
             style={
               lang === 'bn'
                 ? { lineHeight: 1.4, letterSpacing: 0, wordBreak: 'keep-all' }
-                // English: viewport-scaled size keeps each line on ONE line (2 lines total)
-                // without ever overflowing narrow screens.
-                : { lineHeight: '1.08', letterSpacing: '-0.03em', fontSize: 'clamp(1.25rem, 6vw, 3.75rem)' }
+                // English: viewport-scaled size tuned so the LONGEST line fits on one
+                // line at every width — exactly 2 lines, matching the Bengali layout,
+                // without clipping or horizontal overflow. Space Grotesk is chunky,
+                // so min is conservative (1rem ~ 16px on mobile).
+                : { lineHeight: '1.1', letterSpacing: '-0.02em', fontSize: 'clamp(1rem, 4vw, 2.5rem)' }
             }
           >
             {t('hero_title').split('|').map((line, i) => (

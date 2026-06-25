@@ -537,17 +537,10 @@ export default function MonitorPage() {
                   animationDelay: `${idx * 0.04}s`,
                 }}
               >
-                <p className="text-sm text-slate-300 mb-3">{th.detail}</p>
-                {/* Line 1: Location • Time • Type (left) | Severity + Alert (right) */}
-                <div className="flex items-center justify-between gap-3 text-xs mb-2">
-                  <div className="flex items-center gap-2 text-slate-500">
-                    <span>📍 {th.division}</span>
-                    <span>•</span>
-                    <span>{timeAgo(th.created_at)}</span>
-                    <span>•</span>
-                    <span>{th.type}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
+                {/* Line 1: Detail (left) | Severity (right) */}
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <p className="text-sm text-slate-300 flex-1">{th.detail}</p>
+                  <div className="flex-shrink-0">
                     {isSafe ? (
                       <span
                         className="text-xs px-2 py-0.5 rounded-full font-bold"
@@ -563,18 +556,28 @@ export default function MonitorPage() {
                         {SEV_LABEL[th.severity]}
                       </span>
                     )}
-                    {!isSafe && th.alerted && (
-                      <span
-                        className="px-2 py-0.5 rounded-full whitespace-nowrap"
-                        style={{ backgroundColor: 'rgba(0,229,196,0.15)', color: '#00e5c4' }}
-                      >
-                        🔔 সতর্কতা জারি
-                      </span>
-                    )}
                   </div>
                 </div>
-                {/* Line 2: Confidence % (right) */}
-                <div className="flex justify-end text-xs">
+                {/* Line 2: Alert badge (right) */}
+                {!isSafe && th.alerted && (
+                  <div className="flex justify-end text-xs mb-2">
+                    <span
+                      className="px-2 py-0.5 rounded-full whitespace-nowrap"
+                      style={{ backgroundColor: 'rgba(0,229,196,0.15)', color: '#00e5c4' }}
+                    >
+                      🔔 সতর্কতা জারি
+                    </span>
+                  </div>
+                )}
+                {/* Line 3: Metadata (left) | Confidence % (right) */}
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <span>📍 {th.division}</span>
+                    <span>•</span>
+                    <span>{timeAgo(th.created_at)}</span>
+                    <span>•</span>
+                    <span>{th.type}</span>
+                  </div>
                   <span
                     className="px-2 py-0.5 rounded-full whitespace-nowrap"
                     style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}

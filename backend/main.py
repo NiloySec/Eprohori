@@ -1208,7 +1208,7 @@ def list_rangers(
 
 
 # ── Daily cybersecurity quiz (5 rotating questions/day, XP once/day) ───────────
-QUIZ_XP_PER_CORRECT = 20   # 5 correct → 100 XP/day max
+QUIZ_XP_PER_CORRECT = 1    # 5 correct → 5 XP/day max (1 XP per question)
 
 
 @app.get("/api/quiz/daily", response_model=DailyQuizOut, tags=["rangers"])
@@ -1485,6 +1485,15 @@ def refresh_token(payload: dict = Depends(get_current_user)):
     role = payload.get("role", "user")
     hours = ADMIN_TOKEN_HOURS if role == "admin" else USER_TOKEN_HOURS
     return {"token": create_token(payload["sub"], role, hours)}
+
+
+@app.get("/api/auth/me", tags=["auth"])
+def get_me(payload: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Current user's live profile (fresh XP / reports / rank) for the account page."""
+    user = db.query(User).filter(User.email == payload["sub"]).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    return _user_payload(db, user)
 
 
 def _user_rank(db: Session, user: User) -> int:

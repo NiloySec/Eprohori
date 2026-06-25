@@ -456,6 +456,17 @@ export async function loginUser(email: string, password: string): Promise<Backen
   return user
 }
 
+/** Live profile (fresh XP / reports / rank) for the logged-in user. */
+export async function getMe(): Promise<BackendUser | null> {
+  const token = getAuthToken()
+  if (!token) return null
+  try {
+    return await api<BackendUser>('/auth/me', { headers: bearerHeader(token) })
+  } catch {
+    return null   // offline or token expired — caller keeps cached values
+  }
+}
+
 export function updateProfile(data: {
   email: string; name?: string; phone?: string; division?: string
 }): Promise<BackendUser> {

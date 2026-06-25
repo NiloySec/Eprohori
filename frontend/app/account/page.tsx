@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword, adminLogin, fetchDailyQuiz, submitDailyQuiz } from '@/lib/api'
+import { fetchRangers, fetchMyReports, sendOTP, verifyOTP, registerUser, loginUser, updateProfile, changePassword, updatePreferences, deleteAccount, setAuthToken, refreshSession, forgotPassword, resetPassword, adminLogin, fetchDailyQuiz, submitDailyQuiz, getMe } from '@/lib/api'
 import type { DailyQuiz, DailyQuizResult } from '@/lib/api'
 import type { Ranger, MyReport } from '@/lib/api'
 import DistrictSelect from '@/components/DistrictSelect'
@@ -588,7 +588,7 @@ function DailyQuizView({ email, onXp }: { email: string; onXp: (totalXp: number)
         <span className="text-3xl">🧠</span>
         <div>
           <h3 className="font-heading text-lg font-bold text-white">আজকের সাইবার কুইজ</h3>
-          <p className="text-xs text-slate-400">প্রতিদিন ৫টি নতুন প্রশ্ন • প্রতি সঠিক উত্তরে <span style={{ color: '#00e5c4' }}>+২০ XP</span></p>
+          <p className="text-xs text-slate-400">প্রতিদিন ৫টি নতুন প্রশ্ন • প্রতি সঠিক উত্তরে <span style={{ color: '#00e5c4' }}>+১ XP</span></p>
         </div>
         <span className="ml-auto text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(0,229,196,0.12)', color: '#00e5c4', border: '1px solid rgba(0,229,196,0.3)' }}>
           {quiz.total_xp} XP
@@ -711,8 +711,9 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
+    let saved: AuthUser | null = null
     try {
-      const saved = JSON.parse(localStorage.getItem('ep_auth') || 'null')
+      saved = JSON.parse(localStorage.getItem('ep_auth') || 'null')
       if (saved?.loggedIn) setAuth(saved)
     } catch { /* ignore */ }
     try {
@@ -721,6 +722,20 @@ export default function AccountPage() {
     } catch { /* ignore */ }
     fetchRangers().then(setRangers)
     refreshSession() // sliding JWT renewal (no-op when offline or logged out)
+    // Pull the LIVE profile (fresh XP / reports / rank) so the account always
+    // shows the real values, not whatever was cached at last login.
+    if (saved?.loggedIn) {
+      getMe().then(me => {
+        if (!me) return
+        setAuth(prev => (prev ? { ...prev, xp: me.xp, reports: me.reports, rank: me.rank } : prev))
+        try {
+          const a = JSON.parse(localStorage.getItem('ep_auth') || 'null') || {}
+          localStorage.setItem('ep_auth', JSON.stringify({ ...a, xp: me.xp, reports: me.reports, rank: me.rank }))
+          const p = JSON.parse(localStorage.getItem('eprohori_profile') || 'null')
+          if (p) { p.xp = me.xp; localStorage.setItem('eprohori_profile', JSON.stringify(p)) }
+        } catch { /* ignore */ }
+      })
+    }
     setLoaded(true)
   }, [])
 

@@ -456,6 +456,20 @@ def threat_version(db: Session = Depends(get_db)):
     return {"version": count}
 
 
+@app.get("/api/threats/blocklist", response_model=list[ThreatOut], tags=["threats"])
+def get_blocklist(
+    limit: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """Real-time blocklist for web extension — returns latest verified URL threats.
+    No caching headers; always returns fresh data from database."""
+    threats = db.query(Threat).filter(
+        Threat.status == "verified",
+        Threat.type == "url",
+    ).order_by(Threat.created_at.desc()).limit(limit).all()
+    return threats
+
+
 @app.get("/api/threats/trending", response_model=list[TrendingScamOut], tags=["threats"])
 def get_trending(db: Session = Depends(get_db)):
     """Top 3 threat types of the last 7 days, with share percentage."""

@@ -1684,9 +1684,25 @@ def delete_account(
     payload: dict = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Permanently delete the authenticated user's account."""
+    """Permanently delete the authenticated user's account.
+
+    The community's threat reports are KEPT (the platform's value is the threat
+    intelligence, not the reporter), but they are ANONYMISED — the deleted user's
+    email is stripped from every report so no PII survives the deletion.
+    Personal records tied to the account (quiz history) are removed.
+    """
     user = db.query(User).filter(User.email == payload["sub"]).first()
     if user:
+        email = user.email
+        if email:
+            # Anonymise: keep the reports on the monitor/map, drop the PII link.
+            db.query(Threat).filter(Threat.reporter_email == email).update(
+                {Threat.reporter_email: None}, synchronize_session=False
+            )
+            # Remove personal quiz history (no community value, pure PII).
+            db.query(QuizCompletion).filter(QuizCompletion.email == email).delete(
+                synchronize_session=False
+            )
         db.delete(user)
         db.commit()
     return {"success": True, "message": "Account deleted"}

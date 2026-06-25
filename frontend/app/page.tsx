@@ -362,6 +362,21 @@ export default function HomePage() {
                       <ConfidenceMeter value={scanResult.confidence} size={120} />
                     </div>
                     <div className="flex-1">
+                      {/* 🔗 scanned address — at the top */}
+                      {scanTab === 'url' && scanInput && (
+                        <a
+                          href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block text-xs font-mono mb-2"
+                          style={{ color: '#ff6b6b', wordBreak: 'break-all', textDecoration: 'none' }}
+                        >
+                          🔗 {(() => {
+                            try { return new URL(scanInput).hostname }
+                            catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
+                          })()}
+                        </a>
+                      )}
                       <span
                         className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3"
                         style={{
@@ -374,56 +389,6 @@ export default function HomePage() {
                       <p className="text-sm text-slate-300 leading-relaxed">{scanResult.reason}</p>
                     </div>
                   </div>
-
-                  {/* Domain comparison — scanned address vs. the real brand site */}
-                  {scanTab === 'url' && scanInput && (
-                    <div
-                      className="mt-4 rounded-lg overflow-hidden"
-                      style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-                    >
-                      <div
-                        className="flex items-center justify-between gap-3 px-4 py-2.5"
-                        style={{ background: 'rgba(255,68,68,0.06)' }}
-                      >
-                        <span className="text-xs flex-shrink-0" style={{ color: '#94a3b8' }}>
-                          🔗 স্ক্যান করা ঠিকানা
-                        </span>
-                        <a
-                          href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-mono font-semibold text-right"
-                          style={{ color: '#ff6b6b', wordBreak: 'break-all', textDecoration: 'none' }}
-                        >
-                          {(() => {
-                            try { return new URL(scanInput).hostname }
-                            catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
-                          })()}
-                        </a>
-                      </div>
-                      {scanResult.real_domain && (
-                        <div
-                          className="flex items-center justify-between gap-3 px-4 py-2.5"
-                          style={{ background: 'rgba(34,197,94,0.06)', borderTop: '1px solid rgba(255,255,255,0.06)' }}
-                        >
-                          <span className="text-xs flex-shrink-0" style={{ color: '#94a3b8' }}>
-                            ✅ আসল ঠিকানা
-                          </span>
-                          <a
-                            href={`https://${scanResult.real_domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-mono font-semibold text-right inline-flex items-center gap-1"
-                            style={{ color: '#22c55e', wordBreak: 'break-all', textDecoration: 'none' }}
-                            onMouseOver={e => (e.currentTarget.style.textDecoration = 'underline')}
-                            onMouseOut={e => (e.currentTarget.style.textDecoration = 'none')}
-                          >
-                            {scanResult.real_domain.replace(/^https?:\/\//, '').replace(/\/$/, '')} →
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   {/* Matched signals — always visible, only reasons that fired */}
                   {analyzeSignals(scanInput).some(s => s.matched) && (
@@ -443,9 +408,33 @@ export default function HomePage() {
                       ))}
                     </div>
                   )}
+
+                  {/* ✅ Real brand site — shown AFTER the signal pills */}
+                  {scanTab === 'url' && scanResult.real_domain && (
+                    <div
+                      className="mt-4 flex items-center justify-between gap-3 px-4 py-3 rounded-lg"
+                      style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }}
+                    >
+                      <span className="text-xs flex-shrink-0" style={{ color: '#86efac' }}>
+                        ✅ আসল ঠিকানা
+                      </span>
+                      <a
+                        href={`https://${scanResult.real_domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono font-semibold text-right inline-flex items-center gap-1"
+                        style={{ color: '#22c55e', wordBreak: 'break-all', textDecoration: 'none' }}
+                        onMouseOver={e => (e.currentTarget.style.textDecoration = 'underline')}
+                        onMouseOut={e => (e.currentTarget.style.textDecoration = 'none')}
+                      >
+                        {scanResult.real_domain.replace(/^https?:\/\//, '').replace(/\/$/, '')} →
+                      </a>
+                    </div>
+                  )}
                 </div>
                 {scanResult.is_phishing && (
                   <div className="mt-3 space-y-3">
+                    <SavedFeedback source="scan" />
                     <Link
                       href="/report"
                       onClick={() => {
@@ -462,7 +451,6 @@ export default function HomePage() {
                     >
                       🚨 এটা রিপোর্ট করুন — কমিউনিটিকে সতর্ক করুন
                     </Link>
-                    <SavedFeedback source="scan" />
                   </div>
                 )}
               </div>

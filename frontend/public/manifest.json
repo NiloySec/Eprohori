@@ -1,6 +1,6 @@
-{
-  "name": "Eprohori — বাংলাদেশের সাইবার সুরক্ষা",
-  "short_name": "Eprohori",
+﻿{
+  "name": "EProhori — বাংলাদেশের সাইবার সুরক্ষা",
+  "short_name": "EProhori",
   "description": "AI-powered phishing & scam detection for Bangladesh",
   "start_url": "/",
   "display": "standalone",

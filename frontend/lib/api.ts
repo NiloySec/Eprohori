@@ -1,5 +1,5 @@
-/**
- * Eprohori API client
+﻿/**
+ * EProhori API client
  * Base URL: NEXT_PUBLIC_API_URL (default http://localhost:8000)
  * All functions fall back to mock data if the server is unreachable.
  */

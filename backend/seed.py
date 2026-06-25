@@ -1,4 +1,4 @@
-"""
+﻿"""
 Seed the database with 15 sample threats, 3 alerts, and 10 rangers.
 Idempotent — only runs if the tables are nearly empty.
 """
@@ -164,7 +164,7 @@ def seed_db() -> None:
                 Alert(
                     title="📢 সাইবার নিরাপত্তা সপ্তাহ",
                     message=(
-                        "জাতীয় সাইবার নিরাপত্তা সপ্তাহ উপলক্ষে Eprohori "
+                        "জাতীয় সাইবার নিরাপত্তা সপ্তাহ উপলক্ষে EProhori "
                         "বিশেষ সচেতনতা ক্যাম্পেইন পরিচালনা করছে।"
                     ),
                     severity="low",

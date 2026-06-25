@@ -1,6 +1,6 @@
-# Eprohori — National Pilot Plan
+﻿# EProhori — National Pilot Plan
 
-**A 3-month proof-of-impact pilot to validate Eprohori as national cyber-safety infrastructure for Bangladesh.**
+**A 3-month proof-of-impact pilot to validate EProhori as national cyber-safety infrastructure for Bangladesh.**
 
 Version 1.0 · Prepared for: internal execution → BGD e-GOV CIRT / ICT Division proposal
 
@@ -8,7 +8,7 @@ Version 1.0 · Prepared for: internal execution → BGD e-GOV CIRT / ICT Divisio
 
 ## নির্বাহী সারসংক্ষেপ (Executive Summary — Bangla)
 
-Eprohori একটি ক্রাউডসোর্সড সাইবার থ্রেট রিপোর্টিং প্ল্যাটফর্ম, যা AI দিয়ে phishing/scam যাচাই করে (যাচাইকৃত নির্ভুলতা **৯৯.৩%**) এবং কমিউনিটিকে বাংলায় সতর্ক করে। এই pilot-এর লক্ষ্য একটি নিয়ন্ত্রিত পরিবেশে (একটি বিশ্ববিদ্যালয় ক্যাম্পাস) ৩ মাসে প্রমাণ করা যে platform-টি বাস্তব scam ধরতে, মানুষকে সতর্ক করতে, এবং জাতীয় পর্যায়ে scale করতে সক্ষম — সরকারি অংশীদারিত্বের আগে।
+EProhori একটি ক্রাউডসোর্সড সাইবার থ্রেট রিপোর্টিং প্ল্যাটফর্ম, যা AI দিয়ে phishing/scam যাচাই করে (যাচাইকৃত নির্ভুলতা **৯৯.৩%**) এবং কমিউনিটিকে বাংলায় সতর্ক করে। এই pilot-এর লক্ষ্য একটি নিয়ন্ত্রিত পরিবেশে (একটি বিশ্ববিদ্যালয় ক্যাম্পাস) ৩ মাসে প্রমাণ করা যে platform-টি বাস্তব scam ধরতে, মানুষকে সতর্ক করতে, এবং জাতীয় পর্যায়ে scale করতে সক্ষম — সরকারি অংশীদারিত্বের আগে।
 
 ---
 
@@ -45,17 +45,17 @@ A national rollout without proof is a non-starter — officials fund *evidence*,
 |---------|--------|
 | Campus Facebook groups | Posts + a real scam case study ("এই SMS-টা আসল না নকল?") |
 | Department class reps | 5-minute in-class intro + QR code to eprohori.tech |
-| Cyber/IT club | Co-host a "Spot the Scam" workshop using Eprohori live |
+| Cyber/IT club | Co-host a "Spot the Scam" workshop using EProhori live |
 | Poster + QR | Cafeteria, library, halls |
 | Word of mouth | Leaderboard gamification (already built — XP, badges, ranks) |
 
-**Incentive:** Top 10 reporters get a certificate ("Eprohori Campus Cyber Ranger") — cheap, motivating, resume-worthy for students.
+**Incentive:** Top 10 reporters get a certificate ("EProhori Campus Cyber Ranger") — cheap, motivating, resume-worthy for students.
 
 ---
 
 ## 4. What to measure (the proof)
 
-These metrics ARE the government pitch. Eprohori already records most of this in its DB.
+These metrics ARE the government pitch. EProhori already records most of this in its DB.
 
 ### Adoption metrics
 - Registered users (weekly cumulative)
@@ -71,12 +71,12 @@ These metrics ARE the government pitch. Eprohori already records most of this in
 
 ### Impact metrics (the emotional close)
 - Verified threats that triggered district alerts
-- People alerted (Eprohori already computes `alerted_people`)
+- People alerted (EProhori already computes `alerted_people`)
 - **Self-reported "saved" cases** — short in-app survey: "এই alert কি আপনাকে scam থেকে বাঁচিয়েছে?" → count of "yes"
 - Unique scam campaigns detected (e.g., a fake-scholarship wave)
 
 ### Qualitative
-- 5–10 short testimonials ("আমি প্রায় টাকা পাঠিয়ে দিচ্ছিলাম, Eprohori alert দেখে থেমে গেলাম")
+- 5–10 short testimonials ("আমি প্রায় টাকা পাঠিয়ে দিচ্ছিলাম, EProhori alert দেখে থেমে গেলাম")
 - 2–3 documented real scam campaigns caught early
 
 ---

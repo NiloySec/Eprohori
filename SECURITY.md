@@ -1,6 +1,6 @@
-# Security Policy
+﻿# Security Policy
 
-Eprohori is a cybersecurity platform — we take the security of our own
+EProhori is a cybersecurity platform — we take the security of our own
 software seriously and welcome responsible disclosure.
 
 ## Reporting a Vulnerability

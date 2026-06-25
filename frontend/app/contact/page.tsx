@@ -1,9 +1,9 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import PageHero from '@/components/PageHero'
 
 export const metadata: Metadata = {
-  title: 'যোগাযোগ — Eprohori',
-  description: 'Eprohori টিমের সাথে যোগাযোগ করুন।',
+  title: 'যোগাযোগ — EProhori',
+  description: 'EProhori টিমের সাথে যোগাযোগ করুন।',
 }
 
 export default function ContactPage() {

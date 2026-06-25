@@ -1,4 +1,4 @@
-"""Daily cybersecurity quiz — question bank + deterministic daily selection.
+﻿"""Daily cybersecurity quiz — question bank + deterministic daily selection.
 
 5 questions per day, rotating so consecutive days never repeat. The set is chosen
 deterministically from the date, so every user sees the same quiz on a given day,
@@ -83,7 +83,7 @@ QUESTIONS: list[dict] = [
      "options": ["কিছু না", "সচেতন করা ও তদারকি", "সব পাসওয়ার্ড শেয়ার", "অপরিচিতকে তথ্য দেওয়া"], "answer": 1},
     {"q": "‘ডেটা ব্রিচ’ (Data Breach) মানে কী?",
      "options": ["তথ্য নিরাপদ রাখা", "তথ্য ফাঁস/চুরি হওয়া", "নতুন অ্যাকাউন্ট", "দ্রুত ইন্টারনেট"], "answer": 1},
-    {"q": "সন্দেহজনক কিছু দেখলে Eprohori-তে কী করা যায়?",
+    {"q": "সন্দেহজনক কিছু দেখলে EProhori-তে কী করা যায়?",
      "options": ["রিপোর্ট করা", "শেয়ার করা", "ক্লিক করা", "টাকা পাঠানো"], "answer": 0},
     {"q": "ব্যাংক/MFS অ্যাপ কোথা থেকে ইনস্টল করা নিরাপদ?",
      "options": ["অফিসিয়াল অ্যাপ স্টোর (Play Store/App Store)", "অপরিচিত লিংক", "APK শেয়ারিং সাইট", "ইমেইলের ফাইল"], "answer": 0},

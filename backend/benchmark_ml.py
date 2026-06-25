@@ -1,4 +1,4 @@
-"""ML accuracy benchmark for the phishing validator.
+﻿"""ML accuracy benchmark for the phishing validator.
 
 Trains on a stratified 80% split and evaluates on the held-out 20% —
 reports precision / recall / F1 / accuracy + confusion matrix and a 5-fold

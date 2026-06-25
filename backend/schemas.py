@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+﻿from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
@@ -143,7 +143,7 @@ class StatsOut(BaseModel):
     warned_count: int = 0
     rangers: int = 0
     districts_covered: int = 64
-    saved_count: int = 0   # "Eprohori saved me from a scam" — pilot impact metric
+    saved_count: int = 0   # "EProhori saved me from a scam" — pilot impact metric
     blocked_count: int = 0 # known threats = training-dataset phishing entries + verified reports
 
 

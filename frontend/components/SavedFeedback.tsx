@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://eprohori-production.up.railway.app'
 
 /**
- * "Did Eprohori save you from a scam?" — the pilot's core impact metric.
+ * "Did EProhori save you from a scam?" — the pilot's core impact metric.
  * Lightweight, public (no login), one tap. Shows a thank-you after responding.
  */
 export default function SavedFeedback({ source = 'app' }: { source?: string }) {
@@ -25,7 +25,7 @@ export default function SavedFeedback({ source = 'app' }: { source?: string }) {
     return (
       <div className="rounded-xl p-4 text-center text-sm"
         style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', color: '#86efac' }}>
-        🙏 ধন্যবাদ! আপনার মতামত Eprohori-কে আরও ভালো করতে সাহায্য করবে।
+        🙏 ধন্যবাদ! আপনার মতামত EProhori-কে আরও ভালো করতে সাহায্য করবে।
       </div>
     )
   }

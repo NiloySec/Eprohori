@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, Text
+﻿from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, Text
 from sqlalchemy.sql import func
 from database import Base
 
@@ -102,7 +102,7 @@ class PhoneBlacklist(Base):
 
 
 class ImpactFeedback(Base):
-    """'Did Eprohori save you from a scam?' — the pilot's core impact metric."""
+    """'Did EProhori save you from a scam?' — the pilot's core impact metric."""
     __tablename__ = "impact_feedback"
 
     id = Column(Integer, primary_key=True, index=True)

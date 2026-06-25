@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { fetchThreats, fetchStats, approveThreat, rejectThreat, broadcastAlert, adminLogin, fetchAuditLog, getAdminToken, setAdminToken } from '@/lib/api'
 import type { Threat, Stats, AuditEntry } from '@/lib/api'
@@ -208,7 +208,7 @@ export default function AdminPage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              {adminName ? `👤 ${adminName}` : '👤 Admin'} · Eprohori Platform Administration
+              {adminName ? `👤 ${adminName}` : '👤 Admin'} · EProhori Platform Administration
             </p>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function AdminPage() {
           <StatCard icon="📥" label="আজকের রিপোর্ট" value={stats.today_reports} accent="#22d3ee" hint="Today" />
           <StatCard icon="🚨" label="যাচাইকৃত হুমকি" value={stats.active_threats} accent="#ef4444" hint="Verified threats" />
           <StatCard icon="🔔" label="সতর্ক মানুষ" value={stats.alerted_people ?? 0} accent="#f59e0b" hint="People alerted" />
-          <StatCard icon="🛡️" label="বাঁচানো" value={stats.saved_count ?? 0} accent="#22c55e" hint="'Eprohori saved me'" />
+          <StatCard icon="🛡️" label="বাঁচানো" value={stats.saved_count ?? 0} accent="#22c55e" hint="'EProhori saved me'" />
           <StatCard icon="⏳" label="পেন্ডিং রিভিউ" value={pending.length} accent="#fb923c" hint="Awaiting decision" />
           <StatCard icon="✓" label="অনুমোদিত (session)" value={approved.length} accent="#4ade80" hint="This session" />
         </div>

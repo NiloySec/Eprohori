@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { validateText, checkPhone } from '@/lib/api'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -263,7 +263,7 @@ const KB: KnowledgeBase = {
 3. অপরিচিতকে কখনো OTP/PIN দেবেন না
 4. লোভনীয় অফারে ক্লিক করবেন না
 5. Public WiFi তে banking করবেন না
-6. সন্দেহজনক কিছু দেখলে Eprohori তে রিপোর্ট করুন
+6. সন্দেহজনক কিছু দেখলে EProhori তে রিপোর্ট করুন
 
 🆘 https://cirt.gov.bd`,
   },
@@ -442,7 +442,7 @@ function BotAvatar({ size = 28 }: { size?: number }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/logo-icon.png"
-        alt="Eprohori"
+        alt="EProhori"
         width={Math.round(size * 0.66)}
         height={Math.round(size * 0.66)}
         style={{ display: 'block' }}
@@ -455,7 +455,7 @@ function BotAvatar({ size = 28 }: { size?: number }) {
 // WELCOME MESSAGE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const WELCOME = `👋 আমি Eprohori AI — আপনার সাইবার নিরাপত্তা বিশেষজ্ঞ।
+const WELCOME = `👋 আমি EProhori AI — আপনার সাইবার নিরাপত্তা বিশেষজ্ঞ।
 
 সন্দেহজনক কিছু পাঠান অথবা যেকোনো সাইবার সমস্যা জানান:
 
@@ -734,7 +734,7 @@ export default function AIAssistant() {
             userSelect: 'none',
           }}
         >
-          Eprohori AI
+          EProhori AI
         </div>
         <style>{`
           @keyframes epBadgeGlow {
@@ -747,7 +747,7 @@ export default function AIAssistant() {
         <button
           id="ai-fab"
           onClick={open ? () => setOpen(false) : handleOpen}
-          aria-label="Eprohori AI"
+          aria-label="EProhori AI"
           style={{
             position: 'relative',
             width: 52,
@@ -813,7 +813,7 @@ export default function AIAssistant() {
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo-icon.png" alt="Eprohori" width={22} height={22} style={{ display: 'block' }} />
+                <img src="/logo-icon.png" alt="EProhori" width={22} height={22} style={{ display: 'block' }} />
               </span>
             )}
           </span>
@@ -880,7 +880,7 @@ export default function AIAssistant() {
               <div
                 style={{ fontSize: 14, fontWeight: 700, color: 'white', letterSpacing: '0.02em' }}
               >
-                Eprohori AI
+                EProhori AI
               </div>
               <div
                 style={{

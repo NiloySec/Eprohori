@@ -1,9 +1,9 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import PageHero from '@/components/PageHero'
 
 export const metadata: Metadata = {
-  title: 'ব্যবহারের শর্তাবলী — Eprohori',
-  description: 'Eprohori পরিষেবা ব্যবহারের শর্ত ও নিয়মাবলী।',
+  title: 'ব্যবহারের শর্তাবলী — EProhori',
+  description: 'EProhori পরিষেবা ব্যবহারের শর্ত ও নিয়মাবলী।',
 }
 
 export default function TermsPage() {
@@ -13,13 +13,13 @@ export default function TermsPage() {
         icon="📜"
         eyebrow="Legal"
         title="ব্যবহারের শর্তাবলী"
-        lead="Eprohori ব্যবহারের আগে এই শর্তগুলো পড়ে নিন — আপনার ও কমিউনিটির সুরক্ষার জন্য।"
+        lead="EProhori ব্যবহারের আগে এই শর্তগুলো পড়ে নিন — আপনার ও কমিউনিটির সুরক্ষার জন্য।"
       />
       <div className="max-w-4xl mx-auto px-6 pb-20 text-slate-200">
       <p className="text-sm text-slate-500 mb-10 text-center">সর্বশেষ হালনাগাদ: ১৬ জুন, ২০২৬</p>
 
       <Section title="১. পরিষেবার পরিচিতি">
-        <p>Eprohori একটি ক্রাউডসোর্সড সাইবার থ্রেট রিপোর্টিং প্ল্যাটফর্ম। আমরা AI ব্যবহার করে phishing, scam ও cyber threat যাচাই করি এবং কমিউনিটিকে সতর্ক করি।</p>
+        <p>EProhori একটি ক্রাউডসোর্সড সাইবার থ্রেট রিপোর্টিং প্ল্যাটফর্ম। আমরা AI ব্যবহার করে phishing, scam ও cyber threat যাচাই করি এবং কমিউনিটিকে সতর্ক করি।</p>
       </Section>
 
       <Section title="২. অ্যাকাউন্ট">
@@ -32,7 +32,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="৩. অনুমোদিত ব্যবহার">
-        <p>আপনি Eprohori ব্যবহার করতে পারেন:</p>
+        <p>আপনি EProhori ব্যবহার করতে পারেন:</p>
         <ul className="list-disc pl-6 mt-2 space-y-1">
           <li>সত্যিকারের সাইবার হুমকি রিপোর্ট করতে</li>
           <li>সন্দেহজনক URL/SMS যাচাই করতে</li>
@@ -63,7 +63,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="৬. কন্টেন্ট লাইসেন্স">
-        <p>আপনি যা রিপোর্ট করেন তার উপর আপনার মালিকানা থাকে। তবে Eprohori-কে limited license দেন:</p>
+        <p>আপনি যা রিপোর্ট করেন তার উপর আপনার মালিকানা থাকে। তবে EProhori-কে limited license দেন:</p>
         <ul className="list-disc pl-6 mt-2 space-y-1">
           <li>কমিউনিটিকে দেখানোর জন্য (anonymized)</li>
           <li>AI মডেল ট্রেইন করার জন্য</li>
@@ -72,7 +72,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="৭. দায়বদ্ধতা সীমা">
-        <p>Eprohori "as-is" প্রদান করা হয়। আমরা গ্যারান্টি দিই না যে:</p>
+        <p>EProhori "as-is" প্রদান করা হয়। আমরা গ্যারান্টি দিই না যে:</p>
         <ul className="list-disc pl-6 mt-2 space-y-1">
           <li>সব হুমকি detect হবে</li>
           <li>AI validation সবসময় সঠিক</li>

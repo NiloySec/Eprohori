@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import Image from 'next/image'
 
 export default function Footer() {
@@ -9,7 +9,7 @@ export default function Footer() {
           <div>
             <Image
               src="/logo.png"
-              alt="Eprohori"
+              alt="EProhori"
               width={150}
               height={47}
               className="mb-3"
@@ -109,7 +109,7 @@ export default function Footer() {
           className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500"
           style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
         >
-          <p>© ২০২৬ Eprohori. সর্বস্বত্ব সংরক্ষিত।</p>
+          <p>© ২০২৬ EProhori. সর্বস্বত্ব সংরক্ষিত।</p>
           <p className="mt-2 sm:mt-0">বাংলাদেশের সাইবার সুরক্ষা — আপনার হাতে</p>
         </div>
       </div>

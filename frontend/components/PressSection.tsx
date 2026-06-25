@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 
 export default function PressSection() {
   return (
@@ -10,7 +10,7 @@ export default function PressSection() {
             একসাথে বাংলাদেশকে নিরাপদ রাখি
           </h2>
           <p className="text-slate-400 max-w-2xl mx-auto">
-            সরকারি সংস্থা, NGO, সাংবাদিক, গবেষক — Eprohori-র সাথে কাজ করতে চাইলে যোগাযোগ করুন।
+            সরকারি সংস্থা, NGO, সাংবাদিক, গবেষক — EProhori-র সাথে কাজ করতে চাইলে যোগাযোগ করুন।
           </p>
         </div>
 

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `তুমি Eprohori AI — বাংলাদেশের একজন সাইবার নিরাপত্তা বিশেষজ্ঞ।
+const SYSTEM_PROMPT = `তুমি EProhori AI — বাংলাদেশের একজন সাইবার নিরাপত্তা বিশেষজ্ঞ।
 
 তোমার কাজ:
 - সাইবার অপরাধ, হ্যাকিং, ফিশিং, স্ক্যাম থেকে মানুষকে রক্ষা করা

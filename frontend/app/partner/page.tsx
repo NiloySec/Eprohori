@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import PageHero from '@/components/PageHero'
 import { submitPartnerInquiry } from '@/lib/api'
@@ -41,7 +41,7 @@ export default function PartnerPage() {
         icon="🤝"
         eyebrow="Partnerships & Outreach"
         title="যোগাযোগ করুন"
-        lead="সরকারি সংস্থা, সাংবাদিক ও গবেষকদের জন্য — Eprohori-র সাথে কাজ করতে নিচের ফর্মটি পূরণ করুন।"
+        lead="সরকারি সংস্থা, সাংবাদিক ও গবেষকদের জন্য — EProhori-র সাথে কাজ করতে নিচের ফর্মটি পূরণ করুন।"
       />
       <div className="max-w-2xl mx-auto px-6 pb-20">
         {status === 'sent' ? (

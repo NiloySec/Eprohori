@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { fetchStats, validateText } from '@/lib/api'
@@ -245,7 +245,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── What Eprohori detects ─────────────────────────────── */}
+      {/* ── What EProhori detects ─────────────────────────────── */}
       <section className="py-16 px-4" style={{ backgroundColor: '#0d1829' }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10 fade-in-up">
@@ -253,10 +253,10 @@ export default function HomePage() {
               কী থেকে সুরক্ষা
             </p>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">
-              Eprohori যা যা শনাক্ত করে
+              EProhori যা যা শনাক্ত করে
             </h2>
             <p className="text-slate-400 text-sm max-w-xl mx-auto">
-              বাংলাদেশে সবচেয়ে বেশি যে সাইবার প্রতারণাগুলো ঘটে — Eprohori সেকেন্ডেই যাচাই করে।
+              বাংলাদেশে সবচেয়ে বেশি যে সাইবার প্রতারণাগুলো ঘটে — EProhori সেকেন্ডেই যাচাই করে।
             </p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

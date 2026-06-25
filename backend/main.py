@@ -1,5 +1,5 @@
-"""
-Eprohori FastAPI backend
+﻿"""
+EProhori FastAPI backend
 Endpoints: /api/stats, /api/threats, /api/alerts, /api/rangers,
            /api/divisions, /api/validate/text, /api/validate/profile,
            /api/check/phone, /api/admin/*
@@ -96,14 +96,14 @@ async def send_report_result_email(
     confidence: int, reason: str, district: str,
 ):
     html = report_result_email_template(name, threat_type, confidence, reason, district)
-    result = await send_email(to_email, "Your Report Analysis - Eprohori", html, name)
+    result = await send_email(to_email, "Your Report Analysis - EProhori", html, name)
     print(f"[notify] report-result email -> {to_email}: {result}")
 
 
 async def send_report_safe_email(to_email: str, name: str):
     """Polite note to the reporter when their report is reviewed as safe (rejected)."""
     html = report_safe_email_template(name)
-    result = await send_email(to_email, "আপনার রিপোর্ট যাচাই হয়েছে — Eprohori", html, name)
+    result = await send_email(to_email, "আপনার রিপোর্ট যাচাই হয়েছে — EProhori", html, name)
     print(f"[notify] report-safe email -> {to_email}: {result}")
 
 
@@ -121,7 +121,7 @@ def _bootstrap_admin():
         user = db.query(User).filter(User.email == email).first()
         if user is None:
             user = User(
-                name="Eprohori Admin",
+                name="EProhori Admin",
                 email=email,
                 is_admin=True,
                 password_hash=_hash_password(password),
@@ -197,7 +197,7 @@ async def lifespan(app: FastAPI):
         db.close()
     except Exception as exc:  # noqa: BLE001
         print(f"[main] health check failed: {exc}")
-    print("[main] Eprohori API ready")
+    print("[main] EProhori API ready")
     yield
     # (shutdown: nothing to clean up)
 
@@ -224,7 +224,7 @@ if _sentry_dsn:
     )
 
 app = FastAPI(
-    title="Eprohori API",
+    title="EProhori API",
     description="Bangladesh's crowdsourced cyber-threat platform",
     version="1.0.0",
     lifespan=lifespan,
@@ -300,7 +300,7 @@ async def unhandled_exception_handler(request, exc):
 
 @app.post("/api/feedback/saved", tags=["marketing"])
 def impact_feedback(request: dict, req: Request, db: Session = Depends(get_db)):
-    """Record a 'did Eprohori save you from a scam?' response — the pilot impact metric."""
+    """Record a 'did EProhori save you from a scam?' response — the pilot impact metric."""
     throttle(req, "impact-feedback", max_hits=20, window_sec=300)
     saved = bool(request.get("saved"))
     source = (request.get("source") or "").strip()[:20] or None
@@ -616,7 +616,7 @@ async def send_threat_alert(
         subject = f"🚨 {i['severity'].upper()} Threat in {i['division'] or 'Bangladesh'}"
     else:
         html = digest_alert_template(items)
-        subject = f"🛡️ Eprohori Digest — {len(items)} new threats this hour"
+        subject = f"🛡️ EProhori Digest — {len(items)} new threats this hour"
 
     if admin_email:
         result = await send_email(admin_email, subject, html)
@@ -625,12 +625,12 @@ async def send_threat_alert(
     if len(items) == 1:
         i = items[0]
         telegram_msg = f"""
-🚨 <b>Eprohori Alert</b>
+🚨 <b>EProhori Alert</b>
 
 <b>Severity:</b> {i['severity'].upper()}
 <b>Type:</b> {i['type']}
 <b>Division:</b> {i['division'] or 'Unknown'}
-<b>Eprohori Confidence:</b> {i['confidence']}%
+<b>EProhori Confidence:</b> {i['confidence']}%
 <b>Detail:</b> {i['detail'][:80]}...
 
 🔗 eprohori.vercel.app/monitor
@@ -640,7 +640,7 @@ async def send_threat_alert(
             f"• [{i['severity'].upper()}] {i['type']} — {i['detail'][:50]}…" for i in items[:8]
         )
         telegram_msg = f"""
-🛡️ <b>Eprohori Digest</b> — {len(items)} new threats this hour
+🛡️ <b>EProhori Digest</b> — {len(items)} new threats this hour
 
 {lines}
 
@@ -1520,7 +1520,7 @@ def setup_2fa(payload: dict = Depends(get_current_user), db: Session = Depends(g
     secret = pyotp.random_base32()
     user.totp_secret = secret
     db.commit()
-    uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="Eprohori")
+    uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="EProhori")
     return {"secret": secret, "provisioning_uri": uri}
 
 
@@ -1666,7 +1666,7 @@ async def send_otp(request: dict, req: Request):
     }
 
     html = otp_email_template(name, otp, purpose)
-    result = await send_email(email, "Your Eprohori OTP", html, name)
+    result = await send_email(email, "Your EProhori OTP", html, name)
 
     if result["success"]:
         return {
@@ -1718,7 +1718,7 @@ async def forgot_password(request: dict, req: Request, db: Session = Depends(get
         otp = str(secrets.randbelow(900000) + 100000)
         otp_store[email] = {"otp": otp, "expires": datetime.utcnow().timestamp() + 600, "attempts": 0}
         html = otp_email_template(user.name or "User", otp, "password reset")
-        await send_email(email, "Eprohori — Password Reset OTP", html, user.name or "User")
+        await send_email(email, "EProhori — Password Reset OTP", html, user.name or "User")
     return generic
 
 
@@ -1782,7 +1782,7 @@ def validate_text(req: ValidateTextRequest, db: Session = Depends(get_db)):
                     return ValidateTextResponse(
                         is_threat=True, confidence=max(rep.confidence or 0.9, 0.9), category="phishing",
                         reasons=["ব্ল্যাকলিস্টেড ডোমেইন"],
-                        explanation="এই ডোমেইনটি Eprohori-র ব্ল্যাকলিস্টে আছে — এড়িয়ে চলুন।", source="blacklist",
+                        explanation="এই ডোমেইনটি EProhori-র ব্ল্যাকলিস্টে আছে — এড়িয়ে চলুন।", source="blacklist",
                     )
                 if rep.listed == "white":
                     return ValidateTextResponse(
@@ -2028,7 +2028,7 @@ def admin_audit(admin: dict = Depends(require_admin), db: Session = Depends(get_
 
 @app.get("/", tags=["health"])
 def root():
-    return {"status": "ok", "service": "Eprohori API", "version": "1.0.0"}
+    return {"status": "ok", "service": "EProhori API", "version": "1.0.0"}
 
 
 @app.get("/health", tags=["health"])

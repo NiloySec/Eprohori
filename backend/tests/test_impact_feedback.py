@@ -1,4 +1,4 @@
-"""Impact feedback — the pilot's 'did Eprohori save you?' metric."""
+﻿"""Impact feedback — the pilot's 'did EProhori save you?' metric."""
 from models import ImpactFeedback
 
 

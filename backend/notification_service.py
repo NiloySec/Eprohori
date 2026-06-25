@@ -1,5 +1,5 @@
-"""
-Eprohori notification service
+﻿"""
+EProhori notification service
 Dual email provider (Resend primary -> Brevo fallback) + optional Telegram.
 
 ── SETUP GUIDE ──────────────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 FROM_EMAIL = os.getenv("FROM_EMAIL", "mkniloy1568@gmail.com")
-FROM_NAME = os.getenv("FROM_NAME", "Eprohori")
+FROM_NAME = os.getenv("FROM_NAME", "EProhori")
 
 
 async def send_via_resend(
@@ -144,7 +144,7 @@ async def send_email(
 EMAIL_LOGO_URL = os.getenv("EMAIL_LOGO_URL", "https://eprohori.tech/logo.png")
 EMAIL_LOGO_HTML = f"""
         <div style="text-align:center;margin-bottom:24px">
-          <img src="{EMAIL_LOGO_URL}" alt="Eprohori" width="180"
+          <img src="{EMAIL_LOGO_URL}" alt="EProhori" width="180"
             style="display:inline-block;max-width:180px;height:auto;border:0;outline:none" />
         </div>
 """
@@ -194,7 +194,7 @@ def partner_inquiry_template(
           <p style="color:#e2e8f0;font-size:14px;line-height:1.6;margin:0">{msg_html}</p>
         </div>
         <p style="color:#475569;font-size:11px;text-align:center;margin-top:24px">
-          Eprohori — eprohori.tech থেকে স্বয়ংক্রিয়ভাবে পাঠানো
+          EProhori — eprohori.tech থেকে স্বয়ংক্রিয়ভাবে পাঠানো
         </p>
       </div>
     </body>
@@ -248,7 +248,7 @@ def otp_email_template(name: str, otp: str, purpose: str) -> str:
         <p style="color:#64748b;font-size:12px;
                   text-align:center;margin:0">
           If you didn't request this, ignore this email.
-          <br>© 2025 Eprohori · Bangladesh
+          <br>© 2025 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -268,10 +268,10 @@ def user_alert_email_template(
     is_critical = severity == "critical"
     accent = "#ff4444" if is_critical else "#f59e0b"
     icon = "🚨" if is_critical else "⚠️"
-    label = "CRITICAL THREAT — Verified by Eprohori" if is_critical else "HIGH RISK THREAT — Verified by Eprohori"
-    sub = ("Eprohori has identified this as a critical threat. Take immediate action."
+    label = "CRITICAL THREAT — Verified by EProhori" if is_critical else "HIGH RISK THREAT — Verified by EProhori"
+    sub = ("EProhori has identified this as a critical threat. Take immediate action."
            if is_critical
-           else "Eprohori has verified this threat. Stay alert.")
+           else "EProhori has verified this threat. Stay alert.")
 
     safety_tips = [
         "কোনো সন্দেহজনক লিংকে ক্লিক করবেন না",
@@ -309,7 +309,7 @@ def user_alert_email_template(
               <td style="color:#e2e8f0;font-size:13px;font-weight:bold;text-align:right">{threat_type.upper()}</td></tr>
           <tr><td style="color:#64748b;font-size:13px;padding:4px 0">District:</td>
               <td style="color:#e2e8f0;font-size:13px;font-weight:bold;text-align:right">{district or 'Bangladesh'}</td></tr>
-          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">Eprohori Confidence:</td>
+          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">EProhori Confidence:</td>
               <td style="color:{accent};font-size:13px;font-weight:bold;text-align:right">{confidence}%</td></tr>
         </table>
 
@@ -335,7 +335,7 @@ def user_alert_email_template(
           You're getting this because your district is affected.
           <br>Manage notifications:
           <a href="https://eprohori.vercel.app/account" style="color:#00e5c4;text-decoration:none">Account settings</a>
-          <br>© 2025 Eprohori · Bangladesh
+          <br>© 2025 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -376,7 +376,7 @@ def report_result_email_template(
             <strong>District:</strong> {district or '—'}
           </p>
           <p style="color:#e2e8f0;font-size:14px;margin:0 0 8px">
-            <strong>Eprohori Confidence:</strong>
+            <strong>EProhori Confidence:</strong>
             <span style="color:#00e5c4;font-weight:bold"> {confidence}%</span>
           </p>
           <p style="color:#94a3b8;font-size:13px;margin:0">
@@ -388,12 +388,12 @@ def report_result_email_template(
            style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
                   padding:14px;border-radius:8px;text-decoration:none;font-weight:bold;
                   margin-bottom:24px">
-          View on Eprohori →
+          View on EProhori →
         </a>
 
         <p style="color:#64748b;font-size:12px;text-align:center;margin:0">
           🛡️ Every report makes Bangladesh safer.
-          <br>© 2025 Eprohori · Bangladesh
+          <br>© 2025 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -438,7 +438,7 @@ def report_safe_email_template(name: str) -> str:
         </a>
         <p style="color:#64748b;font-size:12px;text-align:center;margin:0">
           🛡️ প্রতিটি রিপোর্ট বাংলাদেশকে নিরাপদ করে।
-          <br>© 2026 Eprohori · Bangladesh
+          <br>© 2026 EProhori · Bangladesh
         </p>
       </div>
     </body>
@@ -466,7 +466,7 @@ def digest_alert_template(items: list) -> str:
       <div style="max-width:560px;margin:0 auto;background:#0d1829;border-radius:16px;
                   border:1px solid rgba(0,229,196,0.2);padding:32px">
         {EMAIL_LOGO_HTML}
-        <h1 style="color:#00e5c4;font-size:20px;margin:0 0 4px">🛡️ Eprohori Threat Digest</h1>
+        <h1 style="color:#00e5c4;font-size:20px;margin:0 0 4px">🛡️ EProhori Threat Digest</h1>
         <p style="color:#94a3b8;font-size:13px;margin:0 0 20px">
           {len(items)} new high-priority threats detected in the last hour
         </p>
@@ -477,7 +477,7 @@ def digest_alert_template(items: list) -> str:
         <a href="https://eprohori.vercel.app/monitor"
            style="display:block;background:#00e5c4;color:#060d1a;text-align:center;
                   padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:20px">
-          View all on Eprohori Monitor →
+          View all on EProhori Monitor →
         </a>
       </div>
     </body>
@@ -512,7 +512,7 @@ def threat_alert_template(
         <div style="display:flex;align-items:center;
                     margin-bottom:24px">
           <h1 style="color:#00e5c4;font-size:20px;margin:0">
-            🛡️ Eprohori Alert
+            🛡️ EProhori Alert
           </h1>
         </div>
 
@@ -527,7 +527,7 @@ def threat_alert_template(
               {severity} THREAT DETECTED
             </span>
             <span style="color:#94a3b8;font-size:13px">
-              Eprohori Confidence: {confidence}%
+              EProhori Confidence: {confidence}%
             </span>
           </div>
 
@@ -550,14 +550,14 @@ def threat_alert_template(
                   padding:14px;border-radius:8px;
                   text-decoration:none;font-weight:bold;
                   margin-bottom:24px">
-          View on Eprohori Monitor →
+          View on EProhori Monitor →
         </a>
 
         <p style="color:#64748b;font-size:12px;
                   text-align:center;margin:0">
           You're receiving this because you're a
-          registered Eprohori community member.
-          <br>© 2025 Eprohori · Bangladesh
+          registered EProhori community member.
+          <br>© 2025 EProhori · Bangladesh
         </p>
       </div>
     </body>

@@ -1,9 +1,9 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import PageHero from '@/components/PageHero'
 
 export const metadata: Metadata = {
-  title: 'গোপনীয়তা নীতি — Eprohori',
-  description: 'Eprohori-র গোপনীয়তা নীতি ও ব্যবহারকারীর তথ্য সুরক্ষা।',
+  title: 'গোপনীয়তা নীতি — EProhori',
+  description: 'EProhori-র গোপনীয়তা নীতি ও ব্যবহারকারীর তথ্য সুরক্ষা।',
 }
 
 export default function PrivacyPage() {
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       <p className="text-sm text-slate-500 mb-10 text-center">সর্বশেষ হালনাগাদ: ১৬ জুন, ২০২৬</p>
 
       <Section title="১. আমরা কী তথ্য সংগ্রহ করি">
-        <p>Eprohori নিম্নলিখিত তথ্য সংগ্রহ করে:</p>
+        <p>EProhori নিম্নলিখিত তথ্য সংগ্রহ করে:</p>
         <ul className="list-disc pl-6 mt-2 space-y-1">
           <li><strong>অ্যাকাউন্ট তথ্য:</strong> ইমেইল ঠিকানা, পাসওয়ার্ড (hash করা), জেলা, প্রদর্শনের নাম</li>
           <li><strong>রিপোর্ট তথ্য:</strong> আপনার জমা দেওয়া হুমকির বিষয়বস্তু, প্ল্যাটফর্ম, ধরন</li>
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="৭. শিশু সুরক্ষা">
-        <p>Eprohori ১৩ বছরের কম বয়সীদের জন্য নয়। অভিভাবকের সম্মতি ছাড়া আমরা শিশুদের তথ্য সংগ্রহ করি না।</p>
+        <p>EProhori ১৩ বছরের কম বয়সীদের জন্য নয়। অভিভাবকের সম্মতি ছাড়া আমরা শিশুদের তথ্য সংগ্রহ করি না।</p>
       </Section>
 
       <Section title="৮. পরিবর্তন">
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
 
       <Section title="৯. যোগাযোগ">
         <p>প্রশ্ন বা অভিযোগ: <a href="mailto:eprohori.tech@gmail.com" className="text-cyan-400 hover:underline">eprohori.tech@gmail.com</a></p>
-        <p className="mt-2">Data Protection Officer: Eprohori Team, Bangladesh</p>
+        <p className="mt-2">Data Protection Officer: EProhori Team, Bangladesh</p>
       </Section>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { Inter, Space_Grotesk, Hind_Siliguri } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
@@ -19,14 +19,14 @@ const SITE_URL = 'https://eprohori.tech'
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Eprohori — বাংলাদেশের সাইবার সুরক্ষা প্ল্যাটফর্ম',
-    template: '%s — Eprohori',
+    default: 'EProhori — বাংলাদেশের সাইবার সুরক্ষা প্ল্যাটফর্ম',
+    template: '%s — EProhori',
   },
   description: 'বাংলাদেশের ক্রাউডসোর্সড সাইবার থ্রেট প্ল্যাটফর্ম। AI দিয়ে phishing, scam ও cyber threat যাচাই করুন। বিনামূল্যে রিপোর্ট করুন।',
   keywords: ['cyber security Bangladesh', 'phishing detection', 'eprohori', 'সাইবার সুরক্ষা', 'বাংলাদেশ', 'scam detection', 'ফিশিং', 'BD CIRT'],
-  authors: [{ name: 'Eprohori Team' }],
-  creator: 'Eprohori',
-  publisher: 'Eprohori',
+  authors: [{ name: 'EProhori Team' }],
+  creator: 'EProhori',
+  publisher: 'EProhori',
   formatDetection: { email: false, address: false, telephone: false },
   alternates: { canonical: '/' },
   openGraph: {
@@ -34,14 +34,14 @@ export const metadata: Metadata = {
     locale: 'bn_BD',
     alternateLocale: 'en_US',
     url: SITE_URL,
-    siteName: 'Eprohori',
-    title: 'Eprohori — বাংলাদেশের সাইবার সুরক্ষা',
+    siteName: 'EProhori',
+    title: 'EProhori — বাংলাদেশের সাইবার সুরক্ষা',
     description: 'AI-powered phishing & scam detection for Bangladesh. Crowdsourced threat reporting platform.',
-    images: [{ url: '/opengraph-image.svg', width: 1200, height: 630, alt: 'Eprohori' }],
+    images: [{ url: '/opengraph-image.svg', width: 1200, height: 630, alt: 'EProhori' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Eprohori — Bangladesh Cyber Security',
+    title: 'EProhori — Bangladesh Cyber Security',
     description: 'AI-powered phishing & scam detection. Report threats, protect community.',
     images: ['/opengraph-image.svg'],
   },

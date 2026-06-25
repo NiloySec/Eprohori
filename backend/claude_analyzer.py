@@ -1,4 +1,4 @@
-"""
+﻿"""
 Hybrid AI analysis for the text validator — multi-provider fallback.
 
 Provider chain (same as the chatbot): Groq → Gemini → Claude
@@ -45,7 +45,7 @@ class AIAnalysis(BaseModel):
 
 
 SYSTEM_PROMPT = """\
-You are the AI analyst for Eprohori, Bangladesh's crowdsourced cyber-threat platform.
+You are the AI analyst for EProhori, Bangladesh's crowdsourced cyber-threat platform.
 You analyze SMS/text messages (mostly Bengali, sometimes English or mixed) for phishing,
 smishing, and scam patterns common in Bangladesh: fake bKash/Nagad/Rocket alerts,
 OTP/PIN harvesting, lottery and prize lures, fake bank account-block warnings,

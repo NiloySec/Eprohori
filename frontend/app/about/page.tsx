@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useRef, useState } from 'react'
 import { fetchStats } from '@/lib/api'
 import type { Stats } from '@/lib/api'
@@ -84,10 +84,10 @@ export default function AboutPage() {
       {/* ── 1. Hero ── */}
       <div className="text-center mb-16">
         <h1 className="font-heading text-4xl font-bold mb-4" style={{ color: '#00e5c4' }}>
-          About Eprohori
+          About EProhori
         </h1>
         <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          বাংলাদেশে প্রতিদিন লক্ষ লক্ষ মানুষ সাইবার প্রতারণার শিকার হচ্ছেন। Eprohori হলো বাংলাদেশের প্রথম ক্রাউডসোর্সড সাইবার থ্রেট প্ল্যাটফর্ম — যেখানে সাধারণ মানুষ মিলে দেশকে নিরাপদ রাখে।
+          বাংলাদেশে প্রতিদিন লক্ষ লক্ষ মানুষ সাইবার প্রতারণার শিকার হচ্ছেন। EProhori হলো বাংলাদেশের প্রথম ক্রাউডসোর্সড সাইবার থ্রেট প্ল্যাটফর্ম — যেখানে সাধারণ মানুষ মিলে দেশকে নিরাপদ রাখে।
         </p>
       </div>
 
@@ -108,7 +108,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: '🤝', title: 'Community-Powered',    desc: 'Citizens report threats' },
-            { icon: '🛡️', title: 'Eprohori-Verified',      desc: 'Platform verifies every report' },
+            { icon: '🛡️', title: 'EProhori-Verified',      desc: 'Platform verifies every report' },
             { icon: '🇧🇩', title: 'Nationally Protected', desc: 'Everyone stays safe' },
           ].map(c => (
             <div
@@ -130,7 +130,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: '📡', title: 'Crowdsourced Intelligence', desc: '5,772+ real Bengali phishing samples' },
-            { icon: '🛡️', title: 'Eprohori Detection',          desc: 'Trained on real Bangladesh data' },
+            { icon: '🛡️', title: 'EProhori Detection',          desc: 'Trained on real Bangladesh data' },
             { icon: '⚡', title: 'Real-time Alerts',           desc: 'Instant community notifications' },
           ].map(c => (
             <div

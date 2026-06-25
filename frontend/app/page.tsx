@@ -200,19 +200,26 @@ export default function HomePage() {
           </div>
           {/* Headline — Bengali needs smaller sizes + looser line-height to avoid overflow */}
           <h1
-            className={`font-heading mb-4 gradient-text fade-in-up-1 max-w-5xl mx-auto ${
+            className={`font-heading mb-4 gradient-text fade-in-up-1 max-w-6xl mx-auto ${
               lang === 'bn'
                 ? 'bn-heading text-3xl md:text-5xl lg:text-6xl font-semibold'
-                : 'text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight'
+                : 'font-semibold tracking-tight'
             }`}
             style={
               lang === 'bn'
                 ? { lineHeight: 1.4, letterSpacing: 0, wordBreak: 'keep-all' }
-                : { lineHeight: '1.05', letterSpacing: '-0.03em' }
+                // English: viewport-scaled size keeps each line on ONE line (2 lines total)
+                // without ever overflowing narrow screens.
+                : { lineHeight: '1.08', letterSpacing: '-0.03em', fontSize: 'clamp(1.25rem, 6vw, 3.75rem)' }
             }
           >
             {t('hero_title').split('|').map((line, i) => (
-              <span key={i} style={{ display: 'block' }}>{line}</span>
+              <span
+                key={i}
+                style={{ display: 'block', whiteSpace: lang === 'bn' ? undefined : 'nowrap' }}
+              >
+                {line}
+              </span>
             ))}
           </h1>
           <h2

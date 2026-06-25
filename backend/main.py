@@ -730,17 +730,31 @@ _rate_windows: dict[str, list] = {}
 _rate_lock = threading.Lock()
 
 
-def throttle(request: Request, limit: int = 60, window_sec: int = 60) -> None:
-    """Raise 429 if the caller's IP exceeds `limit` calls within `window_sec`."""
-    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown").split(",")[0].strip()
+def throttle(
+    request: Request,
+    bucket: str = "default",
+    max_hits: int = 60,
+    window_sec: int = 60,
+    *,
+    limit: int | None = None,
+) -> None:
+    """Raise 429 if one IP exceeds `max_hits` calls within `window_sec` for `bucket`.
+
+    `limit=` is accepted as a legacy alias for `max_hits` so every existing call
+    site works with one shared implementation (per-bucket, x-forwarded-for aware).
+    """
+    cap = limit if limit is not None else max_hits
+    ip = request.headers.get(
+        "x-forwarded-for", request.client.host if request.client else "unknown"
+    ).split(",")[0].strip()
+    key = f"{bucket}:{ip}"
     now = time.time()
     with _rate_lock:
-        hits = _rate_windows.get(ip, [])
-        hits = [t for t in hits if now - t < window_sec]
-        if len(hits) >= limit:
-            raise HTTPException(status_code=429, detail="Too many requests — please wait before scanning again")
+        hits = [t for t in _rate_windows.get(key, []) if now - t < window_sec]
+        if len(hits) >= cap:
+            raise HTTPException(status_code=429, detail="Too many requests — please wait and try again.")
         hits.append(now)
-        _rate_windows[ip] = hits
+        _rate_windows[key] = hits
 
 
 async def send_alert_emails(threat_id: int) -> int:

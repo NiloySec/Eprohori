@@ -570,13 +570,15 @@ export default function MonitorPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-semibold text-white mb-3">{th.content}</h3>
+                <p className="text-sm text-slate-200 font-semibold mb-2">{th.type}</p>
                 <p className="text-sm text-slate-300 mb-3">{th.detail}</p>
                 {/* Line 1: Location • Time • Type (left) | Alert badge (right) */}
                 <div className="flex items-center justify-between gap-3 text-xs mb-2">
                   <div className="flex items-center gap-2 text-slate-500">
                     <span>📍 {th.division}</span>
+                    <span>•</span>
                     <span>{timeAgo(th.created_at)}</span>
+                    <span>•</span>
                     <span>{th.type}</span>
                   </div>
                   {th.alerted && (

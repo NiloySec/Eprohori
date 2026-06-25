@@ -692,7 +692,7 @@ export default function AIAssistant() {
   // ─── Panel size (desktop vs mobile) ─────────────────────────────────────────
 
   const panelStyle: React.CSSProperties = isMobile
-    ? { bottom: 80, right: 8, width: 320, height: 400, borderRadius: 16 }
+    ? { bottom: 0, left: 0, right: 0, height: '75vh', borderRadius: '20px 20px 0 0' }
     : { bottom: 80, right: 20, width: 340, height: 460, borderRadius: 16 }
 
   // ═════════════════════════════════════════════════════════════════════════════
@@ -707,7 +707,7 @@ export default function AIAssistant() {
           position: 'fixed',
           bottom: 24,
           right: 24,
-          zIndex: 50,
+          zIndex: 10000,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -838,12 +838,21 @@ export default function AIAssistant() {
       </div>
 
       {/* ════════ CHAT PANEL ═════════════════════════════════════════════════════ */}
+      {open && isMobile && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9998,
+            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)',
+          }}
+        />
+      )}
       {open && (
         <div
           ref={panelRef}
           style={{
             position: 'fixed',
-            zIndex: 40,
+            zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',

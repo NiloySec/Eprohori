@@ -360,9 +360,12 @@ export default function HomePage() {
                   <div className="flex items-center gap-6">
                     <ConfidenceMeter value={scanResult.confidence} size={120} />
                     <div className="flex-1">
-                      {scanTab === 'url' && scanInput && (() => { try { return new URL(scanInput).hostname } catch { return null } })() && (
+                      {scanTab === 'url' && scanInput && (
                         <p className="text-xs font-mono mb-2" style={{ color: '#64748b' }}>
-                          🔗 {(() => { try { return new URL(scanInput).hostname } catch { return scanInput } })()}
+                          🔗 {(() => {
+                            try { return new URL(scanInput).hostname }
+                            catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
+                          })()}
                         </p>
                       )}
                       <span

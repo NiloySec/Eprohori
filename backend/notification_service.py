@@ -268,10 +268,10 @@ def user_alert_email_template(
     is_critical = severity == "critical"
     accent = "#ff4444" if is_critical else "#f59e0b"
     icon = "🚨" if is_critical else "⚠️"
-    label = "CRITICAL THREAT — AI Auto-Detected" if is_critical else "HIGH RISK THREAT — Verified by Admin"
-    sub = ("AI confidence 90%+. Take immediate action."
+    label = "CRITICAL THREAT — Eprohori Auto-Detected" if is_critical else "HIGH RISK THREAT — Verified by Admin"
+    sub = ("Eprohori confidence 90%+. Take immediate action."
            if is_critical
-           else "AI flagged + verified by Eprohori moderators.")
+           else "Eprohori flagged + verified by Eprohori moderators.")
 
     safety_tips = [
         "কোনো সন্দেহজনক লিংকে ক্লিক করবেন না",
@@ -309,7 +309,7 @@ def user_alert_email_template(
               <td style="color:#e2e8f0;font-size:13px;font-weight:bold;text-align:right">{threat_type.upper()}</td></tr>
           <tr><td style="color:#64748b;font-size:13px;padding:4px 0">District:</td>
               <td style="color:#e2e8f0;font-size:13px;font-weight:bold;text-align:right">{district or 'Bangladesh'}</td></tr>
-          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">AI Confidence:</td>
+          <tr><td style="color:#64748b;font-size:13px;padding:4px 0">Eprohori Confidence:</td>
               <td style="color:{accent};font-size:13px;font-weight:bold;text-align:right">{confidence}%</td></tr>
         </table>
 
@@ -376,7 +376,7 @@ def report_result_email_template(
             <strong>District:</strong> {district or '—'}
           </p>
           <p style="color:#e2e8f0;font-size:14px;margin:0 0 8px">
-            <strong>AI Confidence:</strong>
+            <strong>Eprohori Confidence:</strong>
             <span style="color:#00e5c4;font-weight:bold"> {confidence}%</span>
           </p>
           <p style="color:#94a3b8;font-size:13px;margin:0">
@@ -527,7 +527,7 @@ def threat_alert_template(
               {severity} THREAT DETECTED
             </span>
             <span style="color:#94a3b8;font-size:13px">
-              AI Confidence: {confidence}%
+              Eprohori Confidence: {confidence}%
             </span>
           </div>
 

@@ -630,7 +630,7 @@ async def send_threat_alert(
 <b>Severity:</b> {i['severity'].upper()}
 <b>Type:</b> {i['type']}
 <b>Division:</b> {i['division'] or 'Unknown'}
-<b>AI Confidence:</b> {i['confidence']}%
+<b>Eprohori Confidence:</b> {i['confidence']}%
 <b>Detail:</b> {i['detail'][:80]}...
 
 🔗 eprohori.vercel.app/monitor

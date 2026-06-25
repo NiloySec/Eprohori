@@ -570,28 +570,11 @@ export default function MonitorPage() {
                     </span>
                   )}
                   <span className="text-xs text-slate-500">{th.type}</span>
-                  {!isSafe && (
-                    <span
-                      className="ml-auto text-xs px-2 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: th.status === 'verified' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
-                        color: th.status === 'verified' ? '#22c55e' : '#64748b',
-                      }}
-                    >
-                      {th.status === 'verified' ? '✓ যাচাইকৃত' : '⏳ পেন্ডিং'}
-                    </span>
-                  )}
                 </div>
                 <p className="text-sm text-slate-200 mb-2">{th.detail}</p>
                 <div className="flex items-center gap-3 text-xs text-slate-500">
                   <span>📍 {th.division}</span>
                   <span>{timeAgo(th.created_at)}</span>
-                  <span
-                    className="ml-auto px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
-                  >
-                    EProhori: {th.confidence}%
-                  </span>
                 </div>
               </button>
               )

@@ -772,8 +772,9 @@ async def send_alert_emails(threat_id: int) -> int:
         if confidence > 1:
             confidence = confidence / 100
         is_human_approved = bool(getattr(t, "human_reviewed", False))
-        # Admin-approved threats bypass the confidence threshold entirely.
-        if confidence < ALERT_HIGH_MIN and not is_human_approved:
+        # Only 90%+ auto-verified threats and admin-approved threats send alerts.
+        # Pending threats (1-89%) never alert unless explicitly approved by admin.
+        if not is_human_approved and confidence < 0.90:
             return 0
 
         severity = get_severity(confidence)

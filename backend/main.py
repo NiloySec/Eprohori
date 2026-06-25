@@ -719,11 +719,15 @@ async def send_alert_emails(threat_id: int) -> int:
         confidence = (t.confidence or 0)
         if confidence > 1:
             confidence = confidence / 100
-        # Admin-approved threats bypass the confidence threshold — human judgment overrides ML.
-        if confidence < ALERT_HIGH_MIN and not bool(getattr(t, "human_reviewed", False)):
-            return 0  # below alert threshold — nothing to do
+        is_human_approved = bool(getattr(t, "human_reviewed", False))
+        # Admin-approved threats bypass the confidence threshold entirely.
+        if confidence < ALERT_HIGH_MIN and not is_human_approved:
+            return 0
 
         severity = get_severity(confidence)
+        # Admin approval = minimum "high" severity in alert email regardless of ML score.
+        if is_human_approved and severity in ("medium", "low"):
+            severity = "high"
         district = t.district or t.region or ""
 
         # ── Build recipient set ──
@@ -1044,35 +1048,21 @@ def create_threat(
     db.commit()
     db.refresh(t)
 
-    # ── 5. Alerts ────────────────────────────────────────────────────────────
+    # ── 5. Post-submit actions (auto-verified path only) ─────────────────────
+    # Pending threats get no alerts here — admin handles them in the queue.
     confidence_norm = (t.confidence or 0)
     if confidence_norm > 1:
         confidence_norm = confidence_norm / 100
 
     if t.status == "verified":
-        # 5a. Admin / Telegram heads-up (existing flow)
-        severity = get_severity(confidence_norm)
         conf_pct = int(confidence_norm * 100)
-        if severity in ("critical", "high"):
-            background_tasks.add_task(
-                send_threat_alert, t.type, t.region or "", t.content or "", severity, conf_pct
-            )
+        # 5a. Nationwide user alert — 90%+ auto-verified threats alert immediately.
+        t.alerted = True
+        db.commit()
+        background_tasks.add_task(send_alert_emails, t.id)
 
-        # 5b. District-wide user emails for verified threats.
-        # Critical (≥90%): alert immediately — high confidence needs no second opinion.
-        # High (70-89%): hold until corroborated (2nd report / burst / admin approval)
-        #   to avoid false-positive mass alerts on a single auto-verify.
-        if confidence_norm >= ALERT_CRITICAL_MIN:
-            t.alerted = True
-            db.commit()
-            background_tasks.add_task(send_alert_emails, t.id)
-        elif confidence_norm >= ALERT_HIGH_MIN and _is_corroborated(t):
-            t.alerted = True
-            db.commit()
-            background_tasks.add_task(send_alert_emails, t.id)
-
-        # 5c. Reporter result email (existing)
-        if t.reporter_email and severity in ("critical", "high"):
+        # 5b. Reporter confirmation email — always send when auto-verified.
+        if t.reporter_email:
             reporter = db.query(User).filter(User.email == t.reporter_email).first()
             background_tasks.add_task(
                 send_report_result_email,
@@ -1080,7 +1070,7 @@ def create_threat(
                 reporter.name if reporter else t.reporter_email.split("@")[0],
                 t.type,
                 conf_pct,
-                "AI বিশ্লেষণে এটি সত্যিকারের হুমকি হিসেবে নিশ্চিত হয়েছে।",
+                "EProhori বিশ্লেষণে এটি সত্যিকারের হুমকি হিসেবে নিশ্চিত হয়েছে।",
                 t.district or t.region or "",
             )
 
@@ -1969,12 +1959,14 @@ async def verify_threat(
     db.refresh(t)
     _log_audit(db, admin.get("sub", "admin"), "verify", f"threat #{threat_id}")
 
-    # Admin verification IS the corroboration — always alert regardless of confidence.
-    conf = (t.confidence or 0)
-    if conf > 1:
-        conf = conf / 100
+    # Admin approval → nationwide alert always (human judgment overrides ML confidence).
+    t.alerted = True
+    db.commit()
 
-    # Notify the reporter that their report was approved
+    # 1. Alert all users nationwide
+    background_tasks.add_task(send_alert_emails, t.id)
+
+    # 2. Confirm to the reporter that their report was approved
     if t.reporter_email:
         reporter = db.query(User).filter(User.email == t.reporter_email).first()
         reporter_name = reporter.name if reporter else t.reporter_email.split("@")[0]
@@ -1986,12 +1978,10 @@ async def verify_threat(
             t.district or "",
         )
 
-    if not t.alerted:
-        t.alerted = True
-        db.commit()
-        background_tasks.add_task(send_alert_emails, t.id)
-        return {"verified": True, "emails_sent": True, "severity": get_severity(conf)}
-    return {"verified": True, "emails_sent": False, "severity": get_severity(conf)}
+    conf = (t.confidence or 0)
+    if conf > 1:
+        conf = conf / 100
+    return {"verified": True, "emails_sent": True, "severity": get_severity(conf)}
 
 
 @app.put("/api/threats/{threat_id}/reject", response_model=StatusResponse, tags=["admin"])

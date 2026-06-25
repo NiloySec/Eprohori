@@ -569,13 +569,13 @@ export default function MonitorPage() {
                       🔔 সতর্কতা জারি
                     </span>
                   )}
-                  <span className="text-xs text-slate-500">{th.type}</span>
                 </div>
-                {/* Line 1: Location + Time (left) | Status badge (right) */}
+                {/* Line 1: Location • Time • Type (left) | Status badge (right) */}
                 <div className="flex items-center justify-between gap-3 text-xs mb-2">
                   <div className="flex items-center gap-2 text-slate-500">
                     <span>📍 {th.division}</span>
                     <span>{timeAgo(th.created_at)}</span>
+                    <span className="text-slate-400">{th.type}</span>
                   </div>
                   {th.status === 'verified' && (
                     <span

@@ -361,12 +361,20 @@ export default function HomePage() {
                     <div className="flex flex-col items-center gap-1 flex-shrink-0">
                       <ConfidenceMeter value={scanResult.confidence} size={120} />
                       {scanTab === 'url' && scanInput && (
-                        <p className="text-xs font-mono text-center" style={{ color: '#64748b', maxWidth: 120, wordBreak: 'break-all' }}>
+                        <a
+                          href={scanInput.startsWith('http') ? scanInput : `https://${scanInput}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono text-center block"
+                          style={{ color: '#64748b', maxWidth: 120, wordBreak: 'break-all', textDecoration: 'none' }}
+                          onMouseOver={e => (e.currentTarget.style.color = '#00e5c4')}
+                          onMouseOut={e => (e.currentTarget.style.color = '#64748b')}
+                        >
                           🔗 {(() => {
                             try { return new URL(scanInput).hostname }
                             catch { return scanInput.replace(/^https?:\/\//, '').split('/')[0].split('?')[0] }
                           })()}
-                        </p>
+                        </a>
                       )}
                     </div>
                     <div className="flex-1">

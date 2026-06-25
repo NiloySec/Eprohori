@@ -496,7 +496,7 @@ function AuthForm({ onAuth }: { onAuth: (u: AuthUser) => void }) {
                       {otpProvider && <span className="text-xs text-slate-500 font-normal"> (via {otpProvider})</span>}
                     </p>
                   ) : (
-                    <p className="text-sm text-white font-semibold">📲 OTP sent to {regPhone}</p>
+                    <p className="text-sm text-white font-semibold">📧 OTP for {regEmail}</p>
                   )}
                   <input
                     value={otpInput}

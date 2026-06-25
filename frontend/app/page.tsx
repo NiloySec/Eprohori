@@ -87,24 +87,6 @@ function useScrollReveal() {
 /* ── Signal analyser (client-side, no backend call) ────────────── */
 interface Signal { label: string; matched: boolean }
 
-const BRAND_REAL_DOMAINS: [RegExp, string][] = [
-  [/bkash|bikash|b-kash/, 'https://www.bkash.com/'],
-  [/nagad/, 'https://nagad.com.bd/'],
-  [/surecash/, 'https://www.surecash.net/'],
-  [/rocket|dutch.?bangla|dbbl/, 'https://www.dutchbanglabank.com/'],
-  [/bank.?asia/, 'https://www.bankasia-bd.com/'],
-  [/islami.?bank/, 'https://www.islamibankbd.com/'],
-  [/sonali.?bank/, 'https://www.sonalibank.com.bd/'],
-]
-
-function getRealDomain(text: string): string | null {
-  const t = text.toLowerCase()
-  for (const [pattern, url] of BRAND_REAL_DOMAINS) {
-    if (pattern.test(t)) return url
-  }
-  return null
-}
-
 function analyzeSignals(text: string): Signal[] {
   const t = text.toLowerCase()
   return [
@@ -419,7 +401,7 @@ export default function HomePage() {
                           })()}
                         </a>
                       </div>
-                      {getRealDomain(scanInput) && (
+                      {scanResult.real_domain && (
                         <div
                           className="flex items-center justify-between gap-3 px-4 py-2.5"
                           style={{ background: 'rgba(34,197,94,0.06)', borderTop: '1px solid rgba(255,255,255,0.06)' }}
@@ -428,7 +410,7 @@ export default function HomePage() {
                             ✅ আসল ঠিকানা
                           </span>
                           <a
-                            href={getRealDomain(scanInput)!}
+                            href={`https://${scanResult.real_domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs font-mono font-semibold text-right inline-flex items-center gap-1"
@@ -436,7 +418,7 @@ export default function HomePage() {
                             onMouseOver={e => (e.currentTarget.style.textDecoration = 'underline')}
                             onMouseOut={e => (e.currentTarget.style.textDecoration = 'none')}
                           >
-                            {getRealDomain(scanInput)!.replace('https://', '').replace(/\/$/, '')} →
+                            {scanResult.real_domain.replace(/^https?:\/\//, '').replace(/\/$/, '')} →
                           </a>
                         </div>
                       )}

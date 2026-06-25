@@ -48,14 +48,31 @@ def _is_ip(host: str) -> bool:
         return False
 
 
+def match_brand_domain(url: str) -> str | None:
+    """If the URL impersonates a known brand, return that brand's OFFICIAL domain
+    (e.g. bkash.xyz -> bkash.com). None if no known brand token is present, or the
+    URL already IS the official domain. Fast, dict-only — no network call."""
+    host = _host(url)
+    if not host:
+        return None
+    tokens = set(re.split(r"[.\-]", host))
+    for brand, official in BRANDS.items():
+        if brand in tokens and not (host == official or host.endswith("." + official)):
+            return official
+    return None
+
+
 def analyze(url: str) -> dict | None:
-    """Return {is_threat, confidence, reasons} for a URL, or None if nothing notable."""
+    """Return {is_threat, confidence, reasons, real_domain} for a URL, or None if
+    nothing notable. `real_domain` is the official site when brand impersonation is
+    detected (None otherwise)."""
     host = _host(url)
     if not host:
         return None
 
     reasons: list[str] = []
     score = 0
+    real_domain: str | None = None
     tokens = set(re.split(r"[.\-]", host))   # host labels + hyphen parts
 
     if _is_ip(host):
@@ -70,6 +87,7 @@ def analyze(url: str) -> dict | None:
     for brand, official in BRANDS.items():
         if brand in tokens and not (host == official or host.endswith("." + official)):
             score += 3
+            real_domain = official
             reasons.append(f"'{brand}' ব্র্যান্ড অনুকরণ — এটি আসল {official} নয়")
             break
 
@@ -89,4 +107,4 @@ def analyze(url: str) -> dict | None:
         return None  # not enough signal — let caller mark it "unverified"
 
     confidence = 0.85 if score >= 4 else 0.72
-    return {"is_threat": True, "confidence": confidence, "reasons": reasons[:3]}
+    return {"is_threat": True, "confidence": confidence, "reasons": reasons[:3], "real_domain": real_domain}

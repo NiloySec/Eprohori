@@ -15,6 +15,7 @@ analyze() returns None and the caller keeps the ML-only result.
 
 import json
 import os
+import re
 
 import httpx
 from pydantic import BaseModel, Field, ValidationError
@@ -155,6 +156,89 @@ def is_enabled() -> bool:
     return any(
         os.environ.get(k) for k in ("GROQ_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY")
     )
+
+
+# ── Real-brand domain resolver (for impersonation URLs) ───────────────────────
+# Identifies the OFFICIAL website a phishing URL is trying to impersonate, for
+# brands not in the static url_heuristics.BRANDS dict. Groq-first (fast/cheap),
+# Gemini fallback. Returns a bare host like "bkash.com", or None.
+
+_DOMAIN_RE = re.compile(r"^(?:https?://)?(?:www\.)?([a-z0-9.-]+\.[a-z]{2,})", re.I)
+
+
+def _clean_domain(raw: str) -> str | None:
+    m = _DOMAIN_RE.match((raw or "").strip().lower())
+    if not m:
+        return None
+    host = m.group(1)
+    # reject obvious non-answers
+    if host in {"none", "unknown", "n/a", "example.com"} or " " in host:
+        return None
+    return host
+
+
+def _brand_prompt(scanned_host: str) -> str:
+    return (
+        "A user scanned this suspicious URL host: "
+        f"'{scanned_host}'.\n"
+        "It looks like it may impersonate a well-known brand (bank, MFS, tech, social, "
+        "shopping, etc.), especially Bangladeshi ones. If it clearly imitates a real brand, "
+        "reply with ONLY that brand's official domain (e.g. \"bkash.com\"). "
+        "If it does NOT clearly impersonate any known brand, reply with exactly \"NONE\". "
+        "No explanation, no extra words — just the domain or NONE."
+    )
+
+
+def _groq_domain(scanned_host: str) -> str | None:
+    key = os.environ.get("GROQ_API_KEY")
+    if not key:
+        return None
+    resp = httpx.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        json={
+            "model": GROQ_MODEL,
+            "messages": [{"role": "user", "content": _brand_prompt(scanned_host)}],
+            "temperature": 0.0,
+            "max_tokens": 32,
+        },
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return _clean_domain(resp.json()["choices"][0]["message"]["content"])
+
+
+def _gemini_domain(scanned_host: str) -> str | None:
+    key = os.environ.get("GEMINI_API_KEY")
+    if not key:
+        return None
+    resp = httpx.post(
+        f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={key}",
+        headers={"Content-Type": "application/json"},
+        json={
+            "contents": [{"role": "user", "parts": [{"text": _brand_prompt(scanned_host)}]}],
+            "generationConfig": {"maxOutputTokens": 32, "temperature": 0.0},
+        },
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return _clean_domain(resp.json()["candidates"][0]["content"]["parts"][0]["text"])
+
+
+def find_official_domain(scanned_host: str) -> str | None:
+    """Best-effort: the official domain a suspicious host impersonates, or None.
+    Groq → Gemini. Degrades silently if no key / every call fails."""
+    if not scanned_host:
+        return None
+    for name, call in (("groq", _groq_domain), ("gemini", _gemini_domain)):
+        try:
+            host = call(scanned_host)
+            # Guard: don't return the scanned host itself as its own "real" site.
+            if host and host != scanned_host.lower().lstrip("www."):
+                return host
+        except Exception as e:  # noqa: BLE001
+            print(f"[brand_resolver] {name} failed: {e}")
+    return None
 
 
 def analyze(text: str, ml_result: dict) -> tuple[str, AIAnalysis] | None:

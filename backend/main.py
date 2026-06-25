@@ -1860,6 +1860,8 @@ def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depe
                         is_threat=True, confidence=rep.confidence or 0.85, category="phishing",
                         reasons=["পূর্বে যাচাইকৃত — সন্দেহজনক/ক্ষতিকর ডোমেইন"],
                         explanation="এই লিংকটি আগে যাচাইয়ে সন্দেহজনক পাওয়া গিয়েছিল — সতর্ক থাকুন।", source="cache",
+                        # fast dict-only resolve on cache hit (no LLM call — keeps cache fast)
+                        real_domain=url_heuristics.match_brand_domain(text),
                     )
                 if rep.verdict == "safe":
                     return ValidateTextResponse(
@@ -1873,6 +1875,18 @@ def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depe
         resp: ValidateTextResponse
         cache_verdict: Optional[str] = None   # malicious | safe | None (don't cache "unverified")
 
+        # Resolve the REAL brand site an impersonation URL mimics.
+        # Fast path: static heuristic dict. Fallback: Groq/Gemini for any brand
+        # not in the dict (only when the URL is actually a threat — saves quota).
+        def _resolve_real_domain(is_threat_url: bool) -> Optional[str]:
+            if not is_threat_url:
+                return None
+            rd = (h or {}).get("real_domain") or url_heuristics.match_brand_domain(text)
+            if rd:
+                return rd
+            scanned_host = domain or url_heuristics._host(text)
+            return claude_analyzer.find_official_domain(scanned_host or "")
+
         # 1. VT flagged it → definite threat
         if vt is not None and vt["is_threat"]:
             resp = ValidateTextResponse(
@@ -1880,6 +1894,7 @@ def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depe
                 reasons=[f"EProhori: {vt['malicious']}টি ক্ষতিকর ও {vt['suspicious']}টি সন্দেহজনক ইঞ্জিন শনাক্ত করেছে"],
                 explanation="EProhori বিশ্লেষণে এই লিংকটি ক্ষতিকর হিসেবে চিহ্নিত হয়েছে।",
                 source="virustotal",
+                real_domain=_resolve_real_domain(True),
             )
             cache_verdict = "malicious"
         # 2. Brand impersonation overrides a VT "clean" — a fresh lookalike
@@ -1890,6 +1905,7 @@ def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depe
                 reasons=h["reasons"],
                 explanation="EProhori বিশ্লেষণে এই লিংকটি পরিচিত ব্র্যান্ডের ছদ্মবেশ দেখাচ্ছে — সতর্ক থাকুন, তথ্য দেবেন না।",
                 source="heuristic",
+                real_domain=_resolve_real_domain(True),
             )
             cache_verdict = "malicious"
         # 3. VT clean + no impersonation → safe

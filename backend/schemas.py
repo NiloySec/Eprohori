@@ -93,6 +93,7 @@ class ValidateTextResponse(BaseModel):
     reasons: list[str]
     explanation: Optional[str] = None   # Bengali explanation from Claude (threats only)
     source: str = "ml"                  # "ml" or "ml+claude"
+    real_domain: Optional[str] = None   # official site an impersonation URL mimics (bkash.com)
 
 
 class PartnerInquiryRequest(BaseModel):

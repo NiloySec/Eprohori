@@ -570,7 +570,6 @@ export default function MonitorPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-slate-200 font-semibold mb-2">{th.type}</p>
                 <p className="text-sm text-slate-300 mb-3">{th.detail}</p>
                 {/* Line 1: Location • Time • Type (left) | Alert badge (right) */}
                 <div className="flex items-center justify-between gap-3 text-xs mb-2">

@@ -660,11 +660,10 @@ WHITELIST_DOMAINS = (
     "google.com", "facebook.com", "youtube.com",
 )
 
-# AI triage thresholds (confidence is 0.0–1.0) — tunable via .env, no code change
-#   AUTO_VERIFY_CONF : at/above this → auto-verified (base bar; trust scoring may raise it)
-#   AUTO_REJECT_CONF : below this → auto-rejected; in between → admin queue
+# AI triage thresholds (confidence is 0.0–1.0)
+#   AUTO_VERIFY_CONF : at/above this → auto-verified + instant alert
+#   Below this       → pending (admin queue); no auto-rejection
 AUTO_VERIFY_CONF = float(os.getenv("AUTO_VERIFY_CONF", "0.90"))
-AUTO_REJECT_CONF = float(os.getenv("AUTO_REJECT_CONF", "0.35"))
 
 # ── User alert thresholds (System 2 — independent from triage) ───────────────
 ALERT_CRITICAL_MIN = 0.90   # 90-100% → instant email on auto-verify
@@ -725,10 +724,13 @@ async def send_alert_emails(threat_id: int) -> int:
         # about the threat they reported. They get a separate result/confirmation
         # email instead. This alert is a *warning* for everyone else.
 
-        # Hybrid routing: critical or a scam-wave is a national danger → alert everyone;
-        # a plain "high" threat → only the affected district's opt-in users (relevant,
-        # less alert fatigue). If the district is unknown, fall back to national.
-        national = severity == "critical" or (t.is_campaign or 0) == 1
+        # Routing: critical, scam-wave, or admin-approved → nationwide (all 64 districts).
+        # District-only routing is removed — admin approval implies national importance.
+        national = (
+            severity == "critical"
+            or (t.is_campaign or 0) == 1
+            or bool(getattr(t, "human_reviewed", False))
+        )
         target_district = (t.district or "").strip()
         q = db.query(User).filter(
             User.notify_alerts == True,  # noqa: E712
@@ -877,6 +879,9 @@ def _reporter_trust(db: Session, creds: Optional[HTTPAuthorizationCredentials]) 
     if not user:
         return None, AUTO_VERIFY_CONF, False
 
+    # "rejected" here means admin-manually-rejected (no auto-rejection exists).
+    # If admin has rejected ≥3 of this user's reports AND more rejected than verified,
+    # force all future reports to pending regardless of ML confidence.
     rejected = db.query(Threat).filter(
         Threat.reporter_email == email, Threat.status == "rejected"
     ).count()
@@ -884,7 +889,7 @@ def _reporter_trust(db: Session, creds: Optional[HTTPAuthorizationCredentials]) 
         Threat.reporter_email == email, Threat.status == "verified"
     ).count()
     if rejected >= 3 and rejected > verified:
-        return email, 1.01, True  # repeat offender → human always decides
+        return email, 1.01, True  # repeat offender → always pending
     return email, AUTO_VERIFY_CONF, False
 
 
@@ -964,14 +969,17 @@ def create_threat(
         if len(day_times) > DAILY_REVIEW_THRESHOLD and dup.status == "verified":
             dup.status = "pending"  # over-reported → human scrutiny
 
-        # Corroboration reached (this is the 2nd+ report) → release a previously
-        # held district alert on an auto-verified threat.
+        # Release a previously held alert when conditions are now met.
+        # Critical: always alert on first verify (already done); this handles
+        # the edge case where the original insert pre-dated the ALERT_CRITICAL_MIN rule.
+        # High: now corroborated (this is the 2nd+ report), so release the held alert.
         dup_conf = (dup.confidence or 0)
         if dup_conf > 1:
             dup_conf = dup_conf / 100
-        if dup.status == "verified" and not dup.alerted and dup_conf >= ALERT_HIGH_MIN and _is_corroborated(dup):
-            dup.alerted = True
-            background_tasks.add_task(send_alert_emails, dup.id)
+        if dup.status == "verified" and not dup.alerted and dup_conf >= ALERT_HIGH_MIN:
+            if dup_conf >= ALERT_CRITICAL_MIN or _is_corroborated(dup):
+                dup.alerted = True
+                background_tasks.add_task(send_alert_emails, dup.id)
 
         db.commit()
         db.refresh(dup)
@@ -1001,16 +1009,15 @@ def create_threat(
         except Exception:
             pass
 
-    # ── 4. AI triage: auto-verify / auto-reject / admin queue ────────────────
-    # Whitelisted (legit) domains never auto-verify — manual scrutiny only.
+    # ── 4. AI triage: auto-verify / admin queue ──────────────────────────────
+    # ≥90% confidence → auto-verified + instant alert.
+    # Everything else → pending (admin queue). No auto-rejection.
     if force_pending or _is_whitelisted(payload.content):
         status = "pending"
     elif ml_analyzed and confidence >= verify_threshold:
         status = "verified"
-    elif ml_analyzed and confidence < AUTO_REJECT_CONF:
-        status = "rejected"
     else:
-        status = "pending"  # uncertain or not ML-analyzable → human decides
+        status = "pending"
 
     t = Threat(
         type=payload.type,
@@ -1042,10 +1049,15 @@ def create_threat(
                 send_threat_alert, t.type, t.region or "", t.content or "", severity, conf_pct
             )
 
-        # 5b. District-wide user emails for 70%+ verified threats — but ONLY when
-        # corroborated. A lone first auto-verify shows on the monitor and the mass
-        # alert WAITS for a 2nd report / burst / admin (see _is_corroborated).
-        if confidence_norm >= ALERT_HIGH_MIN and _is_corroborated(t):
+        # 5b. District-wide user emails for verified threats.
+        # Critical (≥90%): alert immediately — high confidence needs no second opinion.
+        # High (70-89%): hold until corroborated (2nd report / burst / admin approval)
+        #   to avoid false-positive mass alerts on a single auto-verify.
+        if confidence_norm >= ALERT_CRITICAL_MIN:
+            t.alerted = True
+            db.commit()
+            background_tasks.add_task(send_alert_emails, t.id)
+        elif confidence_norm >= ALERT_HIGH_MIN and _is_corroborated(t):
             t.alerted = True
             db.commit()
             background_tasks.add_task(send_alert_emails, t.id)
@@ -1929,18 +1941,6 @@ def admin_pending(_admin: dict = Depends(require_admin), db: Session = Depends(g
     )
 
 
-@app.put("/api/threats/{threat_id}/approve", response_model=StatusResponse, tags=["admin"])
-def approve_threat(threat_id: int, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
-    t = db.query(Threat).filter(Threat.id == threat_id).first()
-    if not t:
-        raise HTTPException(status_code=404, detail="Threat not found")
-    t.status = "verified"
-    t.human_reviewed = True
-    db.commit()
-    _log_audit(db, admin.get("sub", "admin"), "approve", f"threat #{threat_id}")
-    return StatusResponse(status="verified")
-
-
 @app.patch("/api/threats/{threat_id}/verify", tags=["admin"])
 async def verify_threat(
     threat_id: int,
@@ -1960,10 +1960,11 @@ async def verify_threat(
     db.refresh(t)
     _log_audit(db, admin.get("sub", "admin"), "verify", f"threat #{threat_id}")
 
+    # Admin verification IS the corroboration — always alert regardless of confidence.
     conf = (t.confidence or 0)
     if conf > 1:
         conf = conf / 100
-    if conf >= ALERT_HIGH_MIN and not t.alerted:
+    if not t.alerted:
         t.alerted = True
         db.commit()
         background_tasks.add_task(send_alert_emails, t.id)

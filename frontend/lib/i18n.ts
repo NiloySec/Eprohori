@@ -17,29 +17,29 @@ export const translations = {
     hero_desc: 'Detect, report, and prevent phishing, scams and cyber threats — keep Bangladesh safe together.',
     hero_description: 'Detect, report, and prevent phishing, scams and cyber threats — keep Bangladesh safe together.',
     report_btn: 'Report Threat →',
-    validate_btn: '🔍 Quick Scan with AI',
+    validate_btn: '🔍 Quick Scan',
     ai_btn: 'Eprohori AI',
 
     // ── Home sections ─────────────────────────────────────────────────────
     how_it_works_badge: 'HOW IT WORKS',
     how_it_works_title: 'Cyber Security in Three Easy Steps',
-    how_it_works_desc: 'One report is AI-verified — then the whole community is alerted.',
+    how_it_works_desc: 'One report is Eprohori-verified — then the whole community is alerted.',
     step1_title: 'Report',
     step1_desc: 'Report suspicious URLs, SMS, phone numbers or websites. Your single report can protect others from fraud.',
-    step2_title: 'AI Analysis',
-    step2_desc: 'AI analyses the threat type, risk level and credibility, generating an instant report.',
+    step2_title: 'Eprohori Analysis',
+    step2_desc: 'Eprohori analyses the threat type, risk level and credibility, generating an instant report.',
     step3_title: 'Everyone Safe',
     step3_desc: 'Verified alerts reach the community so others can be warned in advance.',
     step3_badge: '🟢 One report, everyone protected',
 
     quick_scan_title: 'Quick Scan',
-    quick_scan_desc: 'Paste a URL or SMS message — AI will analyse it in seconds',
+    quick_scan_desc: 'Paste a URL or SMS message — Eprohori will analyse it in seconds',
     scan_url_tab: '🔗 URL Scan',
     scan_sms_tab: '💬 SMS Scan',
     scan_url_placeholder: 'Paste suspicious URL...',
     scan_sms_placeholder: 'Paste SMS message...',
     scan_btn: 'Scan →',
-    scanning_text: 'AI Analysing...',
+    scanning_text: 'Analysing...',
     result_phishing: '⚠️ Suspicious',
     result_safe: '✅ Safe',
     why_risk: 'Why this risk?',
@@ -78,9 +78,9 @@ export const translations = {
     radar_preview_subtitle: 'Active threats across 8 divisions',
     full_map: 'Full map →',
 
-    ai_cta_title: 'Ask the AI Assistant',
-    ai_cta_desc: 'Ask anything about hacks, scams, or phishing. Our cyber AI answers in seconds.',
-    ai_cta_btn: 'Talk to AI',
+    ai_cta_title: 'Ask Eprohori Assistant',
+    ai_cta_desc: 'Ask anything about hacks, scams, or phishing. Eprohori answers in seconds.',
+    ai_cta_btn: 'Talk to Eprohori',
 
     ranger_title: 'Become a Cyber Ranger',
     ranger_desc: 'Report anything suspicious. Your single report can protect thousands from fraud. Report, earn XP, keep Bangladesh safe.',
@@ -89,7 +89,7 @@ export const translations = {
 
     // ── Threat Hub page ───────────────────────────────────────────────────
     threats_page_title: 'Report a Cyber Threat',
-    threats_page_subtitle: 'Suspicious URL, SMS, or website? Report it — AI will verify and alert the community.',
+    threats_page_subtitle: 'Suspicious URL, SMS, or website? Report it — Eprohori will verify and alert the community.',
     tab_url: 'URL',
     tab_sms: 'SMS',
     tab_website: 'Website',
@@ -111,7 +111,7 @@ export const translations = {
     no_threats_yet: 'No threats found.',
 
     // ── Threat Hub: AI Result labels ──────────────────────────────────────
-    ai_confidence: 'AI Confidence',
+    ai_confidence: 'Confidence Score',
     threat_submitted: '✅ Threat submitted! The community has been alerted.',
 
     // ── Radar page ────────────────────────────────────────────────────────
@@ -184,7 +184,7 @@ export const translations = {
     about_subtitle: "Every day, millions of Bangladeshis fall victim to cyber fraud. Eprohori is Bangladesh's first crowdsourced cyber threat platform — where ordinary people work together to keep the country safe.",
     problem: 'The Problem',
     solution: 'Our Solution',
-    dataset: 'AI Dataset',
+    dataset: 'Threat Dataset',
     our_impact: 'Our Impact',
     contact: 'Contact',
   },
@@ -205,29 +205,29 @@ export const translations = {
     hero_desc: 'ফিশিং, স্ক্যাম ও সাইবার হুমকি শনাক্ত করুন, রিপোর্ট করুন এবং বাংলাদেশকে নিরাপদ রাখুন।',
     hero_description: 'ফিশিং, স্ক্যাম ও সাইবার হুমকি শনাক্ত করুন, রিপোর্ট করুন এবং বাংলাদেশকে নিরাপদ রাখুন।',
     report_btn: 'হুমকি রিপোর্ট করুন →',
-    validate_btn: '🔍 AI দিয়ে স্ক্যান করুন',
+    validate_btn: '🔍 Eprohori স্ক্যান',
     ai_btn: 'Eprohori AI',
 
     // ── Home sections ─────────────────────────────────────────────────────
     how_it_works_badge: 'কীভাবে কাজ করে',
     how_it_works_title: 'তিনটি সহজ ধাপে সাইবার সুরক্ষা',
-    how_it_works_desc: 'একজনের রিপোর্ট AI যাচাই করে — তারপর পুরো কমিউনিটিকে সতর্ক করে দেয়।',
+    how_it_works_desc: 'একজনের রিপোর্ট Eprohori যাচাই করে — তারপর পুরো কমিউনিটিকে সতর্ক করে দেয়।',
     step1_title: 'রিপোর্ট করুন',
     step1_desc: 'সন্দেহজনক URL, SMS, ফোন নম্বর বা ওয়েবসাইট রিপোর্ট করুন। আপনার একটি রিপোর্ট অন্যদের প্রতারণা থেকে বাঁচাতে পারে।',
-    step2_title: 'AI বিশ্লেষণ',
-    step2_desc: 'AI হুমকির ধরন, ঝুঁকি ও বিশ্বাসযোগ্যতা বিশ্লেষণ করে তাৎক্ষণিক রিপোর্ট তৈরি করে।',
+    step2_title: 'Eprohori বিশ্লেষণ',
+    step2_desc: 'Eprohori হুমকির ধরন, ঝুঁকি ও বিশ্বাসযোগ্যতা বিশ্লেষণ করে তাৎক্ষণিক রিপোর্ট তৈরি করে।',
     step3_title: 'সবাই সুরক্ষিত',
     step3_desc: 'যাচাইকৃত সতর্কতা কমিউনিটির কাছে পৌঁছে যায়, ফলে অন্যরা আগেই সতর্ক হতে পারে।',
     step3_badge: '🟢 একজনের রিপোর্ট, সবার সুরক্ষা',
 
     quick_scan_title: 'দ্রুত যাচাই করুন',
-    quick_scan_desc: 'URL বা SMS বার্তা পেস্ট করুন — AI সেকেন্ডের মধ্যে বিশ্লেষণ করবে',
+    quick_scan_desc: 'URL বা SMS বার্তা পেস্ট করুন — Eprohori সেকেন্ডের মধ্যে বিশ্লেষণ করবে',
     scan_url_tab: '🔗 URL স্ক্যান',
     scan_sms_tab: '💬 SMS স্ক্যান',
     scan_url_placeholder: 'সন্দেহজনক URL পেস্ট করুন...',
     scan_sms_placeholder: 'SMS বার্তা পেস্ট করুন...',
     scan_btn: 'যাচাই করুন →',
-    scanning_text: 'AI বিশ্লেষণ হচ্ছে...',
+    scanning_text: 'Eprohori বিশ্লেষণ করছে...',
     result_phishing: '⚠️ সন্দেহজনক',
     result_safe: '✅ নিরাপদ',
     why_risk: 'কেন এই ঝুঁকি?',
@@ -266,9 +266,9 @@ export const translations = {
     radar_preview_subtitle: '৮ বিভাগে সক্রিয় হুমকির সংখ্যা',
     full_map: 'পূর্ণ মানচিত্র →',
 
-    ai_cta_title: 'AI সহকারীকে জিজ্ঞেস করুন',
-    ai_cta_desc: 'হ্যাক, স্ক্যাম, বা ফিশিং নিয়ে যেকোনো প্রশ্ন করুন। আমাদের সাইবার AI সেকেন্ডে বাংলায় উত্তর দেবে।',
-    ai_cta_btn: 'AI-এর সাথে কথা বলুন',
+    ai_cta_title: 'Eprohori সহকারীকে জিজ্ঞেস করুন',
+    ai_cta_desc: 'হ্যাক, স্ক্যাম, বা ফিশিং নিয়ে যেকোনো প্রশ্ন করুন। Eprohori সেকেন্ডে বাংলায় উত্তর দেবে।',
+    ai_cta_btn: 'Eprohori-এর সাথে কথা বলুন',
 
     ranger_title: 'আপনিও হতে পারেন Cyber Ranger',
     ranger_desc: 'সন্দেহজনক কিছু দেখলে রিপোর্ট করুন। আপনার একটি রিপোর্ট হাজার মানুষকে প্রতারণা থেকে বাঁচাতে পারে। রিপোর্ট করুন, XP অর্জন করুন, দেশকে নিরাপদ রাখুন।',
@@ -277,7 +277,7 @@ export const translations = {
 
     // ── Threat Hub page ───────────────────────────────────────────────────
     threats_page_title: 'সাইবার হুমকি রিপোর্ট করুন',
-    threats_page_subtitle: 'সন্দেহজনক URL, SMS বা ওয়েবসাইট? রিপোর্ট করুন — AI যাচাই করে কমিউনিটিকে সতর্ক করবে।',
+    threats_page_subtitle: 'সন্দেহজনক URL, SMS বা ওয়েবসাইট? রিপোর্ট করুন — Eprohori যাচাই করে কমিউনিটিকে সতর্ক করবে।',
     tab_url: 'URL',
     tab_sms: 'SMS',
     tab_website: 'ওয়েবসাইট',
@@ -299,7 +299,7 @@ export const translations = {
     no_threats_yet: 'কোনো হুমকি পাওয়া যায়নি।',
 
     // ── Threat Hub: AI Result labels ──────────────────────────────────────
-    ai_confidence: 'AI নিশ্চয়তা',
+    ai_confidence: 'নিশ্চয়তা স্কোর',
     threat_submitted: '✅ হুমকি জমা দেওয়া হয়েছে! কমিউনিটিকে সতর্ক করা হচ্ছে।',
 
     // ── Radar page ────────────────────────────────────────────────────────
@@ -372,7 +372,7 @@ export const translations = {
     about_subtitle: 'বাংলাদেশে প্রতিদিন লক্ষ লক্ষ মানুষ সাইবার প্রতারণার শিকার হচ্ছেন। Eprohori হলো বাংলাদেশের প্রথম ক্রাউডসোর্সড সাইবার থ্রেট প্ল্যাটফর্ম — যেখানে সাধারণ মানুষ মিলে দেশকে নিরাপদ রাখে।',
     problem: 'সমস্যাটা কী?',
     solution: 'আমাদের সমাধান',
-    dataset: 'AI ডেটাসেট',
+    dataset: 'থ্রেট ডেটাসেট',
     our_impact: 'আমাদের প্রভাব',
     contact: 'যোগাযোগ',
   },

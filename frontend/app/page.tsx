@@ -256,7 +256,7 @@ export default function HomePage() {
               Eprohori যা যা শনাক্ত করে
             </h2>
             <p className="text-slate-400 text-sm max-w-xl mx-auto">
-              বাংলাদেশে সবচেয়ে বেশি যে সাইবার প্রতারণাগুলো ঘটে — AI দিয়ে সেকেন্ডেই যাচাই করুন।
+              বাংলাদেশে সবচেয়ে বেশি যে সাইবার প্রতারণাগুলো ঘটে — Eprohori সেকেন্ডেই যাচাই করে।
             </p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -295,7 +295,7 @@ export default function ThreatsPage() {
                            : submitResult.risk_level === 'medium'   ? '#3b82f6' : '#22c55e',
                     },
                     {
-                      label: 'AI Confidence',
+                      label: 'নিশ্চয়তা স্কোর',
                       value: `${submitResult.confidence}%`,
                       color: '#00e5c4',
                     },

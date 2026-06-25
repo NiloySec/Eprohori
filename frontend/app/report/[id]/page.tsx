@@ -35,10 +35,10 @@ function formatDate(iso: string) {
 
 function aiSummary(t: Threat): string {
   if (t.confidence >= 85) {
-    return `এই ${t.type} হুমকিটি AI দ্বারা অত্যন্ত উচ্চ নির্ভুলতায় (${t.confidence}%) ফিশিং হিসেবে চিহ্নিত হয়েছে। ${t.division} বিভাগে এই ধরনের প্রতারণা বেড়ে চলেছে। অবিলম্বে সতর্কতা অবলম্বন করুন।`
+    return `এই ${t.type} হুমকিটি Eprohori অত্যন্ত উচ্চ নির্ভুলতায় (${t.confidence}%) ফিশিং হিসেবে চিহ্নিত করেছে। ${t.division} বিভাগে এই ধরনের প্রতারণা বেড়ে চলেছে। অবিলম্বে সতর্কতা অবলম্বন করুন।`
   }
   if (t.confidence >= 70) {
-    return `AI বিশ্লেষণে এই ${t.type} বার্তায় সন্দেহজনক প্যাটার্ন পাওয়া গেছে (${t.confidence}% নিশ্চিতি)। ব্যক্তিগত তথ্য প্রদান থেকে বিরত থাকুন।`
+    return `Eprohori বিশ্লেষণে এই ${t.type} বার্তায় সন্দেহজনক প্যাটার্ন পাওয়া গেছে (${t.confidence}% নিশ্চিতি)। ব্যক্তিগত তথ্য প্রদান থেকে বিরত থাকুন।`
   }
   return `এই ${t.type} বার্তা সম্পর্কে কিছুটা সন্দেহ রয়েছে (${t.confidence}% নিশ্চিতি)। সতর্কতার সাথে যাচাই করুন।`
 }
@@ -154,7 +154,7 @@ export default function ThreatDetailPage() {
     const at = new Date(iso).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })
     const events = [
       { time: at, title: 'রিপোর্ট জমা হয়েছে', desc: 'ব্যবহারকারীর রিপোর্ট গৃহীত', color: '#f59e0b' },
-      { time: at, title: 'AI বিশ্লেষণ', desc: `${t.confidence}% ঝুঁকি স্কোর`, color: '#a855f7' },
+      { time: at, title: 'Eprohori বিশ্লেষণ', desc: `${t.confidence}% ঝুঁকি স্কোর`, color: '#a855f7' },
     ]
     if (t.status === 'verified') {
       events.push({ time: at, title: 'যাচাই সম্পন্ন', desc: 'হুমকি হিসেবে নিশ্চিত হয়েছে', color: '#ff4444' })
@@ -252,7 +252,7 @@ export default function ThreatDetailPage() {
                 className="flex-1 rounded-xl p-4"
                 style={{ background: 'rgba(6,13,26,0.7)', border: '1px solid rgba(0,229,196,0.1)' }}
               >
-                <p className="text-xs font-bold mb-2" style={{ color: '#00e5c4' }}>🤖 AI বিশ্লেষণ</p>
+                <p className="text-xs font-bold mb-2" style={{ color: '#00e5c4' }}>🛡️ Eprohori বিশ্লেষণ</p>
                 <p className="text-sm text-slate-300 leading-relaxed">{aiSummary(threat)}</p>
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function ThreatDetailPage() {
                 { label: 'প্ল্যাটফর্ম', value: threat.platform || threat.type },
                 { label: 'স্ট্যাটাস', value: threat.status === 'verified' ? 'যাচাইকৃত' : threat.status === 'rejected' ? 'নিরাপদ (যাচাইকৃত)' : 'পেন্ডিং' },
                 { label: 'রিপোর্ট সংখ্যা', value: `${(threat.up_votes ?? 0) + 1} জন` },
-                { label: 'AI ঝুঁকি স্কোর', value: `${threat.confidence}%` },
+                { label: 'ঝুঁকি স্কোর', value: `${threat.confidence}%` },
               ].map(item => (
                 <div key={item.label}>
                   <p className="text-xs text-slate-500 mb-0.5">{item.label}</p>

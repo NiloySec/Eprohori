@@ -80,6 +80,7 @@ export interface Threat {
   alerted?: boolean         // a district-wide alert was issued for this threat
   up_votes?: number         // how many times this threat was reported (clustered)
   screenshot?: string       // base64 evidence image (data URL)
+  reporter_email?: string   // reporter's email (admin-only field)
 }
 
 export interface Alert {
@@ -237,11 +238,12 @@ function adaptThreat(t: any): Threat | null {
     platform: t.platform,
     status: t.status,
     created_at: t.created_at,
-    description: t.description || content,
+    description: t.description || undefined,
     is_campaign: Boolean(t.is_campaign),
     alerted: Boolean(t.alerted),
     up_votes: t.up_votes ?? 0,
     screenshot: t.screenshot || undefined,
+    reporter_email: t.reporter_email || undefined,
   }
 }
 
@@ -402,8 +404,19 @@ export function getAdminToken(): string | null {
 export function setAdminToken(token: string | null) {
   try {
     if (token) sessionStorage.setItem('ep_admin_token', token)
-    else sessionStorage.removeItem('ep_admin_token')
+    else {
+      sessionStorage.removeItem('ep_admin_token')
+      sessionStorage.removeItem('ep_admin_name')
+      sessionStorage.removeItem('ep_admin_email')
+    }
   } catch { /* ignore */ }
+}
+export function getAdminProfile(): { name: string; email: string } | null {
+  try {
+    const name = sessionStorage.getItem('ep_admin_name')
+    const email = sessionStorage.getItem('ep_admin_email')
+    return name ? { name, email: email || '' } : null
+  } catch { return null }
 }
 
 function bearerHeader(token: string | null): Record<string, string> {
@@ -471,6 +484,10 @@ export async function adminLogin(email: string, password: string): Promise<{ nam
   const data = await authPost('/auth/admin-login', { email, password })
   if (!data.token) throw new Error('Login failed')
   setAdminToken(data.token)
+  try {
+    sessionStorage.setItem('ep_admin_name', data.name || 'Admin')
+    sessionStorage.setItem('ep_admin_email', email)
+  } catch { /* ignore */ }
   return { name: data.name, email: data.email }
 }
 
@@ -747,14 +764,10 @@ export async function fetchMyReports(_email?: string): Promise<MyReport[]> {
   }
 }
 
-export async function approveThreat(id: number): Promise<void> {
-  await api(`/threats/${id}/approve`, { method: 'PUT', headers: bearerHeader(getAdminToken()) })
-}
+export interface ApproveResult { verified: boolean; emails_sent: boolean; severity: string }
 
-export interface VerifyResult { verified: boolean; emails_sent: boolean; severity: string }
-
-export async function verifyThreatWithAlerts(id: number): Promise<VerifyResult> {
-  return api<VerifyResult>(`/threats/${id}/verify`, {
+export async function approveThreat(id: number): Promise<ApproveResult> {
+  return api<ApproveResult>(`/threats/${id}/verify`, {
     method: 'PATCH',
     headers: bearerHeader(getAdminToken()),
   })

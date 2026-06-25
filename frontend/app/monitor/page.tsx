@@ -590,7 +590,7 @@ export default function MonitorPage() {
                     className="ml-auto px-2 py-0.5 rounded-full"
                     style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}
                   >
-                    AI: {th.confidence}%
+                    Eprohori: {th.confidence}%
                   </span>
                 </div>
               </button>

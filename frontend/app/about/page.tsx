@@ -108,7 +108,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: '🤝', title: 'Community-Powered',    desc: 'Citizens report threats' },
-            { icon: '🤖', title: 'AI-Validated',          desc: 'Machine learning verifies' },
+            { icon: '🛡️', title: 'Eprohori-Verified',      desc: 'Platform verifies every report' },
             { icon: '🇧🇩', title: 'Nationally Protected', desc: 'Everyone stays safe' },
           ].map(c => (
             <div
@@ -130,7 +130,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: '📡', title: 'Crowdsourced Intelligence', desc: '5,772+ real Bengali phishing samples' },
-            { icon: '🧠', title: 'AI Threat Detection',        desc: 'ML model trained on real BD data' },
+            { icon: '🛡️', title: 'Eprohori Detection',          desc: 'Trained on real Bangladesh data' },
             { icon: '⚡', title: 'Real-time Alerts',           desc: 'Instant community notifications' },
           ].map(c => (
             <div

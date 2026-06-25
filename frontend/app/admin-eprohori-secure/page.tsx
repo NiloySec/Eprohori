@@ -1,6 +1,6 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { fetchThreats, fetchStats, verifyThreatWithAlerts, rejectThreat, broadcastAlert, adminLogin, fetchAuditLog, getAdminToken, setAdminToken } from '@/lib/api'
+import { useEffect, useState, useCallback } from 'react'
+import { fetchThreats, fetchStats, approveThreat, rejectThreat, broadcastAlert, adminLogin, fetchAuditLog, getAdminToken, setAdminToken } from '@/lib/api'
 import type { Threat, Stats, AuditEntry } from '@/lib/api'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'https://eprohori-production.up.railway.app'
@@ -23,16 +23,40 @@ export default function AdminPage() {
   const [rejected, setRejected] = useState<number[]>([])
   const [actionMsg, setActionMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
   const [activeTab, setActiveTab] = useState<'pending' | 'broadcast' | 'audit' | 'tools'>('pending')
+  const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null)
 
   useEffect(() => { if (getAdminToken()) setAuthed(true) }, [])
 
+  const loadAll = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true)
+    try {
+      const [t, s] = await Promise.all([
+        fetchThreats({ status: 'pending', limit: 100 }),
+        fetchStats(),
+      ])
+      setThreats(t)
+      setStats(s)
+      // Reset local approve/reject tracking — server is now the source of truth
+      setApproved([])
+      setRejected([])
+    } finally {
+      setLoading(false)
+    }
+    fetchAuditLog().then(setAudit)
+  }, [])
+
+  // Initial load
   useEffect(() => {
     if (!authed) return
-    Promise.all([fetchThreats({ status: 'pending', limit: 50 }), fetchStats()]).then(([t, s]) => {
-      setThreats(t); setStats(s); setLoading(false)
-    })
-    fetchAuditLog().then(setAudit)
-  }, [authed])
+    loadAll()
+  }, [authed, loadAll])
+
+  // Auto-refresh every 30s so new incoming reports appear without manual reload
+  useEffect(() => {
+    if (!authed) return
+    const id = setInterval(() => loadAll(true), 30000)
+    return () => clearInterval(id)
+  }, [authed, loadAll])
 
   const flash = (kind: 'ok' | 'err', text: string, ms = 4000) => {
     setActionMsg({ kind, text })
@@ -41,18 +65,20 @@ export default function AdminPage() {
 
   const handleApprove = async (id: number) => {
     try {
-      const res = await verifyThreatWithAlerts(id)
-      setApproved(a => [...a, id])
-      flash('ok', res.emails_sent
-        ? `Verified — district alert emails dispatched (${res.severity})`
-        : `Verified — no alert emails (confidence below 70%)`)
-      fetchAuditLog().then(setAudit)
+      const res = await approveThreat(id)
+      setSelectedThreat(null)
+      flash('ok', `✅ অনুমোদিত — alert email পাঠানো হয়েছে (${res.severity})`)
+      loadAll(true)
     } catch { flash('err', 'অনুমোদন ব্যর্থ — আবার চেষ্টা করুন', 3000) }
   }
 
   const handleReject = async (id: number) => {
-    try { await rejectThreat(id); setRejected(r => [...r, id]) }
-    catch { flash('err', 'প্রত্যাখ্যান ব্যর্থ', 3000) }
+    try {
+      await rejectThreat(id)
+      setSelectedThreat(null)
+      flash('ok', '🚫 প্রত্যাখ্যান করা হয়েছে — reporter-কে email পাঠানো হয়েছে')
+      loadAll(true)
+    } catch { flash('err', 'প্রত্যাখ্যান ব্যর্থ', 3000) }
   }
 
   const handleBroadcast = async () => {
@@ -251,9 +277,10 @@ export default function AdminPage() {
             : (
               <div className="grid md:grid-cols-2 gap-3">
                 {pending.map(t => {
-                  const willAlert = t.confidence >= 70
                   return (
-                    <div key={t.id} className="rounded-xl p-4 transition hover:border-white/15"
+                    <div key={t.id}
+                      onClick={() => setSelectedThreat(t)}
+                      className="rounded-xl p-4 transition hover:border-white/20 cursor-pointer"
                       style={{ background: 'rgba(6,13,26,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <div className="flex items-start justify-between mb-2 gap-2 flex-wrap">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -286,15 +313,11 @@ export default function AdminPage() {
                       {t.screenshot && (
                         <a href={t.screenshot} target="_blank" rel="noopener noreferrer" className="text-[11px] text-cyan-400 hover:underline">📎 screenshot দেখুন</a>
                       )}
-                      <div className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold mt-2 mb-3 ${willAlert ? '' : 'opacity-70'}`}
-                        style={{
-                          background: willAlert ? 'rgba(245,158,11,0.1)' : 'rgba(148,163,184,0.08)',
-                          color: willAlert ? '#f59e0b' : '#94a3b8',
-                          border: `1px solid ${willAlert ? 'rgba(245,158,11,0.25)' : 'rgba(148,163,184,0.15)'}`,
-                        }}>
-                        {willAlert ? '📧 District alert হবে' : '📋 Internal only'}
+                      <div className="inline-block text-[10px] px-2 py-0.5 rounded-full font-semibold mt-2 mb-3"
+                        style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' }}>
+                        📧 অনুমোদনে alert যাবে
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                         <button onClick={() => handleApprove(t.id)}
                           className="flex-1 py-2 rounded-lg text-xs font-bold transition hover:brightness-110"
                           style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}>
@@ -397,6 +420,105 @@ export default function AdminPage() {
           </div>
         </Panel>
       )}
+
+      {/* ── Threat detail modal ── */}
+      {selectedThreat && (
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
+          onClick={() => setSelectedThreat(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl overflow-hidden"
+            style={{ background: 'rgba(10,18,34,0.98)', border: '1px solid rgba(0,229,196,0.2)', boxShadow: '0 32px 80px rgba(0,0,0,0.7)', maxHeight: '90vh', overflowY: 'auto' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(0,229,196,0.1)', color: '#00e5c4' }}>
+                  #{selectedThreat.id} · {selectedThreat.type}
+                </span>
+                {selectedThreat.is_campaign && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>🔥 Campaign</span>
+                )}
+                <ConfidenceDot value={selectedThreat.confidence} />
+              </div>
+              <button
+                onClick={() => setSelectedThreat(null)}
+                aria-label="বন্ধ করুন"
+                className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-all text-xl"
+              >×</button>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              {/* Main content */}
+              <div>
+                <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">হুমকির বিষয়বস্তু</p>
+                <div className="rounded-lg p-4 text-sm text-white whitespace-pre-wrap break-words"
+                  style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)', lineHeight: 1.7 }}>
+                  {selectedThreat.detail}
+                </div>
+              </div>
+
+              {/* Additional description */}
+              {selectedThreat.description && selectedThreat.description !== selectedThreat.detail && (
+                <div>
+                  <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">অতিরিক্ত বিবরণ</p>
+                  <p className="text-sm text-slate-300 leading-relaxed" style={{ background: 'rgba(0,0,0,0.25)', borderRadius: 8, padding: '12px 14px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    {selectedThreat.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Metadata grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <MetaItem label="📍 জেলা/বিভাগ" value={selectedThreat.division || '—'} />
+                <MetaItem label="🎯 AI Confidence" value={`${selectedThreat.confidence}%`} accent={selectedThreat.confidence >= 75 ? '#ef4444' : selectedThreat.confidence >= 55 ? '#f59e0b' : '#3b82f6'} />
+                <MetaItem label="📱 প্ল্যাটফর্ম" value={selectedThreat.platform || '—'} />
+                <MetaItem label="📊 রিপোর্ট সংখ্যা" value={`${(selectedThreat.up_votes ?? 0) + 1}`} />
+                <MetaItem label="🕐 সময়" value={new Date(/Z$|[+]/.test(selectedThreat.created_at) ? selectedThreat.created_at : selectedThreat.created_at + 'Z').toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' })} />
+                {selectedThreat.reporter_email && (
+                  <MetaItem label="📧 রিপোর্টার" value={selectedThreat.reporter_email} />
+                )}
+              </div>
+
+              {/* Screenshot */}
+              {selectedThreat.screenshot && (
+                <div>
+                  <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">স্ক্রিনশট প্রমাণ</p>
+                  <a href={selectedThreat.screenshot} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={selectedThreat.screenshot}
+                      alt="screenshot"
+                      className="w-full rounded-lg object-contain cursor-zoom-in hover:opacity-90 transition"
+                      style={{ maxHeight: 200, border: '1px solid rgba(255,255,255,0.08)' }}
+                    />
+                  </a>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-3 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <button
+                  onClick={() => handleApprove(selectedThreat.id)}
+                  className="flex-1 py-3 rounded-xl text-sm font-bold transition hover:brightness-110"
+                  style={{ background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }}
+                >
+                  ✓ অনুমোদন করুন
+                </button>
+                <button
+                  onClick={() => handleReject(selectedThreat.id)}
+                  className="flex-1 py-3 rounded-xl text-sm font-bold transition hover:brightness-110"
+                  style={{ background: 'rgba(255,68,68,0.1)', color: '#ff6666', border: '1px solid rgba(255,68,68,0.25)' }}
+                >
+                  ✕ প্রত্যাখ্যান করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -473,5 +595,14 @@ function ToolCard({ icon, title, desc, cta, onClick }: { icon: string; title: st
       <div className="text-xs text-slate-400 mb-3">{desc}</div>
       <div className="text-xs text-cyan-400 group-hover:underline">{cta} →</div>
     </button>
+  )
+}
+
+function MetaItem({ label, value, accent }: { label: string; value: string; accent?: string }) {
+  return (
+    <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <p className="text-[10px] text-slate-500 mb-1">{label}</p>
+      <p className="text-xs font-semibold truncate" style={{ color: accent || '#e2e8f0' }}>{value}</p>
+    </div>
   )
 }

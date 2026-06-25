@@ -4,13 +4,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
-import { setAuthToken } from '@/lib/api'
+import { setAuthToken, setAdminToken, getAdminToken, getAdminProfile } from '@/lib/api'
 
 interface NavAuth {
   name: string
   email: string
   avatar?: string
   loggedIn: boolean
+  isAdmin?: boolean
 }
 
 export default function Navbar() {
@@ -26,7 +27,17 @@ export default function Navbar() {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('ep_auth') || 'null')
-      setAuth(saved?.loggedIn ? saved : null)
+      if (saved?.loggedIn) {
+        setAuth({ ...saved, isAdmin: false })
+      } else {
+        // Check admin session
+        const adminProfile = getAdminProfile()
+        if (adminProfile && getAdminToken()) {
+          setAuth({ name: adminProfile.name, email: adminProfile.email, loggedIn: true, isAdmin: true })
+        } else {
+          setAuth(null)
+        }
+      }
     } catch {
       setAuth(null)
     }
@@ -44,14 +55,18 @@ export default function Navbar() {
   }, [])
 
   const handleLogout = () => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('ep_auth') || 'null')
-      if (saved) localStorage.setItem('ep_auth', JSON.stringify({ ...saved, loggedIn: false }))
-    } catch { /* ignore */ }
-    setAuthToken(null)
+    if (auth?.isAdmin) {
+      setAdminToken(null)
+    } else {
+      try {
+        const saved = JSON.parse(localStorage.getItem('ep_auth') || 'null')
+        if (saved) localStorage.setItem('ep_auth', JSON.stringify({ ...saved, loggedIn: false }))
+      } catch { /* ignore */ }
+      setAuthToken(null)
+    }
     setAuth(null)
     setMenuOpen(false)
-    router.push('/account')
+    router.push(auth?.isAdmin ? '/admin-eprohori-secure' : '/account')
   }
 
   const navLinks = [
@@ -146,10 +161,20 @@ export default function Navbar() {
                 <button
                   onClick={() => setMenuOpen(v => !v)}
                   aria-label="Profile menu"
-                  className="flex items-center gap-2 transition-transform hover:scale-105"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:bg-white/5"
+                  style={{ background: 'none', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
                 >
-                  {avatarCircle(34)}
+                  {avatarCircle(28)}
+                  <span className="text-sm font-medium text-slate-200 max-w-[100px] truncate">
+                    {auth.name.split(' ')[0]}
+                  </span>
+                  {auth.isAdmin && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-bold"
+                      style={{ background: 'rgba(255,68,68,0.15)', color: '#ff6666' }}>
+                      Admin
+                    </span>
+                  )}
+                  <span className="text-slate-500 text-xs">▾</span>
                 </button>
                 {menuOpen && (
                   <div
@@ -169,11 +194,11 @@ export default function Navbar() {
                       <p className="text-xs text-slate-500 truncate">{auth.email}</p>
                     </div>
                     <Link
-                      href="/account"
+                      href={auth.isAdmin ? '/admin-eprohori-secure' : '/account'}
                       onClick={() => setMenuOpen(false)}
                       className="block px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 transition-colors"
                     >
-                      👤 {t('nav_profile')}
+                      {auth.isAdmin ? '⚡ Control Center' : `👤 ${t('nav_profile')}`}
                     </Link>
                     <button
                       onClick={handleLogout}

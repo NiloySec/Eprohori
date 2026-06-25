@@ -570,25 +570,26 @@ export default function MonitorPage() {
                     </span>
                   )}
                 </div>
-                {/* Line 1: Location • Time • Type (left) | Status badge (right) */}
+                <h3 className="text-sm font-semibold text-white mb-3">{th.content}</h3>
+                <p className="text-sm text-slate-300 mb-3">{th.detail}</p>
+                {/* Line 1: Location • Time • Type (left) | Alert badge (right) */}
                 <div className="flex items-center justify-between gap-3 text-xs mb-2">
                   <div className="flex items-center gap-2 text-slate-500">
                     <span>📍 {th.division}</span>
                     <span>{timeAgo(th.created_at)}</span>
-                    <span className="text-slate-400">{th.type}</span>
+                    <span>{th.type}</span>
                   </div>
-                  {th.status === 'verified' && (
+                  {th.alerted && (
                     <span
-                      className="px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: 'rgba(3,218,196,0.15)', color: '#00e5c4' }}
+                      className="px-2 py-0.5 rounded-full whitespace-nowrap"
+                      style={{ backgroundColor: 'rgba(0,229,196,0.15)', color: '#00e5c4' }}
                     >
                       🔔 সতর্কতা জারি
                     </span>
                   )}
                 </div>
-                {/* Line 2: Threat detail (left) | Confidence % (right) */}
-                <div className="flex items-start justify-between gap-3 text-xs">
-                  <p className="text-sm text-slate-200 flex-1">{th.detail}</p>
+                {/* Line 2: Confidence % (right) */}
+                <div className="flex justify-end text-xs">
                   <span
                     className="px-2 py-0.5 rounded-full whitespace-nowrap"
                     style={{ backgroundColor: 'rgba(0,229,196,0.08)', color: '#00e5c4' }}

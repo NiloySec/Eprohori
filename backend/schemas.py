@@ -226,5 +226,20 @@ class QuizDailyResult(BaseModel):
     already_done: bool = False
 
 
+class ChatbotQuery(BaseModel):
+    message: str
+    language: str = "bn"  # bn or en
+
+
+class ChatbotAnalysis(BaseModel):
+    threat_type: str
+    severity: str
+    confidence: float
+    description: str
+    solution_steps: list[str]
+    prevention_tips: list[str]
+    report_link: Optional[str] = None
+
+
 class StatusResponse(BaseModel):
     status: str

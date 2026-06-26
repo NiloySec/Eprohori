@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>EProhori — System Architecture</title>
+<style>
+  @page { size: 1180px 1380px; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { padding: 24px 30px; font-family: 'Segoe UI', 'Nirmala UI', system-ui, sans-serif; }
+  :root{
+    --ink:#26215C; --sub:#5F5E5A; --paper:#ffffff; --canvas:#F1EFE8; --line:#B4B2A9;
+    --fe:#378ADD; --feb:#E6F1FB; --be:#7F77DD; --beb:#EEEDFE;
+    --eng:#D4537E; --engb:#FBEAF0; --data:#1D9E75; --datab:#E1F5EE;
+    --ext:#D85A30; --extb:#FAECE7;
+  }
+  svg { width: 1120px; height: auto; display: block; }
+  .lt{fill:var(--ink);font-weight:700}
+  .ls{fill:var(--sub)}
+  .bt{fill:var(--ink);font-weight:600}
+  .bs{fill:var(--sub)}
+  .tier{fill:var(--canvas);stroke:var(--line);stroke-width:1}
+  .flow{stroke:var(--be);stroke-width:2.5;fill:none;marker-end:url(#ar)}
+  .flow2{stroke:var(--eng);stroke-width:2;fill:none;marker-end:url(#ar2)}
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1120 1200" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI','Nirmala UI',system-ui,sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7F77DD"/>
+    </marker>
+    <marker id="ar2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#D4537E"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="34" class="lt" font-size="22">EProhori — Full System Architecture</text>
+  <text x="40" y="56" class="ls" font-size="13">Crowdsourced Cyber-Threat Platform · Bangladesh · eprohori.tech</text>
+  <g font-size="11.5">
+    <rect x="690" y="22" width="12" height="12" rx="3" fill="#378ADD"/><text x="708" y="32" class="bs">Frontend</text>
+    <rect x="780" y="22" width="12" height="12" rx="3" fill="#7F77DD"/><text x="798" y="32" class="bs">Backend</text>
+    <rect x="868" y="22" width="12" height="12" rx="3" fill="#D4537E"/><text x="886" y="32" class="bs">Engine</text>
+    <rect x="950" y="22" width="12" height="12" rx="3" fill="#1D9E75"/><text x="968" y="32" class="bs">Data</text>
+    <rect x="1018" y="22" width="12" height="12" rx="3" fill="#D85A30"/><text x="1036" y="32" class="bs">External</text>
+  </g>
+
+  <text x="40" y="92" class="lt" font-size="13">ব্যবহারকারী / Client</text>
+  <rect x="380" y="100" width="160" height="50" rx="10" fill="#E6F1FB" stroke="#378ADD"/>
+  <text x="460" y="122" text-anchor="middle" class="bt" font-size="13">🌐 Browser</text>
+  <text x="460" y="139" text-anchor="middle" class="bs" font-size="10.5">Desktop web</text>
+  <rect x="580" y="100" width="160" height="50" rx="10" fill="#E6F1FB" stroke="#378ADD"/>
+  <text x="660" y="122" text-anchor="middle" class="bt" font-size="13">📱 Mobile PWA</text>
+  <text x="660" y="139" text-anchor="middle" class="bs" font-size="10.5">Installable app</text>
+  <path class="flow" d="M560 165 L560 188"/>
+
+  <rect class="tier" x="40" y="190" width="1040" height="118" rx="12"/>
+  <text x="58" y="214" class="lt" font-size="14">FRONTEND</text>
+  <text x="58" y="232" class="ls" font-size="11">Next.js 16 · React 19 · Tailwind · Vercel</text>
+  <g font-size="12">
+    <rect x="58" y="244" width="240" height="50" rx="9" fill="#E6F1FB" stroke="#378ADD"/>
+    <text x="178" y="266" text-anchor="middle" class="bt">Scan box</text>
+    <text x="178" y="283" text-anchor="middle" class="bs" font-size="10.5">analyzeSignals (client)</text>
+    <rect x="312" y="244" width="240" height="50" rx="9" fill="#E6F1FB" stroke="#378ADD"/>
+    <text x="432" y="266" text-anchor="middle" class="bt">AI Assistant</text>
+    <text x="432" y="283" text-anchor="middle" class="bs" font-size="10.5">intent · platform</text>
+    <rect x="566" y="244" width="240" height="50" rx="9" fill="#E6F1FB" stroke="#378ADD"/>
+    <text x="686" y="266" text-anchor="middle" class="bt">Monitor map</text>
+    <text x="686" y="283" text-anchor="middle" class="bs" font-size="10.5">Leaflet · 64 districts</text>
+    <rect x="820" y="244" width="242" height="50" rx="9" fill="#E6F1FB" stroke="#378ADD"/>
+    <text x="941" y="266" text-anchor="middle" class="bt">lib/api · i18n</text>
+    <text x="941" y="283" text-anchor="middle" class="bs" font-size="10.5">বাংলা / English</text>
+  </g>
+  <path class="flow" d="M560 312 L560 340"/>
+  <text x="572" y="330" class="bs" font-size="11">HTTPS · JSON</text>
+
+  <rect class="tier" x="40" y="342" width="1040" height="116" rx="12"/>
+  <text x="58" y="366" class="lt" font-size="14">BACKEND API</text>
+  <text x="58" y="384" class="ls" font-size="11">FastAPI · SQLAlchemy · Railway · 47 endpoints</text>
+  <rect x="58" y="394" width="1004" height="26" rx="7" fill="#EEEDFE" stroke="#7F77DD"/>
+  <text x="560" y="411" text-anchor="middle" class="bt" font-size="11.5">🛡️ Security layer — JWT (role) · PBKDF2 · 2FA (TOTP) · per-IP throttle · CSP</text>
+  <g font-size="11.5">
+    <rect x="58" y="424" width="244" height="28" rx="7" fill="#ffffff" stroke="#B4B2A9"/>
+    <text x="180" y="442" text-anchor="middle" class="bt">auth · 2FA · OTP</text>
+    <rect x="316" y="424" width="244" height="28" rx="7" fill="#ffffff" stroke="#B4B2A9"/>
+    <text x="438" y="442" text-anchor="middle" class="bt">threats · vote</text>
+    <rect x="574" y="424" width="244" height="28" rx="7" fill="#ffffff" stroke="#B4B2A9"/>
+    <text x="696" y="442" text-anchor="middle" class="bt">validate/text · url</text>
+    <rect x="832" y="424" width="230" height="28" rx="7" fill="#ffffff" stroke="#B4B2A9"/>
+    <text x="947" y="442" text-anchor="middle" class="bt">admin · heatmap</text>
+  </g>
+  <path class="flow" d="M560 462 L560 490"/>
+
+  <rect class="tier" x="40" y="492" width="1040" height="258" rx="12" fill="#FBEAF0" stroke="#D4537E"/>
+  <text x="58" y="516" class="lt" font-size="14">🧠 DETECTION ENGINE</text>
+  <text x="58" y="534" class="ls" font-size="11">Two separate paths — by input type</text>
+
+  <rect x="58" y="544" width="492" height="194" rx="10" fill="#ffffff" stroke="#D4537E"/>
+  <text x="304" y="566" text-anchor="middle" class="bt" font-size="12.5">🔗 URL path</text>
+  <g font-size="11.5">
+    <rect x="78" y="578" width="452" height="34" rx="7" fill="#E1F5EE" stroke="#1D9E75"/>
+    <text x="304" y="599" text-anchor="middle" class="bt">1. Domain cache · white/black list</text>
+    <rect x="78" y="624" width="452" height="34" rx="7" fill="#FAECE7" stroke="#D85A30"/>
+    <text x="304" y="645" text-anchor="middle" class="bt">2. VirusTotal — 70+ engines</text>
+    <rect x="78" y="670" width="452" height="34" rx="7" fill="#FBEAF0" stroke="#D4537E"/>
+    <text x="304" y="691" text-anchor="middle" class="bt">3. Heuristics — brand impersonation</text>
+    <rect x="78" y="710" width="452" height="22" rx="6" fill="#ffffff" stroke="#B4B2A9"/>
+    <text x="304" y="725" text-anchor="middle" class="bs" font-size="10.5">4. Unknown → honest "unverified"</text>
+  </g>
+  <path class="flow2" d="M304 612 L304 622"/>
+  <path class="flow2" d="M304 658 L304 668"/>
+
+  <rect x="570" y="544" width="492" height="194" rx="10" fill="#ffffff" stroke="#D4537E"/>
+  <text x="816" y="566" text-anchor="middle" class="bt" font-size="12.5">💬 Text (SMS) path</text>
+  <g font-size="11.5">
+    <rect x="590" y="578" width="452" height="34" rx="7" fill="#E1F5EE" stroke="#1D9E75"/>
+    <text x="816" y="599" text-anchor="middle" class="bt">Whitelist · transactional skip</text>
+    <rect x="590" y="624" width="452" height="34" rx="7" fill="#FBEAF0" stroke="#D4537E"/>
+    <text x="816" y="641" text-anchor="middle" class="bt">ML: TF-IDF + LogReg + rule boost</text>
+    <text x="816" y="654" text-anchor="middle" class="bs" font-size="9.5">~5,772 Bangla SMS · threshold 55/75%</text>
+    <rect x="590" y="670" width="452" height="34" rx="7" fill="#EEEDFE" stroke="#7F77DD"/>
+    <text x="816" y="687" text-anchor="middle" class="bt">Uncertain? → AI second opinion</text>
+    <text x="816" y="699" text-anchor="middle" class="bs" font-size="9.5">Groq → Gemini → Claude (fallback)</text>
+    <rect x="590" y="710" width="452" height="22" rx="6" fill="#ffffff" stroke="#B4B2A9"/>
+    <text x="816" y="725" text-anchor="middle" class="bs" font-size="10.5">Final verdict + Bangla explanation</text>
+  </g>
+  <path class="flow2" d="M816 612 L816 622"/>
+  <path class="flow2" d="M816 658 L816 668"/>
+  <path class="flow" d="M560 754 L560 782"/>
+
+  <rect class="tier" x="40" y="784" width="1040" height="104" rx="12"/>
+  <text x="58" y="808" class="lt" font-size="14">BUSINESS LOGIC</text>
+  <text x="58" y="826" class="ls" font-size="11">Report processing · alert decisions</text>
+  <g font-size="11">
+    <rect x="58" y="836" width="190" height="44" rx="8" fill="#EEEDFE" stroke="#7F77DD"/>
+    <text x="153" y="855" text-anchor="middle" class="bt">Dedup + cluster</text>
+    <text x="153" y="870" text-anchor="middle" class="bs" font-size="9.5">85% similarity</text>
+    <rect x="256" y="836" width="190" height="44" rx="8" fill="#EEEDFE" stroke="#7F77DD"/>
+    <text x="351" y="855" text-anchor="middle" class="bt">Trust score</text>
+    <text x="351" y="870" text-anchor="middle" class="bs" font-size="9.5">90%→auto-verify</text>
+    <rect x="454" y="836" width="190" height="44" rx="8" fill="#EEEDFE" stroke="#7F77DD"/>
+    <text x="549" y="855" text-anchor="middle" class="bt">Corroboration gate</text>
+    <text x="549" y="870" text-anchor="middle" class="bs" font-size="9.5">holds mass-alert</text>
+    <rect x="652" y="836" width="190" height="44" rx="8" fill="#EEEDFE" stroke="#7F77DD"/>
+    <text x="747" y="855" text-anchor="middle" class="bt">Burst detect</text>
+    <text x="747" y="870" text-anchor="middle" class="bs" font-size="9.5">5+ in 1h → wave</text>
+    <rect x="850" y="836" width="212" height="44" rx="8" fill="#EEEDFE" stroke="#7F77DD"/>
+    <text x="956" y="855" text-anchor="middle" class="bt">Alert routing</text>
+    <text x="956" y="870" text-anchor="middle" class="bs" font-size="9.5">critical=national · high=district</text>
+  </g>
+  <path class="flow" d="M310 892 L310 920"/>
+  <path class="flow" d="M810 920 L810 892"/>
+
+  <rect class="tier" x="40" y="922" width="1040" height="104" rx="12" fill="#E1F5EE" stroke="#1D9E75"/>
+  <text x="58" y="946" class="lt" font-size="14">🗄️ DATA LAYER</text>
+  <text x="58" y="964" class="ls" font-size="11">PostgreSQL (prod) · SQLite (dev)</text>
+  <g font-size="11">
+    <rect x="58" y="974" width="160" height="40" rx="8" fill="#ffffff" stroke="#1D9E75"/>
+    <text x="138" y="992" text-anchor="middle" class="bt">Threat</text>
+    <text x="138" y="1006" text-anchor="middle" class="bs" font-size="9.5">reports · status</text>
+    <rect x="226" y="974" width="160" height="40" rx="8" fill="#ffffff" stroke="#1D9E75"/>
+    <text x="306" y="992" text-anchor="middle" class="bt">User</text>
+    <text x="306" y="1006" text-anchor="middle" class="bs" font-size="9.5">XP · badge · 2FA</text>
+    <rect x="394" y="974" width="170" height="40" rx="8" fill="#ffffff" stroke="#1D9E75"/>
+    <text x="479" y="992" text-anchor="middle" class="bt">DomainReputation</text>
+    <text x="479" y="1006" text-anchor="middle" class="bs" font-size="9.5">privacy-safe cache</text>
+    <rect x="572" y="974" width="150" height="40" rx="8" fill="#ffffff" stroke="#1D9E75"/>
+    <text x="647" y="992" text-anchor="middle" class="bt">Alert</text>
+    <text x="647" y="1006" text-anchor="middle" class="bs" font-size="9.5">warnings</text>
+    <rect x="730" y="974" width="160" height="40" rx="8" fill="#ffffff" stroke="#1D9E75"/>
+    <text x="810" y="992" text-anchor="middle" class="bt">AdminAudit</text>
+    <text x="810" y="1006" text-anchor="middle" class="bs" font-size="9.5">accountability</text>
+    <rect x="898" y="974" width="164" height="40" rx="8" fill="#ffffff" stroke="#1D9E75"/>
+    <text x="980" y="992" text-anchor="middle" class="bt">ImpactFeedback</text>
+    <text x="980" y="1006" text-anchor="middle" class="bs" font-size="9.5">"saved you?" metric</text>
+  </g>
+
+  <rect class="tier" x="40" y="1040" width="1040" height="96" rx="12" fill="#FAECE7" stroke="#D85A30"/>
+  <text x="58" y="1064" class="lt" font-size="14">🌍 EXTERNAL SERVICES</text>
+  <text x="58" y="1082" class="ls" font-size="11">Third-party APIs — with graceful fallback</text>
+  <g font-size="11.5">
+    <rect x="58" y="1090" width="320" height="36" rx="8" fill="#ffffff" stroke="#D85A30"/>
+    <text x="218" y="1113" text-anchor="middle" class="bt">VirusTotal API — URL reputation</text>
+    <rect x="392" y="1090" width="340" height="36" rx="8" fill="#ffffff" stroke="#D85A30"/>
+    <text x="562" y="1113" text-anchor="middle" class="bt">LLM: Groq · Gemini · Claude</text>
+    <rect x="746" y="1090" width="316" height="36" rx="8" fill="#ffffff" stroke="#D85A30"/>
+    <text x="904" y="1113" text-anchor="middle" class="bt">Email: Resend → Brevo · Telegram</text>
+  </g>
+
+  <path class="flow2" stroke-dasharray="4 4" d="M304 738 C304 900 218 980 218 1088" opacity="0.5"/>
+  <path class="flow2" stroke-dasharray="4 4" d="M816 738 C816 900 562 980 562 1088" opacity="0.5"/>
+
+  <text x="40" y="1166" class="ls" font-size="11">Flow: Client → Frontend → Backend → Detection Engine → Business Logic ⇄ Data · Engine ⇢ External (dashed)</text>
+  <text x="40" y="1184" class="ls" font-size="11">Principles: cheap/fast path first · prefer a miss over a false accusation · corroboration required before any public action</text>
+</svg>
+</body>
+</html>

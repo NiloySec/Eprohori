@@ -17,3 +17,6 @@ frontend/AGENTS.md
 frontend/dev.log
 backend/uvicorn_test.log
 backend/security_verify.py
+
+.vercel
+.env*

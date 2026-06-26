@@ -1046,3 +1046,39 @@ export async function checkPhone(
     }
   }
 }
+
+// ── Incident Chatbot ────────────────────────────────────────────────────────
+
+export interface ChatbotAnalysis {
+  threat_type: string
+  severity: string
+  confidence: number
+  description: string
+  solution_steps: string[]
+  prevention_tips: string[]
+  report_link?: string
+}
+
+export async function analyzeIncident(
+  message: string,
+  language: 'bn' | 'en' = 'bn'
+): Promise<ChatbotAnalysis> {
+  try {
+    return await api<ChatbotAnalysis>(
+      '/chatbot/analyze',
+      {
+        method: 'POST',
+        body: JSON.stringify({ message, language })
+      }
+    )
+  } catch (error) {
+    return {
+      threat_type: 'Unable to classify',
+      severity: 'Medium',
+      confidence: 0,
+      description: 'সার্ভার সংযোগ নেই — বিশ্লেষণ করা যায়নি।',
+      solution_steps: ['EProhori সাপোর্টে যোগাযোগ করুন: eprohoribd@gmail.com'],
+      prevention_tips: []
+    }
+  }
+}

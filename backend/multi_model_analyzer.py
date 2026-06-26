@@ -72,7 +72,7 @@ RESPONSE FORMAT (JSON only):
 
         start_time = time.time()
         completion = groq_client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}

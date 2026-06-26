@@ -34,7 +34,8 @@ import phone_checker
 import virustotal
 import url_heuristics
 import domain_cache
-import multi_model_analyzer  # Multi-model: Groq → Gemini → Claude
+import multi_model_analyzer  # Multi-model: Zero-Shot → Groq → Gemini → Claude
+import zero_shot_classifier  # Ultra-fast offline zero-shot classification
 
 # Matches http(s) URLs and bare domains like example.com/path
 _URL_RE = re.compile(r"^(https?://|www\.)\S+$|^[a-z0-9-]+(\.[a-z0-9-]+)+(/\S*)?$", re.IGNORECASE)

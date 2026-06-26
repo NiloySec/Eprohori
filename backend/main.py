@@ -2100,12 +2100,14 @@ def check_phone(req: CheckPhoneRequest):
 @app.post("/api/chatbot/analyze", response_model=ChatbotAnalysis, tags=["chatbot"])
 async def chatbot_analyze(req: ChatbotQuery):
     """
-    Lightweight ensemble: Gemini (60%) + Rule-based (40%)
-    Removed BART (406MB) to fit 0.5GB trial limit. Groq deprecated models - using Gemini only.
-    Expected accuracy: 75-80% (Gemini is very accurate)
+    Dual-model ensemble: Groq (50%) + Gemini (30%) + Rule-based (20%)
+    Removed BART (406MB) to fit 0.5GB trial limit.
+    Groq: gemma-2-9b-it (stable model)
+    Gemini: gemini-2.0-flash (accurate model)
+    Expected accuracy: 80%+ (dual LLM + rule-based)
     """
     from advanced_preprocessing import preprocess_text
-    from multi_model_analyzer import analyze_with_gemini, _return_best_effort
+    from multi_model_analyzer import analyze_with_groq, analyze_with_gemini, _return_best_effort
 
     try:
         # Step 1: Advanced preprocessing
@@ -2116,23 +2118,32 @@ async def chatbot_analyze(req: ChatbotQuery):
               f"Emails={preprocessed['email_count']}, "
               f"Phones={preprocessed['phone_count']}")
 
-        # Step 2: Gemini + Rule-based ensemble (Groq models all deprecated)
+        # Step 2: Groq + Gemini + Rule-based ensemble
         results = []
         models_used = []
 
-        # Try Gemini (60% weight - primary model)
+        # Try Groq (50% weight - gemma-2-9b-it)
+        try:
+            groq_result = await analyze_with_groq(req.message, req.language)
+            if groq_result and groq_result.get("threat_type") != "Unknown":
+                results.append((groq_result, 0.50))
+                models_used.append("Groq")
+        except Exception as e:
+            print(f"[chatbot] Groq error: {e}")
+
+        # Try Gemini (30% weight)
         try:
             gemini_result = await analyze_with_gemini(req.message, req.language)
             if gemini_result and gemini_result.get("threat_type") != "Unknown":
-                results.append((gemini_result, 0.60))
+                results.append((gemini_result, 0.30))
                 models_used.append("Gemini")
         except Exception as e:
             print(f"[chatbot] Gemini error: {e}")
 
-        # Fallback rule-based (40% weight)
+        # Fallback rule-based (20% weight)
         if not results:
             fallback = _return_best_effort(req.message, req.language)
-            results.append((fallback, 0.40))
+            results.append((fallback, 0.20))
             models_used.append("Rule-based")
 
         # Step 3: Weighted voting

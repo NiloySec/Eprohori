@@ -112,7 +112,7 @@ Analyze user's incident description and respond ONLY with JSON:
         return None
 
 
-async def _return_best_effort(message: str, language: str = "bn") -> dict:
+def _return_best_effort(message: str, language: str = "bn") -> dict:
     """Fallback: Return best effort analysis when all models fail."""
     # Extract basic keywords to suggest threat type
     keywords_phishing = ["link", "click", "password", "verify", "confirm", "urgent"]
@@ -224,7 +224,7 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
     try:
         vt_result = await _check_virustotal_layer(message, language)
         if vt_result:
-            print(f"[multi-model] ✓ VirusTotal detected malicious: {vt_result['confidence']:.0%}")
+            print(f"[multi-model] OK: VirusTotal detected malicious: {vt_result['confidence']:.0%}")
             return vt_result
     except Exception as e:
         print(f"[multi-model] VirusTotal error: {e}")
@@ -234,7 +234,7 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
     try:
         zero_shot_result = await classify_threat_zero_shot(message, language, confidence_threshold=0.90)
         if zero_shot_result:
-            print(f"[multi-model] ✓ Zero-Shot confident: {zero_shot_result['confidence']:.0%}")
+            print(f"[multi-model] OK: Zero-Shot confident: {zero_shot_result['confidence']:.0%}")
             return zero_shot_result
     except Exception as e:
         print(f"[multi-model] Zero-Shot error: {e}")
@@ -244,7 +244,7 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
     groq_result = await analyze_with_groq(message, language)
 
     if groq_result and groq_result.get("confidence", 0) >= 0.80:
-        print(f"[multi-model] ✓ Groq confident: {groq_result['confidence']:.0%}")
+        print(f"[multi-model] OK: Groq confident: {groq_result['confidence']:.0%}")
         return groq_result
 
     # Layer 3: Smart path (Gemini) - 1-3 seconds
@@ -252,13 +252,13 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
     gemini_result = await analyze_with_gemini(message, language)
 
     if gemini_result and gemini_result.get("confidence", 0) >= 0.75:
-        print(f"[multi-model] ✓ Gemini confident: {gemini_result['confidence']:.0%}")
+        print(f"[multi-model] OK: Gemini confident: {gemini_result['confidence']:.0%}")
         return gemini_result
 
     # Layer 4: Fallback (keyword-based best effort)
     print(f"[multi-model] Layer 4: Using best-effort fallback...")
-    fallback_result = await _return_best_effort(message, language)
-    print(f"[multi-model] ✓ Best-effort result: {fallback_result['confidence']:.0%}")
+    fallback_result = _return_best_effort(message, language)
+    print(f"[multi-model] OK: Best-effort result: {fallback_result['confidence']:.0%}")
     return fallback_result
 
 

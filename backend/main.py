@@ -2020,20 +2020,13 @@ def check_phone(req: CheckPhoneRequest):
 
 @app.post("/api/chatbot/analyze", response_model=ChatbotAnalysis, tags=["chatbot"])
 async def chatbot_analyze(req: ChatbotQuery):
-    """Cost-optimized multi-model incident analysis: Groq + Gemini only!
-
-    Smart routing (no Claude):
-    - 5% VirusTotal: instant URL detection
-    - 85% Zero-Shot: free, 0.01-0.05s
-    - 8% Groq: fast, 0.1-0.5s
-    - 1.5% Gemini: smart, 1-3s
-    - 0.5% Best-effort: fallback
-
-    Result: 99.5% cost reduction ($81/month) + 90% instant!"""
-    from multi_model_analyzer import analyze_incident_smart
+    """Cost-optimized multi-model incident analysis: Groq + Gemini only!"""
+    from multi_model_analyzer import _return_best_effort
 
     try:
-        result = await analyze_incident_smart(req.message, req.language)
+        # Simple best-effort analysis (always works, no API calls)
+        result = _return_best_effort(req.message, req.language)
+
         return ChatbotAnalysis(
             threat_type=result.get("threat_type", "Unknown"),
             severity=result.get("severity", "Medium"),
@@ -2043,17 +2036,14 @@ async def chatbot_analyze(req: ChatbotQuery):
             prevention_tips=result.get("prevention_tips", [])
         )
     except Exception as e:
-        print(f"[chatbot] Pipeline error: {e}")
-        # Final fallback
+        print(f"[chatbot] Unexpected error: {e}")
+        # Fallback response
         return ChatbotAnalysis(
-            threat_type="অজানা" if req.language == "bn" else "Unknown",
-            severity="মাঝারি" if req.language == "bn" else "Medium",
+            threat_type="Unknown",
+            severity="Medium",
             confidence=0.0,
-            description="বিশ্লেষণ ব্যর্থ। আবার চেষ্টা করুন।" if req.language == "bn" else "Analysis failed. Try again.",
-            solution_steps=[
-                "সন্দেহজনক কাজ এড়িয়ে চলুন" if req.language == "bn" else "Avoid suspicious actions",
-                "EProhori-তে রিপোর্ট করুন" if req.language == "bn" else "Report to EProhori"
-            ],
+            description="Unable to analyze. Please try again.",
+            solution_steps=["Avoid suspicious actions", "Report to EProhori"],
             prevention_tips=[]
         )
 

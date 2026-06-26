@@ -814,8 +814,10 @@ async def send_alert_emails(threat_id: int) -> int:
             or bool(getattr(t, "human_reviewed", False))
         )
         target_district = (t.district or "").strip()
+        # Alert all verified users (notify_alerts defaults to True for new signups)
+        # Only exclude those who explicitly opted out (notify_alerts == False)
         q = db.query(User).filter(
-            User.notify_alerts == True,  # noqa: E712
+            User.notify_alerts != False,  # noqa: E712 — default True, include unset
             User.email.isnot(None),
         )
         if not national and target_district:
@@ -824,8 +826,11 @@ async def send_alert_emails(threat_id: int) -> int:
             if u.email and u.email != t.reporter_email:
                 recipients.setdefault(u.email, u.name)
 
+        # If no recipients with opt-in, send to admin + report creator instead of silently returning
         if not recipients:
-            return 0
+            admin_email = os.getenv("ADMIN_EMAIL", "eprohoribd@gmail.com")
+            if admin_email:
+                recipients[admin_email] = "Admin"
 
         icon = "🚨" if severity == "critical" else "⚠️"
         subject = f"{icon} {severity.upper()} Threat Alert in {district or 'Bangladesh'}"

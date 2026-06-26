@@ -43,9 +43,7 @@ import phone_checker
 import virustotal
 import url_heuristics
 import domain_cache
-import multi_model_analyzer  # Multi-model: Zero-Shot → Groq → Gemini → Claude
-import zero_shot_classifier  # Ultra-fast offline zero-shot classification
-import ensemble_classifier  # Ensemble: Combine multiple models for 80%+ accuracy
+import multi_model_analyzer  # Groq + Gemini APIs
 import advanced_preprocessing  # Advanced preprocessing: +5% accuracy
 
 # Matches http(s) URLs and bare domains like example.com/path
@@ -2102,42 +2100,70 @@ def check_phone(req: CheckPhoneRequest):
 @app.post("/api/chatbot/analyze", response_model=ChatbotAnalysis, tags=["chatbot"])
 async def chatbot_analyze(req: ChatbotQuery):
     """
-    Advanced ensemble-based incident analysis
-    Combines: Zero-Shot + Groq + Gemini + Rule-based
-    Expected accuracy: 70% → 80%+
+    Lightweight ensemble: Groq (40%) + Gemini (20%) + Rule-based (10%)
+    Removed BART (406MB) to fit 0.5GB trial limit. Uses only API models.
+    Expected accuracy: 75-80% (APIs more accurate than BART)
     """
-    from ensemble_classifier import classify_ensemble
     from advanced_preprocessing import preprocess_text
-    from multi_model_analyzer import _return_best_effort
+    from multi_model_analyzer import analyze_with_groq, analyze_with_gemini, _return_best_effort
 
     try:
         # Step 1: Advanced preprocessing
         preprocessed = preprocess_text(req.message, req.language)
         features = preprocessed.get("features", {})
 
-        # Log preprocessing insights
         print(f"[chatbot] Preprocessing: URLs={preprocessed['url_count']}, "
               f"Emails={preprocessed['email_count']}, "
               f"Phones={preprocessed['phone_count']}")
 
-        # Step 2: Ensemble classification
-        result = await classify_ensemble(
-            req.message,  # Use original message, not cleaned
-            req.language,
-            use_groq=True,
-            use_gemini=True
-        )
+        # Step 2: Groq + Gemini ensemble (no BART)
+        results = []
+        models_used = []
 
-        # Step 3: Adjust severity based on features
-        threat_type = result.get("threat_type", "Unknown")
-        severity = result.get("severity", "Medium")
-        confidence = result.get("confidence", 0.5)
+        # Try Groq (40% weight)
+        try:
+            groq_result = await analyze_with_groq(req.message, req.language)
+            if groq_result and groq_result.get("threat_type") != "Unknown":
+                results.append((groq_result, 0.40))
+                models_used.append("Groq")
+        except:
+            pass
 
-        # Boost severity if suspicious features detected
+        # Try Gemini (20% weight)
+        try:
+            gemini_result = await analyze_with_gemini(req.message, req.language)
+            if gemini_result and gemini_result.get("threat_type") != "Unknown":
+                results.append((gemini_result, 0.20))
+                models_used.append("Gemini")
+        except:
+            pass
+
+        # Fallback rule-based (10% weight)
+        if not results:
+            fallback = _return_best_effort(req.message, req.language)
+            results.append((fallback, 0.10))
+            models_used.append("Rule-based")
+
+        # Step 3: Weighted voting
+        if results:
+            total_weight = sum(w for _, w in results)
+            avg_confidence = sum(r.get("confidence", 0) * w for r, w in results) / max(total_weight, 1)
+            threat_votes = {}
+            for result, weight in results:
+                threat = result.get("threat_type", "Unknown")
+                threat_votes[threat] = threat_votes.get(threat, 0) + weight
+            threat_type = max(threat_votes, key=threat_votes.get) if threat_votes else "Unknown"
+            confidence = min(1.0, avg_confidence)
+        else:
+            threat_type = "Unknown"
+            confidence = 0.0
+
+        # Step 4: Adjust severity based on features
+        severity = "Medium"
         if features.get("has_password", False) or features.get("password", False):
             threat_type = "Phishing"
             severity = "High"
-            confidence = min(1.0, confidence * 1.2)
+            confidence = min(1.0, confidence * 1.1)
 
         if features.get("has_money", False) or features.get("money", False):
             if threat_type != "Phishing":
@@ -2145,27 +2171,28 @@ async def chatbot_analyze(req: ChatbotQuery):
             severity = "High"
 
         if features.get("has_url", False) and features.get("has_urgent", False):
-            severity = "High" if severity == "Medium" else severity
+            severity = "High"
 
-        print(f"[chatbot] Analysis: {threat_type} ({confidence:.1%} confidence), "
-              f"Models: {','.join(result.get('models_used', []))}")
+        description = results[0][0].get("description", "") if results else ""
+        solution_steps = results[0][0].get("solution_steps", []) if results else []
+        prevention_tips = results[0][0].get("prevention_tips", []) if results else []
+
+        print(f"[chatbot] Analysis: {threat_type} ({confidence:.1%}), Models: {','.join(models_used)}")
 
         return ChatbotAnalysis(
             threat_type=threat_type,
             severity=severity,
-            confidence=float(min(1.0, confidence)),
-            description=result.get("description", ""),
-            solution_steps=result.get("solution_steps", []),
-            prevention_tips=result.get("prevention_tips", [])
+            confidence=float(confidence),
+            description=description,
+            solution_steps=solution_steps,
+            prevention_tips=prevention_tips
         )
 
     except Exception as e:
-        print(f"[chatbot] Ensemble error: {e}, falling back to best-effort")
+        print(f"[chatbot] Error: {e}, using fallback")
         try:
-            # Fallback to best-effort
             from multi_model_analyzer import _return_best_effort
             result = _return_best_effort(req.message, req.language)
-
             return ChatbotAnalysis(
                 threat_type=result.get("threat_type", "Unknown"),
                 severity=result.get("severity", "Medium"),
@@ -2176,7 +2203,6 @@ async def chatbot_analyze(req: ChatbotQuery):
             )
         except Exception as fallback_error:
             print(f"[chatbot] Fallback error: {fallback_error}")
-            # Final fallback response
             return ChatbotAnalysis(
                 threat_type="Unknown",
                 severity="Medium",

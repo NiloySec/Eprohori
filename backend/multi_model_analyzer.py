@@ -44,14 +44,29 @@ async def analyze_with_groq(message: str, language: str = "bn") -> Optional[dict
         return None
 
     try:
-        system_prompt = """আপনি EProhori সাইবার নিরাপত্তা সহায়ক।
-ব্যবহারকারী তাদের ঘটনা বর্ণনা করে। দ্রুত বিশ্লেষণ করুন এবং JSON দিন:
+        system_prompt = """আপনি EProhori সাইবার নিরাপত্তা এক্সপার্ট।
+ব্যবহারকারী তাদের ঘটনা বর্ণনা করে। বিশ্লেষণ করুন এবং শুধুমাত্র JSON দিন (অন্য কিছু নয়):
+
+THREAT INDICATORS:
+- Phishing: OTP, verify, confirm, password, login, urgent, click link, account locked
+- Scam: won, prize, congratulations, claim, free money, lottery, reward
+- Fraud: transfer, send money, payment, account number, blackmail, photos
+- Malware: download, attachment, install, file, executable
+- SIM Swap: telecom, sim, replacement, network, operator
+
+CONFIDENCE RULES:
+- 0.9-1.0: Multiple clear indicators present (e.g., OTP + verify + urgent)
+- 0.75-0.89: 2-3 indicators present, URL/link mentioned
+- 0.5-0.74: 1-2 indicators, unclear message
+- Below 0.5: No clear indicators
+
+RESPONSE FORMAT (JSON only):
 {
-  "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap",
+  "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap/Unknown",
   "severity": "Critical/High/Medium/Low",
   "confidence": 0.85,
-  "description": "সংক্ষিপ্ত ব্যাখ্যা",
-  "solution_steps": ["ধাপ 1", "ধাপ 2"],
+  "description": "কেন এটা threat - সংক্ষিপ্ত",
+  "solution_steps": ["ধাপ 1", "ধাপ 2", "ধাপ 3"],
   "prevention_tips": ["টিপ 1", "টিপ 2"]
 }"""
 
@@ -62,7 +77,7 @@ async def analyze_with_groq(message: str, language: str = "bn") -> Optional[dict
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
             ],
-            temperature=0.7,
+            temperature=0.3,
             max_tokens=512,
         )
         elapsed = time.time() - start_time
@@ -84,20 +99,36 @@ async def analyze_with_gemini(message: str, language: str = "bn") -> Optional[di
 
     try:
         model = genai.GenerativeModel("gemini-2.0-flash")
-        system_prompt = """You are EProhori cybersecurity assistant.
-Analyze user's incident description and respond ONLY with JSON:
+        system_prompt = """You are EProhori cybersecurity expert.
+Analyze user's incident. Return ONLY valid JSON (nothing else):
+
+THREAT DETECTION GUIDE:
+Phishing: Request for OTP/password/login/verification. Fake links. Account "locked". Urgency.
+Scam: Prize/lottery/free money/congratulations. Links to claim. Unrealistic offers.
+Fraud: Money transfer requests. Bank account numbers. Blackmail/extortion. Photos threatened.
+Malware: Download requests. File attachments. Installation prompts. Executables.
+SIM Swap: Telecom provider mentions. SIM replacement. Network issues.
+
+CONFIDENCE SCORING:
+0.95-1.0: 4+ clear indicators. Certainty high.
+0.80-0.94: 3 indicators. Strong confidence.
+0.65-0.79: 2 indicators. Moderate confidence.
+0.50-0.64: 1 indicator. Low-moderate confidence.
+Below 0.50: Ambiguous. Mark as Unknown.
+
+Response (JSON ONLY):
 {
-  "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap",
+  "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap/Unknown",
   "severity": "Critical/High/Medium/Low",
   "confidence": 0.85,
-  "description": "Brief explanation",
-  "solution_steps": ["Step 1", "Step 2"],
+  "description": "Why this is a threat - brief",
+  "solution_steps": ["Step 1", "Step 2", "Step 3"],
   "prevention_tips": ["Tip 1", "Tip 2"]
 }"""
 
         start_time = time.time()
         response = model.generate_content(
-            f"{system_prompt}\n\nUser incident: {message}",
+            f"{system_prompt}\n\nAnalyze: {message}",
             generation_config={"temperature": 0.7, "max_output_tokens": 512}
         )
         elapsed = time.time() - start_time

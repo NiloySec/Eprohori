@@ -88,7 +88,10 @@ RESPONSE FORMAT (JSON only):
         result["latency"] = elapsed
         return result
     except Exception as e:
-        print(f"[groq] Error: {e}")
+        err_msg = f"[groq] {type(e).__name__}: {str(e)[:300]}"
+        print(err_msg)
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -139,7 +142,10 @@ Response (JSON ONLY):
         result["latency"] = elapsed
         return result
     except Exception as e:
-        print(f"[gemini] Error: {e}")
+        err_msg = f"[gemini] {type(e).__name__}: {str(e)[:300]}"
+        print(err_msg)
+        import traceback
+        traceback.print_exc()
         return None
 
 

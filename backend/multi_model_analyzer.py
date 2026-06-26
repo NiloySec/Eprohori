@@ -19,16 +19,10 @@ except ImportError:
     GROQ_AVAILABLE = False
 
 try:
-    # Use new google-genai package (old google.generativeai is deprecated)
-    import google.genai as genai
+    import google.generativeai as genai
     GEMINI_AVAILABLE = True
 except ImportError:
-    try:
-        # Fallback to old package if new one not available
-        import google.generativeai as genai
-        GEMINI_AVAILABLE = True
-    except ImportError:
-        GEMINI_AVAILABLE = False
+    GEMINI_AVAILABLE = False
 
 from anthropic import Anthropic as ClaudeClient
 

@@ -250,10 +250,10 @@ app = FastAPI(
     description="Bangladesh's crowdsourced cyber-threat platform",
     version="1.0.0",
     lifespan=lifespan,
-    # Docs always disabled — they advertise the full attack surface
-    docs_url=None,
-    redoc_url=None,
-    openapi_url=None,
+    # Enable docs in development/internal use
+    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None,
+    openapi_url="/openapi.json" if os.getenv("ENVIRONMENT") != "production" else None,
 )
 
 # ── CORS: restrict to known frontend origins ─────────────────────────────────
@@ -314,6 +314,76 @@ async def unhandled_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal server error", "path": request.url.path},
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# API Documentation (Swagger/OpenAPI)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def custom_openapi():
+    """Customize OpenAPI schema with tags and descriptions."""
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    from fastapi.openapi.utils import get_openapi
+
+    openapi_schema = get_openapi(
+        title="EProhori API",
+        version="1.0.0",
+        description="Bangladesh Cybersecurity Threat Platform - Community-driven threat reporting and analysis",
+        routes=app.routes,
+        tags=[
+            {
+                "name": "auth",
+                "description": "User authentication and profile management"
+            },
+            {
+                "name": "threats",
+                "description": "Threat reporting and classification"
+            },
+            {
+                "name": "alerts",
+                "description": "Alert management and delivery"
+            },
+            {
+                "name": "monitor",
+                "description": "Real-time threat monitoring and statistics"
+            },
+            {
+                "name": "admin",
+                "description": "Administrative functions (requires admin role)"
+            },
+            {
+                "name": "chatbot",
+                "description": "AI-powered incident analysis chatbot"
+            },
+            {
+                "name": "validation",
+                "description": "Threat validation and analysis"
+            },
+        ]
+    )
+
+    openapi_schema["info"]["x-logo"] = {
+        "url": "https://eprohori.tech/logo.png"
+    }
+
+    openapi_schema["servers"] = [
+        {
+            "url": "https://api.eprohori.tech",
+            "description": "Production API"
+        },
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development"
+        }
+    ]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 
 # ─────────────────────────────────────────────────────────────────────────────

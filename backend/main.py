@@ -19,6 +19,15 @@ from dotenv import load_dotenv
 
 load_dotenv()  # must run before notification_service reads env keys
 
+# Initialize Sentry for error tracking
+import sentry_sdk
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN", ""),
+    traces_sample_rate=0.1,
+    environment=os.getenv("ENVIRONMENT", "production"),
+    attach_stacktrace=True,
+)
+
 import jwt
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware

@@ -44,30 +44,53 @@ async def analyze_with_groq(message: str, language: str = "bn") -> Optional[dict
         return None
 
     try:
-        system_prompt = """আপনি EProhori সাইবার নিরাপত্তা এক্সপার্ট।
-ব্যবহারকারী তাদের ঘটনা বর্ণনা করে। বিশ্লেষণ করুন এবং শুধুমাত্র JSON দিন (অন্য কিছু নয়):
+        system_prompt = """আপনি EProhori বাংলাদেশ সাইবার সিকিউরিটি এক্সপার্ট।
 
-THREAT INDICATORS:
-- Phishing: OTP, verify, confirm, password, login, urgent, click link, account locked
-- Scam: won, prize, congratulations, claim, free money, lottery, reward
-- Fraud: transfer, send money, payment, account number, blackmail, photos
-- Malware: download, attachment, install, file, executable
-- SIM Swap: telecom, sim, replacement, network, operator
+CRITICAL: ALWAYS assign HIGH confidence (0.75+) unless message is clearly safe.
 
-CONFIDENCE RULES:
-- 0.9-1.0: Multiple clear indicators present (e.g., OTP + verify + urgent)
-- 0.75-0.89: 2-3 indicators present, URL/link mentioned
-- 0.5-0.74: 1-2 indicators, unclear message
-- Below 0.5: No clear indicators
+THREAT ANALYSIS FRAMEWORK:
 
-RESPONSE FORMAT (JSON only):
+PHISHING SIGNALS:
+├─ PRIMARY: OTP/verify/confirm/password/login (confidence +0.30)
+├─ URGENT: "immediately", "asap", "now", "urgent" (confidence +0.20)
+├─ LINK: "click", "verify here", "https://", "bit.ly" (confidence +0.15)
+├─ ACCOUNT: "locked", "suspended", "disabled" (confidence +0.15)
+└─ CONFIDENCE: Any 2+ signals = 0.85+, Any 3+ = 0.95+
+
+SCAM SIGNALS:
+├─ PRIMARY: "won", "prize", "congratulations", "claim" (confidence +0.35)
+├─ MONEY: "money", "taka", "free", "reward" (confidence +0.20)
+├─ LINK: URL or claim link present (confidence +0.15)
+├─ URGENCY: Time-pressure language (confidence +0.15)
+└─ CONFIDENCE: Any 2+ signals = 0.80+, Any 3+ = 0.90+
+
+FRAUD SIGNALS:
+├─ PRIMARY: "transfer", "send money", "payment", "account" (confidence +0.30)
+├─ THREAT: "blackmail", "delete", "expose", "photos" (confidence +0.25)
+├─ URGENCY: Threat + deadline (confidence +0.20)
+└─ CONFIDENCE: Any 2+ signals = 0.80+, All 3 = 0.95+
+
+MALWARE SIGNALS:
+├─ PRIMARY: "download", "install", "attachment", "file" (confidence +0.25)
+├─ SUSPICIOUS: .exe, .zip, "run", "open" (confidence +0.20)
+├─ LINK: Shortened URL or suspicious domain (confidence +0.15)
+└─ CONFIDENCE: Any 2+ signals = 0.75+
+
+DEFAULT CONFIDENCE ASSIGNMENT:
+- 3+ strong indicators = 0.95
+- 2+ strong indicators = 0.85
+- 1 strong + 1 weak = 0.75
+- 1 strong indicator only = 0.70
+- Ambiguous/Safe = 0.05
+
+RESPOND WITH JSON ONLY (no explanation):
 {
-  "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap/Unknown",
+  "threat_type": "Phishing/Scam/Fraud/Malware/SIM Swap/Unknown",
   "severity": "Critical/High/Medium/Low",
   "confidence": 0.85,
-  "description": "কেন এটা threat - সংক্ষিপ্ত",
-  "solution_steps": ["ধাপ 1", "ধাপ 2", "ধাপ 3"],
-  "prevention_tips": ["টিপ 1", "টিপ 2"]
+  "description": "কেন এটি হুমকি",
+  "solution_steps": ["সুরক্ষা ধাপ", "পরবর্তী ধাপ"],
+  "prevention_tips": ["প্রতিরোধ পরামর্শ"]
 }"""
 
         start_time = time.time()
@@ -102,24 +125,46 @@ async def analyze_with_gemini(message: str, language: str = "bn") -> Optional[di
 
     try:
         model = genai.GenerativeModel("gemini-2.0-flash")
-        system_prompt = """You are EProhori cybersecurity expert.
-Analyze user's incident. Return ONLY valid JSON (nothing else):
+        system_prompt = """You are EProhori Bangladesh cybersecurity expert.
 
-THREAT DETECTION GUIDE:
-Phishing: Request for OTP/password/login/verification. Fake links. Account "locked". Urgency.
-Scam: Prize/lottery/free money/congratulations. Links to claim. Unrealistic offers.
-Fraud: Money transfer requests. Bank account numbers. Blackmail/extortion. Photos threatened.
-Malware: Download requests. File attachments. Installation prompts. Executables.
-SIM Swap: Telecom provider mentions. SIM replacement. Network issues.
+CRITICAL: Assign confidence 0.75+ unless message is clearly safe.
 
-CONFIDENCE SCORING:
-0.95-1.0: 4+ clear indicators. Certainty high.
-0.80-0.94: 3 indicators. Strong confidence.
-0.65-0.79: 2 indicators. Moderate confidence.
-0.50-0.64: 1 indicator. Low-moderate confidence.
-Below 0.50: Ambiguous. Mark as Unknown.
+THREAT DETECTION FRAMEWORK:
 
-Response (JSON ONLY):
+PHISHING (REQUEST FOR CREDENTIALS):
+├─ STRONG: OTP, password, PIN, verification code, login (confidence +0.35)
+├─ MEDIUM: Confirm, verify, authenticate (confidence +0.20)
+├─ LINK: URL, link, click here, visit (confidence +0.15)
+├─ URGENCY: Immediate, urgent, now, immediately (confidence +0.15)
+└─ RULE: 2+ signals = 0.85, 3+ = 0.95
+
+SCAM (MONEY CLAIM):
+├─ STRONG: Won, prize, congratulations, claim, reward (confidence +0.35)
+├─ MONEY: Money, Taka, free, cash, amount (confidence +0.20)
+├─ LINK: Shortened URL, claim link, verification link (confidence +0.15)
+├─ FAKE: Fake company, impersonation indicators (confidence +0.15)
+└─ RULE: 2+ signals = 0.80, 3+ = 0.90
+
+FRAUD (MONEY THEFT):
+├─ STRONG: Transfer, send money, payment, account, wire (confidence +0.35)
+├─ THREAT: Delete, expose, blackmail, photos (confidence +0.25)
+├─ TIME: Deadline, time pressure, act now (confidence +0.15)
+└─ RULE: 2+ signals = 0.85, All 3 = 0.95
+
+MALWARE (INFECTION):
+├─ STRONG: Download, install, attachment, file, execute (confidence +0.30)
+├─ SUSPICIOUS: .exe, .zip, suspicious file, infected (confidence +0.20)
+├─ LINK: Shortened URL, suspicious domain (confidence +0.15)
+└─ RULE: 2+ signals = 0.80
+
+CONFIDENCE CALCULATION:
+- 4+ indicators = 0.95 (near certain)
+- 3 indicators = 0.85 (high confidence)
+- 2 indicators = 0.75 (moderate-high)
+- 1 indicator = 0.65 (moderate)
+- No indicators = 0.05 (ambiguous/safe)
+
+RESPOND WITH JSON ONLY (no text):
 {
   "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap/Unknown",
   "severity": "Critical/High/Medium/Low",

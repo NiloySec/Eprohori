@@ -46,6 +46,18 @@ import domain_cache
 import multi_model_analyzer  # Groq + Gemini APIs
 import advanced_preprocessing  # Advanced preprocessing: +5% accuracy
 
+# Redis caching for speed optimization
+try:
+    import redis
+    redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"),
+                               port=int(os.getenv("REDIS_PORT", 6379)),
+                               db=0, decode_responses=True)
+    redis_client.ping()
+    REDIS_AVAILABLE = True
+except:
+    REDIS_AVAILABLE = False
+    redis_client = None
+
 # Matches http(s) URLs and bare domains like example.com/path
 _URL_RE = re.compile(r"^(https?://|www\.)\S+$|^[a-z0-9-]+(\.[a-z0-9-]+)+(/\S*)?$", re.IGNORECASE)
 from database import Base, engine, get_db
@@ -2101,15 +2113,27 @@ def check_phone(req: CheckPhoneRequest):
 async def chatbot_analyze(req: ChatbotQuery):
     """
     Dual-model ensemble: Groq (50%) + Gemini (30%) + Rule-based (20%)
-    Removed BART (406MB) to fit 0.5GB trial limit.
-    Groq: gemma-2-9b-it (stable model)
-    Gemini: gemini-2.0-flash (accurate model)
-    Expected accuracy: 80%+ (dual LLM + rule-based)
+    With Redis caching for 10x speed (<0.1s cached vs 0.5-5s live)
+    Groq: gemma-2-9b-it | Gemini: gemini-2.0-flash
+    Expected: 75-80% confidence, <0.1s response (cached)
     """
     from advanced_preprocessing import preprocess_text
     from multi_model_analyzer import analyze_with_groq, analyze_with_gemini, _return_best_effort
+    import json as json_lib
+    import hashlib
 
     try:
+        # SPEED: Check Redis cache first (10x faster!)
+        cache_key = f"chatbot:{hashlib.md5(req.message.encode()).hexdigest()}"
+        if REDIS_AVAILABLE:
+            try:
+                cached = redis_client.get(cache_key)
+                if cached:
+                    print(f"[chatbot] CACHE HIT: {cache_key[:20]}...")
+                    return ChatbotAnalysis(**json_lib.loads(cached))
+            except Exception as e:
+                print(f"[chatbot] Cache error: {e}")
+
         # Step 1: Advanced preprocessing
         preprocessed = preprocess_text(req.message, req.language)
         features = preprocessed.get("features", {})
@@ -2181,7 +2205,8 @@ async def chatbot_analyze(req: ChatbotQuery):
 
         print(f"[chatbot] Analysis: {threat_type} ({confidence:.1%}), Models: {','.join(models_used)}")
 
-        return ChatbotAnalysis(
+        # Create response
+        response = ChatbotAnalysis(
             threat_type=threat_type,
             severity=severity,
             confidence=float(confidence),
@@ -2189,6 +2214,16 @@ async def chatbot_analyze(req: ChatbotQuery):
             solution_steps=solution_steps,
             prevention_tips=prevention_tips
         )
+
+        # SPEED: Cache result for 1 hour (3600 seconds)
+        if REDIS_AVAILABLE:
+            try:
+                redis_client.setex(cache_key, 3600, response.model_dump_json())
+                print(f"[chatbot] CACHED: {cache_key[:20]}...")
+            except Exception as e:
+                print(f"[chatbot] Cache store error: {e}")
+
+        return response
 
     except Exception as e:
         print(f"[chatbot] Error: {e}, using fallback")

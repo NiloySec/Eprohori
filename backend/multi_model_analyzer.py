@@ -46,51 +46,55 @@ async def analyze_with_groq(message: str, language: str = "bn") -> Optional[dict
     try:
         system_prompt = """আপনি EProhori বাংলাদেশ সাইবার সিকিউরিটি এক্সপার্ট।
 
-CRITICAL: ALWAYS assign HIGH confidence (0.75+) unless message is clearly safe.
+🔴 MANDATORY: ASSIGN CONFIDENCE SCORES STRICTLY:
+- If ANY threat detected = minimum 0.70
+- If 2+ threat signals = minimum 0.80
+- If 3+ threat signals = minimum 0.90
+- If 4+ threat signals = 0.95
+- ONLY assign <0.20 for completely safe/generic messages
 
-THREAT ANALYSIS FRAMEWORK:
+THREAT SIGNALS WITH MANDATORY CONFIDENCE:
 
-PHISHING SIGNALS:
-├─ PRIMARY: OTP/verify/confirm/password/login (confidence +0.30)
-├─ URGENT: "immediately", "asap", "now", "urgent" (confidence +0.20)
-├─ LINK: "click", "verify here", "https://", "bit.ly" (confidence +0.15)
-├─ ACCOUNT: "locked", "suspended", "disabled" (confidence +0.15)
-└─ CONFIDENCE: Any 2+ signals = 0.85+, Any 3+ = 0.95+
+PHISHING (OTP/PASSWORD/LOGIN THEFT):
+├─ PASSWORD REQUEST = +0.35 confidence
+├─ OTP/VERIFICATION CODE = +0.35 confidence
+├─ "CONFIRM IDENTITY" / "VERIFY ACCOUNT" = +0.30 confidence
+├─ URGENT LANGUAGE (now/immediately/asap) = +0.20 confidence
+├─ URL/LINK PRESENT = +0.15 confidence
+└─ MINIMUM: If ANY 1 signal = 0.70, ANY 2 = 0.85, ANY 3+ = 0.95
 
-SCAM SIGNALS:
-├─ PRIMARY: "won", "prize", "congratulations", "claim" (confidence +0.35)
-├─ MONEY: "money", "taka", "free", "reward" (confidence +0.20)
-├─ LINK: URL or claim link present (confidence +0.15)
-├─ URGENCY: Time-pressure language (confidence +0.15)
-└─ CONFIDENCE: Any 2+ signals = 0.80+, Any 3+ = 0.90+
+SCAM (FALSE PRIZE/MONEY):
+├─ "WON", "PRIZE", "REWARD", "CLAIM" = +0.35 confidence
+├─ MONEY/TAKA/CASH MENTIONED = +0.25 confidence
+├─ URL OR LINK = +0.15 confidence
+├─ URGENCY LANGUAGE = +0.15 confidence
+└─ MINIMUM: If ANY 2 signals = 0.80, ANY 3+ = 0.92
 
-FRAUD SIGNALS:
-├─ PRIMARY: "transfer", "send money", "payment", "account" (confidence +0.30)
-├─ THREAT: "blackmail", "delete", "expose", "photos" (confidence +0.25)
-├─ URGENCY: Threat + deadline (confidence +0.20)
-└─ CONFIDENCE: Any 2+ signals = 0.80+, All 3 = 0.95+
+FRAUD (MONEY THEFT/EXTORTION):
+├─ "TRANSFER", "SEND MONEY", "PAYMENT" = +0.35 confidence
+├─ THREAT/BLACKMAIL/DELETE/EXPOSE = +0.30 confidence
+├─ DEADLINE/TIME PRESSURE = +0.20 confidence
+└─ MINIMUM: If ANY 2 signals = 0.85, ALL 3 = 0.95
 
-MALWARE SIGNALS:
-├─ PRIMARY: "download", "install", "attachment", "file" (confidence +0.25)
-├─ SUSPICIOUS: .exe, .zip, "run", "open" (confidence +0.20)
-├─ LINK: Shortened URL or suspicious domain (confidence +0.15)
-└─ CONFIDENCE: Any 2+ signals = 0.75+
+MALWARE (INFECTION):
+├─ "DOWNLOAD", "INSTALL", "ATTACHMENT", ".exe" = +0.30 confidence
+├─ SHORTENED URL = +0.20 confidence
+└─ MINIMUM: If ANY 2 signals = 0.80
 
-DEFAULT CONFIDENCE ASSIGNMENT:
-- 3+ strong indicators = 0.95
-- 2+ strong indicators = 0.85
-- 1 strong + 1 weak = 0.75
-- 1 strong indicator only = 0.70
-- Ambiguous/Safe = 0.05
+BENGALI SCAM KEYWORDS (Bangladesh-specific):
+- "বিকাশ" (BKash) + suspicious = 0.90
+- "নগদ" (Nagad) + suspicious = 0.90
+- "রকেট" (Rocket) + suspicious = 0.90
+- "রিওয়ার্ড", "বোনাস" (reward/bonus) + link = 0.85
 
-RESPOND WITH JSON ONLY (no explanation):
+RESPOND WITH JSON - CONFIDENCE MUST FOLLOW RULES ABOVE:
 {
   "threat_type": "Phishing/Scam/Fraud/Malware/SIM Swap/Unknown",
   "severity": "Critical/High/Medium/Low",
   "confidence": 0.85,
-  "description": "কেন এটি হুমকি",
-  "solution_steps": ["সুরক্ষা ধাপ", "পরবর্তী ধাপ"],
-  "prevention_tips": ["প্রতিরোধ পরামর্শ"]
+  "description": "কেন এটি হুমকি (২-৩ বাক্য)",
+  "solution_steps": ["ধাপ ১", "ধাপ ২", "ধাপ ৩"],
+  "prevention_tips": ["পরামর্শ ১", "পরামর্শ ২"]
 }"""
 
         start_time = time.time()
@@ -127,49 +131,51 @@ async def analyze_with_gemini(message: str, language: str = "bn") -> Optional[di
         model = genai.GenerativeModel("gemini-2.0-flash")
         system_prompt = """You are EProhori Bangladesh cybersecurity expert.
 
-CRITICAL: Assign confidence 0.75+ unless message is clearly safe.
+🔴 MANDATORY CONFIDENCE RULES (MUST FOLLOW):
+- ANY threat detected = MINIMUM 0.70 confidence
+- 2+ threat signals = MINIMUM 0.80 confidence
+- 3+ threat signals = MINIMUM 0.90 confidence
+- 4+ threat signals = 0.95 confidence
+- Only assign <0.20 for clearly safe messages
 
-THREAT DETECTION FRAMEWORK:
+PHISHING DETECTION (CREDENTIAL THEFT):
+├─ PASSWORD/PIN/OTP requested = +0.35 confidence
+├─ VERIFICATION CODE required = +0.35 confidence
+├─ "Confirm identity/Verify account" = +0.30 confidence
+├─ URGENT language (immediately/now/asap) = +0.20 confidence
+├─ URL/Link present = +0.15 confidence
+└─ SCORING: 1 signal = 0.70min, 2 = 0.85min, 3+ = 0.95
 
-PHISHING (REQUEST FOR CREDENTIALS):
-├─ STRONG: OTP, password, PIN, verification code, login (confidence +0.35)
-├─ MEDIUM: Confirm, verify, authenticate (confidence +0.20)
-├─ LINK: URL, link, click here, visit (confidence +0.15)
-├─ URGENCY: Immediate, urgent, now, immediately (confidence +0.15)
-└─ RULE: 2+ signals = 0.85, 3+ = 0.95
+SCAM DETECTION (FALSE PRIZES):
+├─ "WON", "PRIZE", "REWARD", "CLAIM", "CONGRATULATIONS" = +0.35
+├─ Money/Taka/Cash mentioned = +0.25 confidence
+├─ Link/claim URL present = +0.15 confidence
+├─ Urgency/Time pressure = +0.15 confidence
+└─ SCORING: 2 signals = 0.80min, 3+ = 0.92min
 
-SCAM (MONEY CLAIM):
-├─ STRONG: Won, prize, congratulations, claim, reward (confidence +0.35)
-├─ MONEY: Money, Taka, free, cash, amount (confidence +0.20)
-├─ LINK: Shortened URL, claim link, verification link (confidence +0.15)
-├─ FAKE: Fake company, impersonation indicators (confidence +0.15)
-└─ RULE: 2+ signals = 0.80, 3+ = 0.90
+FRAUD DETECTION (EXTORTION/THEFT):
+├─ "Transfer/Send money/Payment/Account" = +0.35 confidence
+├─ THREAT: Blackmail/Delete/Expose/Photos = +0.30 confidence
+├─ Deadline/Time pressure = +0.20 confidence
+└─ SCORING: 2 signals = 0.85min, All 3 = 0.95
 
-FRAUD (MONEY THEFT):
-├─ STRONG: Transfer, send money, payment, account, wire (confidence +0.35)
-├─ THREAT: Delete, expose, blackmail, photos (confidence +0.25)
-├─ TIME: Deadline, time pressure, act now (confidence +0.15)
-└─ RULE: 2+ signals = 0.85, All 3 = 0.95
+MALWARE DETECTION:
+├─ Download/Install/Attachment/.exe = +0.30 confidence
+├─ Shortened URL or suspicious domain = +0.20 confidence
+└─ SCORING: 2+ signals = 0.80min
 
-MALWARE (INFECTION):
-├─ STRONG: Download, install, attachment, file, execute (confidence +0.30)
-├─ SUSPICIOUS: .exe, .zip, suspicious file, infected (confidence +0.20)
-├─ LINK: Shortened URL, suspicious domain (confidence +0.15)
-└─ RULE: 2+ signals = 0.80
+BANGLADESH-SPECIFIC (HIGH CONFIDENCE):
+├─ বিকাশ (BKash) + suspicious link = 0.90
+├─ নগদ (Nagad) + suspicious link = 0.90
+├─ রকেট (Rocket) + suspicious link = 0.90
+├─ বোনাস/রিওয়ার্ড + URL = 0.85
 
-CONFIDENCE CALCULATION:
-- 4+ indicators = 0.95 (near certain)
-- 3 indicators = 0.85 (high confidence)
-- 2 indicators = 0.75 (moderate-high)
-- 1 indicator = 0.65 (moderate)
-- No indicators = 0.05 (ambiguous/safe)
-
-RESPOND WITH JSON ONLY (no text):
+RESPOND WITH JSON (confidence MUST match rules above):
 {
   "threat_type": "Phishing/Scam/Malware/Fraud/SIM Swap/Unknown",
   "severity": "Critical/High/Medium/Low",
   "confidence": 0.85,
-  "description": "Why this is a threat - brief",
+  "description": "Why this is a threat (2-3 sentences)",
   "solution_steps": ["Step 1", "Step 2", "Step 3"],
   "prevention_tips": ["Tip 1", "Tip 2"]
 }"""
@@ -229,6 +235,83 @@ def _return_best_effort(message: str, language: str = "bn") -> dict:
         "model": "best-effort",
         "latency": 0.0
     }
+
+
+def _boost_confidence(result: dict, message: str) -> dict:
+    """Post-process: Boost confidence if threat signals detected but confidence is low."""
+    if not result or result.get("threat_type") == "Unknown":
+        return result
+
+    msg_lower = message.lower()
+    original_confidence = result.get("confidence", 0)
+
+    # Count threat signals
+    signal_count = 0
+    boosted_confidence = original_confidence
+
+    # PHISHING signals
+    phishing_keywords = ["password", "otp", "verify", "confirm", "login", "account", "urgent", "immediate", "click here"]
+    phishing_signals = sum(1 for kw in phishing_keywords if kw in msg_lower)
+
+    # SCAM signals
+    scam_keywords = ["won", "prize", "reward", "congratulations", "claim", "money", "taka", "free", "bonus"]
+    scam_signals = sum(1 for kw in scam_keywords if kw in msg_lower)
+
+    # FRAUD signals
+    fraud_keywords = ["transfer", "send money", "payment", "bank", "blackmail", "expose", "delete", "urgent"]
+    fraud_signals = sum(1 for kw in fraud_keywords if kw in msg_lower)
+
+    # MALWARE signals
+    malware_keywords = ["download", "install", "attachment", ".exe", ".zip", "malware", "virus"]
+    malware_signals = sum(1 for kw in malware_keywords if kw in msg_lower)
+
+    # Bangladesh-specific high-priority signals
+    bangladesh_keywords = ["বিকাশ", "bkash", "নগদ", "nagad", "রকেট", "rocket", "বোনাস", "রিওয়ার্ড"]
+    bangladesh_signals = sum(1 for kw in bangladesh_keywords if kw in msg_lower)
+
+    # URL presence
+    url_signals = 1 if _extract_urls(message) else 0
+
+    # Total threat signals
+    total_signals = max(phishing_signals, scam_signals, fraud_signals, malware_signals) + bangladesh_signals + url_signals
+
+    # Boost confidence based on signals and threat type
+    if result.get("threat_type") in ["Phishing", "ফিশিং"]:
+        if phishing_signals >= 3 or total_signals >= 4:
+            boosted_confidence = max(original_confidence, 0.95)
+        elif phishing_signals >= 2 or total_signals >= 3:
+            boosted_confidence = max(original_confidence, 0.85)
+        elif phishing_signals >= 1 or url_signals:
+            boosted_confidence = max(original_confidence, 0.75)
+
+    elif result.get("threat_type") in ["Scam", "প্রতারণা"]:
+        if scam_signals >= 3 or total_signals >= 4:
+            boosted_confidence = max(original_confidence, 0.92)
+        elif scam_signals >= 2 or total_signals >= 3:
+            boosted_confidence = max(original_confidence, 0.82)
+        elif scam_signals >= 1:
+            boosted_confidence = max(original_confidence, 0.75)
+
+    elif result.get("threat_type") in ["Fraud", "জালিয়াতি"]:
+        if fraud_signals >= 3 or total_signals >= 4:
+            boosted_confidence = max(original_confidence, 0.95)
+        elif fraud_signals >= 2 or total_signals >= 3:
+            boosted_confidence = max(original_confidence, 0.88)
+
+    elif result.get("threat_type") in ["Malware", "ম্যালওয়্যার"]:
+        if malware_signals >= 2 or total_signals >= 3:
+            boosted_confidence = max(original_confidence, 0.85)
+
+    # Bangladesh-specific boost
+    if bangladesh_signals > 0 and url_signals > 0:
+        boosted_confidence = max(boosted_confidence, 0.88)
+
+    # Never lower confidence, always boost if threat detected
+    if result.get("threat_type") != "Unknown" and boosted_confidence < 0.70:
+        boosted_confidence = 0.75
+
+    result["confidence"] = round(boosted_confidence, 2)
+    return result
 
 
 def _extract_urls(text: str) -> list[str]:
@@ -325,21 +408,30 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
     print(f"[multi-model] Layer 2: Trying Groq (fast LLM)...")
     groq_result = await analyze_with_groq(message, language)
 
-    if groq_result and groq_result.get("confidence", 0) >= 0.80:
-        print(f"[multi-model] OK: Groq confident: {groq_result['confidence']:.0%}")
-        return groq_result
+    if groq_result:
+        # Apply confidence boost if threat detected but confidence low
+        groq_result = _boost_confidence(groq_result, message)
+        print(f"[multi-model] Groq result: threat={groq_result.get('threat_type')}, confidence={groq_result.get('confidence'):.0%}")
+        if groq_result.get("confidence", 0) >= 0.75:
+            print(f"[multi-model] OK: Groq confident!")
+            return groq_result
 
     # Layer 3: Smart path (Gemini) - 1-3 seconds
     print(f"[multi-model] Layer 3: Trying Gemini (smart context)...")
     gemini_result = await analyze_with_gemini(message, language)
 
-    if gemini_result and gemini_result.get("confidence", 0) >= 0.75:
-        print(f"[multi-model] OK: Gemini confident: {gemini_result['confidence']:.0%}")
-        return gemini_result
+    if gemini_result:
+        # Apply confidence boost if threat detected but confidence low
+        gemini_result = _boost_confidence(gemini_result, message)
+        print(f"[multi-model] Gemini result: threat={gemini_result.get('threat_type')}, confidence={gemini_result.get('confidence'):.0%}")
+        if gemini_result.get("confidence", 0) >= 0.75:
+            print(f"[multi-model] OK: Gemini confident!")
+            return gemini_result
 
     # Layer 4: Fallback (keyword-based best effort)
     print(f"[multi-model] Layer 4: Using best-effort fallback...")
     fallback_result = _return_best_effort(message, language)
+    fallback_result = _boost_confidence(fallback_result, message)
     print(f"[multi-model] OK: Best-effort result: {fallback_result['confidence']:.0%}")
     return fallback_result
 

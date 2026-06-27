@@ -1,20 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 44" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
   <defs>
-    <linearGradient id="sg" x1="4" y1="4" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#00e5c4"/>
-      <stop offset="1" stop-color="#0891b2"/>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+    <linearGradient id="innerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#764ba2"/>
+      <stop offset="100%" stop-color="#5a3d7f"/>
     </linearGradient>
   </defs>
 
-  <!-- Shield icon (original 64×64 viewBox scaled 0.5625× → 36×36, offset 4px) -->
-  <g transform="translate(4,4) scale(0.5625)">
-    <path d="M32 4 L56 14 V32 C56 46 45 56 32 60 C19 56 8 46 8 32 V14 Z" fill="url(#sg)"/>
-    <path d="M32 22 L24 26 V34 C24 40 27 44 32 46 C37 44 40 40 40 34 V26 Z" fill="#050810" opacity="0.85"/>
-    <path d="M28 32 L31 35 L37 28" stroke="#00e5c4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
+  <!-- Shield background with cyan border -->
+  <path d="M 40 10 L 15 24 L 15 44 C 15 68 40 78 40 78 C 40 78 65 68 65 44 L 65 24 Z"
+        fill="url(#shieldGrad)" stroke="#00ffcc" stroke-width="1"/>
 
-  <!-- Brand name: white E, teal P, white rohori -->
-  <text font-family="'Segoe UI',Arial,Helvetica,sans-serif" font-size="22" font-weight="700" letter-spacing="-0.3">
-    <tspan x="48" y="30" fill="#f1f5f9">E</tspan><tspan fill="#00e5c4">P</tspan><tspan fill="#f1f5f9">rohori</tspan>
-  </text>
+  <!-- Inner shield -->
+  <path d="M 40 16 L 24 28 L 24 44 C 24 63 40 72 40 72 C 40 72 56 63 56 44 L 56 28 Z"
+        fill="url(#innerGrad)"/>
+
+  <!-- Center accent circle -->
+  <circle cx="40" cy="38" r="4.5" fill="#00ffcc" opacity="0.9"/>
+
+  <!-- E letter in shield -->
+  <text x="40" y="54" font-size="20" font-weight="bold" fill="#00ffcc" text-anchor="middle"
+        font-family="Arial, sans-serif">E</text>
+
+  <!-- EProhori text -->
+  <text x="85" y="38" font-size="28" font-weight="700" fill="#00ffcc"
+        font-family="Arial, sans-serif" letter-spacing="0.5">EProhori</text>
+
+  <!-- Subtitle -->
+  <text x="85" y="55" font-size="10" font-weight="500" fill="#a0a8c8"
+        font-family="Arial, sans-serif" letter-spacing="0.3">THREAT DETECTOR</text>
 </svg>

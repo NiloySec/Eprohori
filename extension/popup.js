@@ -4,15 +4,19 @@ const API_URL = 'https://eprohori-production.up.railway.app/api/chatbot/analyze'
 const messageInput = document.getElementById('messageInput');
 const languageSelect = document.getElementById('languageSelect');
 const analyzeBtn = document.getElementById('analyzeBtn');
+const analysisView = document.getElementById('analysisView');
 const resultsSection = document.getElementById('resultsSection');
 const reportBtn = document.getElementById('reportBtn');
+const backBtn = document.getElementById('backBtn');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  analysisView.classList.remove('hidden');
   loadStats();
   checkSelectedText();
   analyzeBtn.addEventListener('click', analyzeMessage);
   reportBtn.addEventListener('click', reportThreat);
+  backBtn.addEventListener('click', backToAnalysis);
 });
 
 // Check for selected text in current tab
@@ -92,36 +96,18 @@ async function analyzeMessage() {
 
 // Display results
 function displayResults(result, message) {
-  // Threat Type
-  document.getElementById('threatType').textContent = result.threat_type || 'Unknown';
-  const threatClass = `badge-${(result.threat_type || '').toLowerCase()}`;
-  document.getElementById('threatType').className = `badge ${threatClass}`;
-
-  // Severity
-  document.getElementById('severity').textContent = result.severity || 'Medium';
-  const severityClass = `badge-${(result.severity || '').toLowerCase()}`;
-  document.getElementById('severity').className = `badge ${severityClass}`;
-
-  // Risk Level (Confidence)
   const confidence = Math.round((result.confidence || 0) * 100);
-  document.getElementById('riskPercent').textContent = `${confidence}%`;
-  document.getElementById('riskBar').style.width = `${confidence}%`;
+  const threatType = result.threat_type || 'Unknown';
 
-  // Color code risk bar
-  if (confidence >= 80) {
-    document.getElementById('riskBar').style.background = '#d32f2f'; // Red
-  } else if (confidence >= 50) {
-    document.getElementById('riskBar').style.background = '#f57c00'; // Orange
-  } else {
-    document.getElementById('riskBar').style.background = '#ffb300'; // Yellow
-  }
+  // Update threat display
+  document.getElementById('threatTypeDisplay').textContent = getThreatEmoji(threatType) + ' ' + threatType;
 
-  // Description
-  let description = result.description || 'No description available';
-  if (result.blocklist_match) {
-    description = `⚠️ BLOCKLISTED: ${result.blocklist_match.reason}\n${description}`;
-  }
-  document.getElementById('description').textContent = description;
+  // Bengali description
+  const bengaliDesc = getThreatBengaliDescription(threatType, confidence);
+  document.getElementById('threatDescription').textContent = bengaliDesc;
+
+  // Display suspicious URL/message
+  document.getElementById('suspiciousUrl').textContent = message.substring(0, 100);
 
   // Solution steps
   if (result.solution_steps && result.solution_steps.length > 0) {
@@ -137,6 +123,8 @@ function displayResults(result, message) {
     document.getElementById('preventionTips').innerHTML = tipsHtml;
   }
 
+  // Show results, hide analysis
+  analysisView.classList.add('hidden');
   resultsSection.classList.remove('hidden');
 
   // Store for reporting
@@ -144,6 +132,35 @@ function displayResults(result, message) {
     currentResult: result,
     currentMessage: message
   });
+}
+
+// Back to analysis
+function backToAnalysis() {
+  resultsSection.classList.add('hidden');
+  analysisView.classList.remove('hidden');
+  messageInput.value = '';
+}
+
+// Get threat emoji
+function getThreatEmoji(threatType) {
+  const emojis = {
+    'phishing': '🎣',
+    'scam': '💰',
+    'fraud': '🚨',
+    'malware': '⚠️'
+  };
+  return emojis[threatType?.toLowerCase()] || '⚠️';
+}
+
+// Get Bengali description
+function getThreatBengaliDescription(threatType, confidence) {
+  const descriptions = {
+    'phishing': `এই লিঙ্ক ফিশিং সতর্কতা (${confidence}% নিশ্চিত)`,
+    'scam': `এটি সম্ভাব্য প্রতারণা (${confidence}% নিশ্চিত)`,
+    'fraud': `জালিয়াতির সন্দেহ (${confidence}% নিশ্চিত)`,
+    'malware': `ম্যালওয়্যার বিপদ (${confidence}% নিশ্চিত)`
+  };
+  return descriptions[threatType?.toLowerCase()] || `হুমকি সনাক্ত হয়েছে (${confidence}% নিশ্চিত)`;
 }
 
 // Report threat (OLD FEATURE)

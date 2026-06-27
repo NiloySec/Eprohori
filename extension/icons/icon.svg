@@ -1,0 +1,13 @@
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield background -->
+  <path d="M64 8 L20 28 L20 64 C20 100 64 120 64 120 C64 120 108 100 108 64 L108 28 Z" fill="#667eea" stroke="#764ba2" stroke-width="2"/>
+
+  <!-- Inner shield -->
+  <path d="M64 16 L28 34 L28 64 C28 96 64 112 64 112 C64 112 100 96 100 64 L100 34 Z" fill="#764ba2"/>
+
+  <!-- E letter -->
+  <text x="64" y="70" font-size="48" font-weight="bold" fill="#00ffcc" text-anchor="middle" font-family="Arial">E</text>
+
+  <!-- Shield accent -->
+  <circle cx="64" cy="50" r="8" fill="#00ffcc" opacity="0.8"/>
+</svg>

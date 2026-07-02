@@ -94,6 +94,7 @@ class ValidateTextResponse(BaseModel):
     explanation: Optional[str] = None   # Bengali explanation from Claude (threats only)
     source: str = "ml"                  # "ml" or "ml+claude"
     real_domain: Optional[str] = None   # official site an impersonation URL mimics (bkash.com)
+    domain_age_days: Optional[int] = None  # days since domain registration (URLs only)
 
 
 class PartnerInquiryRequest(BaseModel):

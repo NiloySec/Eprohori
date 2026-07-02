@@ -440,6 +440,27 @@ export default function HomePage() {
                       </a>
                     </div>
                   )}
+
+                  {/* 📅 Domain age badge — shown for URL scans when age is known */}
+                  {scanTab === 'url' && scanResult.domain_age_days != null && (
+                    <div
+                      className="mt-3 flex items-center justify-between gap-3 px-4 py-3 rounded-lg"
+                      style={{
+                        background: scanResult.domain_age_days < 30
+                          ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
+                        border: `1px solid ${scanResult.domain_age_days < 30 ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                      }}
+                    >
+                      <span className="text-xs flex-shrink-0" style={{ color: scanResult.domain_age_days < 30 ? '#fca5a5' : '#fcd34d' }}>
+                        📅 ডোমেইন বয়স
+                      </span>
+                      <span className="text-sm font-semibold" style={{ color: scanResult.domain_age_days < 30 ? '#ef4444' : '#f59e0b' }}>
+                        {scanResult.domain_age_days < 1
+                          ? 'আজই তৈরি ⚠️'
+                          : `${scanResult.domain_age_days} দিন${scanResult.domain_age_days < 30 ? ' — অত্যন্ত নতুন ⚠️' : scanResult.domain_age_days < 180 ? ' — নতুন' : ''}`}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {scanResult.is_phishing && (
                   <div className="mt-3 space-y-3">

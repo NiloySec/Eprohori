@@ -123,6 +123,7 @@ export interface ValidationResult {
   risk_level: 'safe' | 'medium' | 'high' | 'critical'
   actions?: string[]
   real_domain?: string | null   // official site an impersonation URL mimics (bkash.com)
+  domain_age_days?: number | null  // days since domain registration
 }
 
 // ── Mock data (shown when backend is offline) ──────────────────────────────
@@ -323,7 +324,8 @@ function adaptValidation(v: any): ValidationResult {
       ? ['লিংকে ক্লিক করবেন না', 'ব্যক্তিগত তথ্য দেবেন না', 'সন্দেহজনক বার্তা ফরওয়ার্ড করবেন না']
       : ['সতর্ক থাকুন', 'অপরিচিত লিংক এড়িয়ে চলুন'])
   const realDomain: string | null = v.real_domain || null
-  return { is_phishing: isPhishing, confidence: conf, reason, risk_level: risk, actions, real_domain: realDomain }
+  const domainAgeDays: number | null = v.domain_age_days ?? null
+  return { is_phishing: isPhishing, confidence: conf, reason, risk_level: risk, actions, real_domain: realDomain, domain_age_days: domainAgeDays }
 }
 
 // ── HTTP helper ────────────────────────────────────────────────────────────

@@ -2023,6 +2023,39 @@ def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depe
                         reasons=[], explanation="এই লিংকটি আগে যাচাইয়ে নিরাপদ পাওয়া গিয়েছিল।", source="cache",
                     )
 
+        # Domain age check (sync WHOIS — new domains < 30 days are high-risk)
+        try:
+            import whois as _whois
+            from datetime import datetime as _dt
+            _wdata = _whois.whois(domain or text)
+            _cdate = _wdata.creation_date
+            if isinstance(_cdate, list):
+                _cdate = _cdate[0]
+            if _cdate:
+                _age = (_dt.utcnow() - _cdate).days
+                if _age < 30:
+                    _conf = 0.92
+                elif _age < 180:
+                    _conf = 0.75
+                else:
+                    _age = None   # old domain — skip
+                if _age is not None:
+                    _resp = ValidateTextResponse(
+                        is_threat=True,
+                        confidence=_conf,
+                        category="phishing",
+                        reasons=[f"ডোমেইনটি মাত্র {_age} দিন আগে তৈরি হয়েছে — নতুন ডোমেইন সন্দেহজনক"],
+                        explanation=f"এই লিংকের ডোমেইন {_age} দিন আগে নিবন্ধিত হয়েছে। সদ্য তৈরি ডোমেইন ফিশিং আক্রমণে বেশি ব্যবহৃত হয়।",
+                        source="whois",
+                        real_domain=url_heuristics.match_brand_domain(text),
+                        domain_age_days=_age,
+                    )
+                    if domain:
+                        domain_cache.upsert(db, domain, "malicious", "whois", _conf)
+                    return _resp
+        except Exception:
+            pass   # WHOIS unavailable / private registration → continue
+
         vt = virustotal.check_url(text)
         h = url_heuristics.analyze(text)   # brand-impersonation / lookalike check
 

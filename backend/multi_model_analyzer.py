@@ -204,39 +204,57 @@ RESPOND WITH JSON (confidence MUST match rules above):
 
 
 def _return_best_effort(message: str, language: str = "bn") -> dict:
-    """Fallback: Return best effort analysis when all models fail."""
-    # Extract basic keywords to suggest threat type
-    keywords_phishing = ["link", "click", "password", "verify", "confirm", "urgent"]
-    keywords_scam = ["money", "prize", "won", "transfer", "bank account"]
-    keywords_malware = ["virus", "infected", "download", "email", "attachment"]
-
+    """Fallback: keyword-based classification when all LLMs fail. Always returns English threat types."""
     msg_lower = message.lower()
 
-    if any(kw in msg_lower for kw in keywords_phishing):
-        threat = "ফিশিং" if language == "bn" else "Phishing"
-    elif any(kw in msg_lower for kw in keywords_scam):
-        threat = "প্রতারণা" if language == "bn" else "Scam"
-    elif any(kw in msg_lower for kw in keywords_malware):
-        threat = "ম্যালওয়্যার" if language == "bn" else "Malware"
-    else:
-        threat = "অজানা" if language == "bn" else "Unknown"
+    # English + Bengali phishing signals
+    phishing_kw = [
+        "link", "click", "password", "verify", "confirm", "urgent", "otp", "login", "account",
+        "লিংক", "ক্লিক", "পাসওয়ার্ড", "ওটিপি", "যাচাই", "নিশ্চিত", "জরুরি",
+        "একাউন্ট", "একাউন্ট বন্ধ", "বিকাশ", "নগদ", "রকেট", "পিন", "পাসকোড",
+    ]
+    # English + Bengali scam signals
+    scam_kw = [
+        "money", "prize", "won", "transfer", "bank account", "bonus", "reward", "cashback",
+        "টাকা", "পুরস্কার", "জিতেছেন", "ট্রান্সফার", "বোনাস", "রিওয়ার্ড", "ক্যাশব্যাক",
+        "লটারি", "উপহার", "ফ্রি",
+    ]
+    # English + Bengali malware signals
+    malware_kw = [
+        "virus", "infected", "download", "install", "attachment", ".exe", ".apk",
+        "ভাইরাস", "ডাউনলোড", "ইনস্টল", "অ্যাটাচমেন্ট",
+    ]
 
+    if any(kw in msg_lower for kw in phishing_kw):
+        threat, confidence = "phishing", 0.65
+    elif any(kw in msg_lower for kw in scam_kw):
+        threat, confidence = "scam", 0.60
+    elif any(kw in msg_lower for kw in malware_kw):
+        threat, confidence = "malware", 0.60
+    else:
+        threat, confidence = "safe", 0.15
+
+    is_bn = language == "bn"
     return {
         "threat_type": threat,
-        "severity": "মাঝারি" if language == "bn" else "Medium",
-        "confidence": 0.5,
-        "description": "বিশ্লেষণ অনিশ্চিত - সতর্ক থাকুন" if language == "bn" else "Analysis uncertain - please be cautious",
+        "severity": "Medium" if threat != "safe" else "Low",
+        "confidence": confidence,
+        "description": (
+            "বিশ্লেষণ অনিশ্চিত - সতর্ক থাকুন" if is_bn else "Analysis uncertain - please be cautious"
+        ) if threat != "safe" else (
+            "বার্তাটি নিরাপদ বলে মনে হচ্ছে" if is_bn else "Message appears safe"
+        ),
         "solution_steps": [
-            "সন্দেহজনক লিঙ্ক ক্লিক করবেন না" if language == "bn" else "Don't click suspicious links",
-            "ব্যক্তিগত তথ্য শেয়ার করবেন না" if language == "bn" else "Don't share personal information",
-            "EProhori-তে রিপোর্ট করুন" if language == "bn" else "Report to EProhori"
-        ],
+            "সন্দেহজনক লিঙ্ক ক্লিক করবেন না" if is_bn else "Don't click suspicious links",
+            "ব্যক্তিগত তথ্য শেয়ার করবেন না" if is_bn else "Don't share personal information",
+            "EProhori-তে রিপোর্ট করুন" if is_bn else "Report to EProhori",
+        ] if threat != "safe" else [],
         "prevention_tips": [
-            "সব বার্তা যাচাই করুন" if language == "bn" else "Verify all messages",
-            "অফিসিয়াল চ্যানেল ব্যবহার করুন" if language == "bn" else "Use official channels"
-        ],
+            "সব বার্তা যাচাই করুন" if is_bn else "Verify all messages",
+            "অফিসিয়াল চ্যানেল ব্যবহার করুন" if is_bn else "Use official channels",
+        ] if threat != "safe" else [],
         "model": "best-effort",
-        "latency": 0.0
+        "latency": 0.0,
     }
 
 

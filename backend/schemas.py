@@ -236,6 +236,7 @@ class ChatbotAnalysis(BaseModel):
     severity: str
     confidence: float
     description: str
+    message: Optional[str] = None   # alias for description — mobile compatibility
     solution_steps: list[str]
     prevention_tips: list[str]
     report_link: Optional[str] = None

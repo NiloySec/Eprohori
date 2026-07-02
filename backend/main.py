@@ -2203,6 +2203,14 @@ async def chatbot_analyze(req: ChatbotQuery):
         solution_steps = results[0][0].get("solution_steps", []) if results else []
         prevention_tips = results[0][0].get("prevention_tips", []) if results else []
 
+        # Normalise to mobile/web-compatible lowercase; map unknown → safe
+        _TYPE_NORM = {
+            'phishing': 'phishing', 'scam': 'scam', 'fraud': 'fraud',
+            'malware': 'malware', 'safe': 'safe',
+            'unknown': 'safe', 'অজানা': 'safe',
+        }
+        threat_type = _TYPE_NORM.get(threat_type.lower(), 'safe')
+
         print(f"[chatbot] Analysis: {threat_type} ({confidence:.1%}), Models: {','.join(models_used)}")
 
         # Create response
@@ -2211,6 +2219,7 @@ async def chatbot_analyze(req: ChatbotQuery):
             severity=severity,
             confidence=float(confidence),
             description=description,
+            message=description,
             solution_steps=solution_steps,
             prevention_tips=prevention_tips
         )
@@ -2230,21 +2239,31 @@ async def chatbot_analyze(req: ChatbotQuery):
         try:
             from multi_model_analyzer import _return_best_effort
             result = _return_best_effort(req.message, req.language)
+            _TYPE_NORM = {
+                'phishing': 'phishing', 'scam': 'scam', 'fraud': 'fraud',
+                'malware': 'malware', 'safe': 'safe',
+                'unknown': 'safe', 'অজানা': 'safe',
+            }
+            raw_type = result.get("threat_type", "safe")
+            norm_type = _TYPE_NORM.get(raw_type.lower(), 'safe')
+            desc = result.get("description", "")
             return ChatbotAnalysis(
-                threat_type=result.get("threat_type", "Unknown"),
+                threat_type=norm_type,
                 severity=result.get("severity", "Medium"),
                 confidence=float(result.get("confidence", 0.5)),
-                description=result.get("description", ""),
+                description=desc,
+                message=desc,
                 solution_steps=result.get("solution_steps", []),
                 prevention_tips=result.get("prevention_tips", [])
             )
         except Exception as fallback_error:
             print(f"[chatbot] Fallback error: {fallback_error}")
             return ChatbotAnalysis(
-                threat_type="Unknown",
-                severity="Medium",
+                threat_type="safe",
+                severity="Low",
                 confidence=0.0,
                 description="Unable to analyze. Please try again.",
+                message="Unable to analyze. Please try again.",
                 solution_steps=["Avoid suspicious actions", "Report to EProhori"],
                 prevention_tips=["Stay cautious online", "Verify before clicking"]
             )

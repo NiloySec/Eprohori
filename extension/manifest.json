@@ -1,23 +1,25 @@
 {
   "manifest_version": 3,
   "name": "EProhori - Threat Detector",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Real-time SMS scam, phishing & fraud detection for Bangladesh",
   "permissions": [
     "activeTab",
     "scripting",
     "storage",
-    "alarms",
-    "webRequest"
+    "tabs"
   ],
   "host_permissions": [
-    "https://api.eprohori.tech/*",
     "https://eprohori-production.up.railway.app/*",
     "<all_urls>"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_title": "EProhori - Real-time Threat Detection"
@@ -26,26 +28,5 @@
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://mail.google.com/*",
-        "https://www.gmail.com/*",
-        "https://web.whatsapp.com/*",
-        "https://www.facebook.com/*",
-        "https://www.twitter.com/*",
-        "https://*.telegram.org/*",
-        "https://www.instagram.com/*"
-      ],
-      "js": ["content.js"],
-      "run_at": "document_end"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["content.js"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }

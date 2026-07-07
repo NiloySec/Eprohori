@@ -70,10 +70,11 @@ export default function Navbar() {
   }
 
   const navLinks = [
-    { href: '/',        label: t('nav_home') },
-    { href: '/report',  label: t('nav_threats') },
-    { href: '/monitor', label: t('nav_monitor') },
-    { href: '/about',   label: t('nav_about') },
+    { href: '/',             label: t('nav_home') },
+    { href: '/report',       label: t('nav_threats') },
+    { href: '/monitor',      label: t('nav_monitor') },
+    { href: '/cyber-safety', label: t('nav_safety') },
+    { href: '/about',        label: t('nav_about') },
   ]
 
   const avatarCircle = (size: number) =>

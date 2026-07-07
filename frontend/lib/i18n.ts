@@ -9,6 +9,7 @@ export const translations = {
     nav_radar: 'Threat Radar',
     nav_profile: 'Account',
     nav_about: 'About',
+    nav_safety: 'Safety',
     lang_toggle: 'বাংলা',
 
     // ── Hero ──────────────────────────────────────────────────────────────
@@ -197,6 +198,7 @@ export const translations = {
     nav_radar: 'থ্রেট রাডার',
     nav_profile: 'অ্যাকাউন্ট',
     nav_about: 'আমাদের সম্পর্কে',
+    nav_safety: 'নিরাপত্তা শিক্ষা',
     lang_toggle: 'English',
 
     // ── Hero ──────────────────────────────────────────────────────────────

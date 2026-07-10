@@ -13,11 +13,11 @@ import {
   HomeScreen, AnalyzerScreen, MonitorScreen, HistoryScreen, SettingsScreen,
   ResultScreen, BlocklistScreen, CommunityReportScreen, FamilyScreen,
   OnboardingScreen, LoginScreen, SignupScreen, AdminDashboardScreen,
-  CallerIDScreen, SMSScanScreen, SpamDirectoryScreen, CallLogScreen,
+  CallerIDScreen, SpamDirectoryScreen, CallLogScreen,
   MyReportsScreen, CyberReportScreen, CyberSafetyScreen, FraudAlertsScreen,
-  InboxScanScreen, QRScanScreen, TrustedContactsScreen, ScamNewsScreen,
-  FakeAppScanScreen, CallScriptCheckScreen, LinkCheckScreen, CyberQuizScreen,
-  LiveCallListenScreen, BreachMonitorScreen, LegalSupportScreen
+  TrustedContactsScreen, ScamNewsScreen,
+  LinkCheckScreen, CyberQuizScreen,
+  BreachMonitorScreen, LegalSupportScreen
 } from '@screens';
 
 type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
@@ -49,9 +49,7 @@ const linking: LinkingOptions<RootStackParamList> = {
         },
       },
       CallerID:    'callerid',
-      QRScan:      'qrscan',
       FraudAlerts: 'alerts',
-      InboxScan:   'inboxscan',
       ScamNews:    'scamnews',
     },
   },
@@ -119,22 +117,16 @@ export const RootNavigator = () => {
         <Stack.Screen name="CommunityReport" component={CommunityReportScreen} />
         <Stack.Screen name="Family"          component={FamilyScreen} />
         <Stack.Screen name="CallerID"        component={CallerIDScreen} />
-        <Stack.Screen name="SMSScan"         component={SMSScanScreen} />
         <Stack.Screen name="SpamDirectory"   component={SpamDirectoryScreen} />
         <Stack.Screen name="CallLog"         component={CallLogScreen} />
         <Stack.Screen name="MyReports"       component={MyReportsScreen} />
         <Stack.Screen name="CyberReport"     component={CyberReportScreen} />
         <Stack.Screen name="CyberSafety"     component={CyberSafetyScreen} />
         <Stack.Screen name="FraudAlerts"     component={FraudAlertsScreen} />
-        <Stack.Screen name="InboxScan"       component={InboxScanScreen} />
-        <Stack.Screen name="QRScan"          component={QRScanScreen} />
         <Stack.Screen name="TrustedContacts" component={TrustedContactsScreen} />
         <Stack.Screen name="ScamNews"        component={ScamNewsScreen} />
-        <Stack.Screen name="FakeAppScan"     component={FakeAppScanScreen} />
-        <Stack.Screen name="CallScriptCheck" component={CallScriptCheckScreen} />
         <Stack.Screen name="LinkCheck"       component={LinkCheckScreen} />
         <Stack.Screen name="CyberQuiz"       component={CyberQuizScreen} />
-        <Stack.Screen name="LiveCallListen"   component={LiveCallListenScreen} />
         <Stack.Screen name="BreachMonitor"    component={BreachMonitorScreen} />
         <Stack.Screen name="LegalSupport"     component={LegalSupportScreen} />
       </Stack.Navigator>

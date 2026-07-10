@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { analyzeUrlLocally, type UrlFeatures } from '../utils/urlFeatures';
 import { categorizeSms } from '../utils/smsCategories';
+import { useAuthStore } from '../stores/authStore';
 
 // C5: Hardcoded config — never use process.env in mobile bundle (baked into APK)
 const API_BASE_URL = 'https://eprohori-production.up.railway.app';
@@ -39,6 +40,17 @@ interface ValidateTextResponse {
   source: string;
   real_domain: string | null;
   domain_age_days: number | null;
+}
+
+export interface UserAuthResponse {
+  id: number;
+  name: string;
+  email: string;
+  is_admin: boolean;
+  xp: number;
+  badge: string;
+  reports: number;
+  token: string;
 }
 
 const SOLUTION_STEPS: Record<'bn' | 'en', Record<string, string[]>> = {
@@ -199,7 +211,14 @@ class ThreatAnalysisAPI {
     });
 
     this.axiosInstance.interceptors.request.use(
-      (config) => { console.log('[API]', config.method?.toUpperCase(), config.url); return config; },
+      (config) => {
+        const token = useAuthStore.getState().token;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        console.log('[API]', config.method?.toUpperCase(), config.url);
+        return config;
+      },
       (error) => Promise.reject(error)
     );
     this.axiosInstance.interceptors.response.use(
@@ -475,6 +494,53 @@ class ThreatAnalysisAPI {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  // ── Auth Methods ─────────────────────────────────────────────────────────
+
+  async login(email: string, password: string): Promise<UserAuthResponse> {
+    try {
+      const res = await this.axiosInstance.post<UserAuthResponse>('/api/auth/login', { email, password });
+      return res.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
+    }
+  }
+
+  async register(data: any): Promise<UserAuthResponse> {
+    try {
+      const res = await this.axiosInstance.post<UserAuthResponse>('/api/auth/register', data);
+      return res.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
+    }
+  }
+
+  // ── Admin Methods ────────────────────────────────────────────────────────
+
+  async fetchPendingThreats(): Promise<any[]> {
+    try {
+      const res = await this.axiosInstance.get('/api/admin/pending');
+      return res.data;
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
+    }
+  }
+
+  async verifyThreat(id: number): Promise<void> {
+    try {
+      await this.axiosInstance.patch(`/api/threats/${id}/verify`);
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
+    }
+  }
+
+  async rejectThreat(id: number): Promise<void> {
+    try {
+      await this.axiosInstance.put(`/api/threats/${id}/reject`);
+    } catch (error) {
+      throw this.handleError(error as AxiosError);
     }
   }
 

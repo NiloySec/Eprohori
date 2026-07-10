@@ -19,6 +19,9 @@ import BlocklistScreen from '@screens/BlocklistScreen';
 import CommunityReportScreen from '@screens/CommunityReportScreen';
 import FamilyScreen from '@screens/FamilyScreen';
 import OnboardingScreen from '@screens/OnboardingScreen';
+import LoginScreen from '@screens/LoginScreen';
+import SignupScreen from '@screens/SignupScreen';
+import AdminDashboardScreen from '@screens/AdminDashboardScreen';
 import CallerIDScreen from '@screens/CallerIDScreen';
 import SMSScanScreen from '@screens/SMSScanScreen';
 import SpamDirectoryScreen from '@screens/SpamDirectoryScreen';
@@ -127,6 +130,9 @@ export const RootNavigator = () => {
         }}
       >
         <Stack.Screen name="Onboarding"      component={OnboardingScreen} options={{ animation: 'fade' }} />
+        <Stack.Screen name="Login"           component={LoginScreen} options={{ animation: 'fade' }} />
+        <Stack.Screen name="Signup"          component={SignupScreen} />
+        <Stack.Screen name="AdminDashboard"  component={AdminDashboardScreen} />
         <Stack.Screen name="MainTabs"        component={TabNavigator} />
         <Stack.Screen name="ResultDetail"    component={ResultScreen} />
         <Stack.Screen name="Blocklist"       component={BlocklistScreen} />

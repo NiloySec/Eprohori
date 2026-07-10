@@ -1,6 +1,7 @@
 export { useAnalysisStore } from './analysisStore';
 export { useHistoryStore, type HistoryEntry } from './historyStore';
 export { useSettingsStore } from './settingsStore';
+export { useAuthStore, type UserProfile } from './authStore';
 export {
   useSpamNumberStore,
   SPAM_CATEGORIES,

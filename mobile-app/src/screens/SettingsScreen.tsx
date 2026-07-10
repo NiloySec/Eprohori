@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { useSettingsStore, useHistoryStore, useSpamNumberStore } from '@stores';
+import { useSettingsStore, useHistoryStore, useSpamNumberStore, useAuthStore } from '@stores';
 import { CATEGORY_META, exportHistoryCSV } from '@utils';
 import { useTranslation } from '@hooks';
 import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
@@ -134,6 +134,8 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
   const [pinLockUntil, setPinLockUntil] = useState(0);
 
   const t = useTranslation();
+
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   const {
     language, notificationsEnabled, dailySummaryEnabled,
@@ -403,6 +405,57 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
         </LinearGradient>
 
         <View style={styles.body}>
+
+          {/* ── User Authentication / Profile ── */}
+          <Text style={styles.sectionLabel}>অ্যাকাউন্ট</Text>
+          <View style={styles.card}>
+            {isAuthenticated && user ? (
+              <View style={styles.profileSection}>
+                <View style={styles.profileInfo}>
+                  <View style={styles.avatarLarge}>
+                    <Text style={styles.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.profileName}>{user.name}</Text>
+                    <Text style={styles.profileEmail}>{user.email}</Text>
+                    <View style={styles.badgeRow}>
+                      <Icon name="medal" size={14} color={Colors.accent} />
+                      <Text style={styles.badgeText}>{user.badge} · {user.xp} XP</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.divider} />
+                <TouchableOpacity style={styles.logoutBtn} onPress={() => { logout(); Alert.alert('সফল', 'লগআউট করা হয়েছে'); }}>
+                  <Icon name="logout" size={18} color="#ef4444" />
+                  <Text style={styles.logoutBtnText}>লগআউট</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.loginCard} onPress={() => navigation.navigate('Login')}>
+                <View style={styles.loginIconBox}>
+                  <Icon name="account-key-outline" size={24} color={Colors.accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rowLabel}>লগইন বা সাইন-আপ</Text>
+                  <Text style={styles.rowDesc}>XP সিঙ্ক এবং রিপোর্ট ট্র্যাক করতে লগইন করুন</Text>
+                </View>
+                <Icon name="chevron-right" size={20} color={Colors.text.tertiary} />
+              </TouchableOpacity>
+            )}
+
+            {isAuthenticated && user?.is_admin && (
+              <>
+                <View style={styles.divider} />
+                <NavRow
+                  icon="shield-star-outline"
+                  label="অ্যাডমিন কন্ট্রোল"
+                  description="পেন্ডিং রিপোর্ট যাচাই করুন"
+                  color="#10b981"
+                  onPress={() => navigation.navigate('AdminDashboard')}
+                />
+              </>
+            )}
+          </View>
 
           {/* ── Stats ── */}
           <Text style={styles.sectionLabel}>এই মাসের সারসংক্ষেপ</Text>
@@ -1272,6 +1325,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: Colors.borderAccent,
   },
   profileBadgeText: { ...TextStyles.caption, color: Colors.accent, fontWeight: '700' },
+
+  // Auth styles
+  profileSection: { gap: 12 },
+  profileInfo: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  avatarLarge: {
+    width: 50, height: 50, borderRadius: 25,
+    backgroundColor: Colors.accentGlow, borderWidth: 2, borderColor: Colors.accent,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: { fontSize: 22, fontWeight: 'bold', color: Colors.accent },
+  profileName: { ...TextStyles.body, fontWeight: 'bold', color: Colors.text.primary },
+  profileEmail: { ...TextStyles.caption, color: Colors.text.tertiary },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  badgeText: { fontSize: 11, color: Colors.accent, fontWeight: '600' },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  logoutBtnText: { ...TextStyles.caption, color: '#ef4444', fontWeight: 'bold' },
+  loginCard: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  loginIconBox: {
+    width: 44, height: 44, borderRadius: 12,
+    backgroundColor: Colors.accentGlow, alignItems: 'center', justifyContent: 'center',
+  },
 
   body: { padding: Spacing.lg },
 

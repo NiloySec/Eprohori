@@ -181,27 +181,26 @@ const FRAUD_PATTERNS = [
 ];
 
 const PHISHING_PATTERNS = [
-  /https?:\/\/(?!bkash\.com|nagad\.com\.bd|dutchbanglabank\.com|bangladeshbank\.org\.bd|sslcommerz\.com|shurjopay\.com)[^\s]{10,}/i,
-  /bit\.ly|tinyurl|t\.co|goo\.gl|cutt\.ly|rb\.gy|is\.gd|tiny\.cc/i,
-  /click here.*link/i,
-  /verify.*account.*link/i,
+  /https?:\/\/(?!bkash\.com|nagad\.com\.bd|dutchbanglabank\.com|bangladeshbank\.org\.bd|sslcommerz\.com|shurjopay\.com)[^\s]{5,}/i,
+  /bit\.ly|tinyurl|t\.co|goo\.gl|cutt\.ly|rb\.gy|is\.gd|tiny\.cc|t\.me/i,
+  /click here|link|visit|open|যাচাই করুন|ক্লিক করুন|লিংক/i,
   /আপনার তথ্য যাচাই/,
   /এখনই ক্লিক করুন/,
   /লিংকে ক্লিক/,
   /তাৎক্ষণিক|অবিলম্বে ক্লিক/,
   /login.*immediately/i,
   /account.*expire/i,
+  // Common chat-scam phrases
+  /মেসেজটি ফরোয়ার্ড করুন/i,
+  /forward this message/i,
+  /সহজ কাজ|ঘরে বসে আয়/i,
+  /earn money from home/i,
   // BD-specific phishing
-  /bkash-bd\.|bkash\.com\.[^b]/i,
-  /nagad-bd\.|nagad\.com\.[^b]/i,
+  /bkash-bd\.|bkash\.com\.[^b]|nagad-bd\.|nagad\.com\.[^b]/i,
   /bangladeshbank\.gov|bd-bank\./i,
-  /nid.*verify.*link/i,
-  /election.*commission.*link/i,
-  /সরকারি.*সুবিধা.*লিংক/,
-  /স্মার্ট কার্ড.*আবেদন.*লিংক/,
-  /ভিসা.*আবেদন.*লিংক/,
-  /nid.*update.*online.*link/i,
-  /birth.*certificate.*link/i,
+  /nid.*verify.*link|election.*commission.*link/i,
+  /সরকারি.*সুবিধা.*লিংক|স্মার্ট কার্ড.*আবেদন.*লিংক|ভিসা.*আবেদন.*লিংক/i,
+  /nid.*update.*online.*link|birth.*certificate.*link/i,
 ];
 
 const PROMO_PATTERNS = [

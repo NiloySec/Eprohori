@@ -182,30 +182,41 @@ function App() {
       .catch(() => {});
 
     const emitter = new NativeEventEmitter(SmsListenerNative);
-    const sub = emitter.addListener('SmsReceived', (text: string) => {
+    const sub = emitter.addListener('SmsReceived', async (text: string) => {
       if (!text) return;
       setPendingSmsRef.current(text);
-      const cat = categorizeSms(text);
-      // N6: OTP guard — always fire a MAX-priority warning on OTP-theft or
-      // MFS-fraud patterns, regardless of the user's category preferences
-      if (otpGuardEnabledRef.current && (cat.category === 'otp_theft' || cat.category === 'mfs_fraud')) {
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: '🚨 সাবধান! কেউ আপনার OTP/পিন চাইছে',
-            body:  'বিকাশ/নগদ/ব্যাংক কখনো OTP বা পিন চায় না। কাউকে কোড দেবেন না!',
-            priority: Notifications.AndroidNotificationPriority.MAX,
-          },
-          trigger: null,
-        }).catch(() => {});
-        // S3: background-detected high-confidence threat — also warn the guardian
-        maybeAlertGuardian(cat.confidence * 100, cat.label_bn).catch(() => {});
-      } else if (cat.category !== 'unknown' && smsAlertCategoriesRef.current.includes(cat.category)) {
-        // Fire local notification if category matches user's alert preferences
-        Notifications.scheduleNotificationAsync({
-          content: { title: `${cat.icon} ${cat.label_bn}`, body: text.slice(0, 120) },
-          trigger: null,
-        }).catch(() => {});
-      }
+
+      try {
+        const lang = useSettingsStore.getState().language;
+        // P1: Robust analysis for background SMS too
+        const result = await threatAnalysisAPI.analyzeThreat(text, lang);
+        const cat = categorizeSms(text); // still use local cat for icon/label fallback
+
+        // N6: OTP guard — always fire a MAX-priority warning on high-confidence threats
+        if (otpGuardEnabledRef.current && (result.confidence >= 80 || cat.category === 'otp_theft' || cat.category === 'mfs_fraud')) {
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: '🚨 সরাসরি সাইবার হুমকি সনাক্ত!',
+              body:  'বিকাশ/নগদ/ব্যাংক কখনো OTP বা পিন চায় না। কাউকে কোড দেবেন না!',
+              priority: Notifications.AndroidNotificationPriority.MAX,
+              data: { screen: 'Analyzer', sharedText: text.slice(0, 1500) },
+            },
+            trigger: null,
+          }).catch(() => {});
+          // S3: background-detected high-confidence threat — also warn the guardian
+          maybeAlertGuardian(result.confidence, result.threat_type === 'phishing' ? 'ফিশিং' : 'প্রতারণা').catch(() => {});
+        } else if (result.confidence >= 60) {
+          // Fire local notification if confidence is high enough
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: result.confidence >= 75 ? '🔴 হুমকি সনাক্ত হয়েছে' : '⚠️ সন্দেহজনক SMS',
+              body: text.slice(0, 120),
+              data: { screen: 'Analyzer', sharedText: text.slice(0, 1500) },
+            },
+            trigger: null,
+          }).catch(() => {});
+        }
+      } catch {}
     });
 
     return () => sub.remove();
@@ -256,9 +267,11 @@ function App() {
         return;
       }
 
-      // Default tap or 'check' action → route to the notification's target screen
+      // Default tap or specific action -> route to the target screen
       navigateWhenReady(() => {
-        if (data?.action === 'inbox_scan') {
+        if (actionId === 'live_check') {
+          navigationRef.navigate('LiveCallListen');
+        } else if (data?.action === 'inbox_scan') {
           navigationRef.navigate('InboxScan');
         } else if (data?.screen === 'Analyzer' && data?.sharedText) {
           // P1: chat-guard warning tapped — prefill the analyzer with the message

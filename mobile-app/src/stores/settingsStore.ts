@@ -64,6 +64,7 @@ interface SettingsState {
   guardianThreshold: number;         // S3: confidence 0-100 that triggers the alert
   guardianLocationEnabled: boolean;  // S3b: attach a Google Maps link of current location to the guardian SMS
   voiceAlertEnabled: boolean;        // S4: speak threat result aloud (TTS)
+  contactSyncEnabled: boolean;       // S9: contribute to community caller ID database
 
   setLanguage: (language: 'bn' | 'en') => void;
   setNotificationsEnabled: (enabled: boolean) => void;
@@ -162,6 +163,7 @@ export const useSettingsStore = create<SettingsState>()(
       guardianThreshold: 90,
       guardianLocationEnabled: false,
       voiceAlertEnabled: false,
+      contactSyncEnabled: false,
 
       setLanguage: (language) => set({ language }),
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
@@ -254,6 +256,7 @@ export const useSettingsStore = create<SettingsState>()(
       setGuardianThreshold: (v) => set({ guardianThreshold: Math.max(50, Math.min(100, Math.round(v))) }),
       setGuardianLocationEnabled: (v) => set({ guardianLocationEnabled: v }),
       setVoiceAlertEnabled: (v) => set({ voiceAlertEnabled: v }),
+      setContactSyncEnabled: (v) => set({ contactSyncEnabled: v }),
       checkAndAutoBlock: (number, score) => {
         const state = get();
         if (!state.autoBlockEnabled) return false;

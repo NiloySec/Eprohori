@@ -53,6 +53,16 @@ const SeniorHomeView = ({ navigation }: Props) => {
         <Text style={[styles.bigBtnSub, { color: `${Colors.white}cc` }]}>{t('senior_number_check_sub')}</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.bigBtn, { backgroundColor: Colors.suspicious }]}
+        onPress={() => navigation.navigate('LiveCallListen')}
+        activeOpacity={0.8}
+      >
+        <Icon name="microphone" size={36} color={Colors.primary} />
+        <Text style={styles.bigBtnText}>কলের কথা শুনুন</Text>
+        <Text style={styles.bigBtnSub}>কল স্পিকারে দিয়ে চালু করুন</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.sosBtn} onPress={handleSOS} activeOpacity={0.8}>
         <Icon name="phone-alert" size={36} color={Colors.white} />
         <Text style={[styles.bigBtnText, { color: Colors.white }]}>{t('senior_sos')}</Text>

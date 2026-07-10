@@ -456,6 +456,15 @@ class ThreatAnalysisAPI {
     }
   }
 
+  // S9: Crowdsourced Name Submission (Truecaller-style)
+  async submitBulkNames(contacts: { name: string; numbers: string[] }[]): Promise<void> {
+    try {
+      await this.axiosInstance.post('/api/names/bulk', { contacts }, { timeout: 15000 });
+    } catch {
+      // fire-and-forget
+    }
+  }
+
   async checkOnline(): Promise<boolean> {
     try {
       await this.axiosInstance.get('/health', { timeout: 5000 });

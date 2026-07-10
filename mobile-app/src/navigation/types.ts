@@ -25,6 +25,7 @@ export type RootStackParamList = {
   CallScriptCheck: undefined;
   LinkCheck:       { url: string };
   CyberQuiz:       undefined;
+  LiveCallListen:   undefined;
 };
 
 export type TabParamList = {

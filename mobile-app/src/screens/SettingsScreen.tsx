@@ -12,6 +12,7 @@ import { CATEGORY_META, exportHistoryCSV } from '@utils';
 import { useTranslation } from '@hooks';
 import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
 import { exportBackup, importBackup } from '../services/backupService';
+import { performContactSync } from '../services/contactSyncService';
 import {
   isChatGuardAvailable, isChatGuardPermitted, openChatGuardSettings, CHAT_GUARD_APPS,
 } from '../services/notifGuardService';
@@ -120,6 +121,8 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
   const [backupBusy,          setBackupBusy]          = useState(false);
   const [districtInput,       setDistrictInput]       = useState('');
   const [guardianInput,       setGuardianInput]       = useState('');
+  const [syncDisclosureOpen,  setSyncDisclosureOpen]  = useState(false);
+  const [syncing,             setSyncing]             = useState(false);
 
   // PIN modal state: null | 'setup' | 'confirm' | 'verify_disable'
   const [pinModal,    setPinModal]    = useState<'setup' | 'confirm' | 'verify_disable' | null>(null);
@@ -143,9 +146,9 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     biometricEnabled, themeMode, userDistrict, districtAlertEnabled,
     otpGuardEnabled, weeklyDigestEnabled, trustedNumbers,
     chatGuardEnabled, chatGuardApps, callScreeningEnabled,
-    clipboardGuardEnabled, seniorModeEnabled,
+    clipboardGuardEnabled, seniorModeEnabled, contactSyncEnabled,
     guardianAlertEnabled, guardianNumber, guardianThreshold, guardianLocationEnabled, voiceAlertEnabled,
-    setOtpGuardEnabled, setWeeklyDigestEnabled,
+    setOtpGuardEnabled, setWeeklyDigestEnabled, setContactSyncEnabled,
     setChatGuardEnabled, toggleChatGuardApp, setCallScreeningEnabled,
     setClipboardGuardEnabled, setSeniorModeEnabled,
     setGuardianAlertEnabled, setGuardianNumber, setGuardianThreshold, setGuardianLocationEnabled, setVoiceAlertEnabled,
@@ -256,6 +259,31 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     setGuardianNumber(v);
     setGuardianInput('');
     Alert.alert('', t('settings_guardian_saved'));
+  };
+
+  // S9: Handle community contact sync with disclosure
+  const handleSyncToggle = (v: boolean) => {
+    if (v) {
+      setSyncDisclosureOpen(true);
+    } else {
+      setContactSyncEnabled(false);
+    }
+  };
+
+  const confirmSync = async () => {
+    setSyncDisclosureOpen(false);
+    setSyncing(true);
+    try {
+      const res = await performContactSync();
+      if (res.success) {
+        setContactSyncEnabled(true);
+        Alert.alert('ধন্যবাদ!', `${res.count} টি কন্টাক্ট সিঙ্ক হয়েছে। এখন আপনি উন্নত কলার আইডি সুবিধা পাবেন।`);
+      } else {
+        Alert.alert('ব্যর্থ হয়েছে', 'কন্টাক্ট পারমিশন প্রয়োজন।');
+      }
+    } finally {
+      setSyncing(false);
+    }
   };
 
   // R5: save district preference
@@ -725,6 +753,12 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
               <>
                 <View style={styles.divider} />
                 <View style={styles.catSection}>
+                  <View style={styles.muteHintBox}>
+                    <Icon name="information-outline" size={16} color="#818cf8" />
+                    <Text style={styles.muteHintText}>
+                      টিপ: চ্যাট অ্যাপে নোটিফিকেশন <Text style={{fontWeight: '800', color: '#fff'}}>Silent বা Mute</Text> করে রাখলেও EProhori ক্ষতিকর মেসেজ সনাক্ত করতে পারবে।
+                    </Text>
+                  </View>
                   <Text style={styles.catSectionLabel}>{t('settings_chat_guard_apps_label')}</Text>
                   <View style={styles.chipWrap}>
                     {CHAT_GUARD_APPS.map((app) => {
@@ -925,6 +959,23 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
               }
               onPress={() => navigation.navigate('MyReports')}
             />
+            <View style={styles.divider} />
+
+            {/* S9: Contact Contribution */}
+            <SettingRow
+              icon="account-multiple-plus-outline"
+              label="কলার আইডি উন্নত করুন"
+              description={contactSyncEnabled ? 'কমিউনিটি কন্ট্রিবিউশন সক্রিয়' : 'আপনার কন্টাক্ট শেয়ার করে সাহায্য করুন'}
+              right={
+                syncing ? <ActivityIndicator size="small" color={Colors.accent} /> :
+                <Switch
+                  value={contactSyncEnabled}
+                  onValueChange={hv(handleSyncToggle)}
+                  trackColor={{ false: Colors.border, true: Colors.safe }}
+                  thumbColor={Colors.white}
+                />
+              }
+            />
           </View>
 
           {/* ── S2/S3/S4: Family & Senior Protection ── */}
@@ -1091,6 +1142,36 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
           </View>
         </View>
       </ScrollView>
+
+      {/* ── Community Sync Disclosure Modal ── */}
+      <Modal visible={syncDisclosureOpen} transparent animationType="slide" onRequestClose={() => setSyncDisclosureOpen(false)}>
+        <View style={styles.pinOverlay}>
+          <View style={[styles.pinCard, { gap: 16 }]}>
+            <View style={styles.disclosureIcon}>
+              <Icon name="shield-account-variant-outline" size={32} color={Colors.accent} />
+            </View>
+            <Text style={styles.disclosureTitle}>কলার আইডি উন্নত করতে সাহায্য করুন</Text>
+            <Text style={styles.disclosureText}>
+              EProhori একটি কমিউনিটি ভিত্তিক অ্যাপ। আপনি যদি আপনার কন্টাক্ট লিস্টের নাম ও নম্বর আমাদের সুরক্ষিত সার্ভারে শেয়ার করেন, তবে আপনি এবং অন্য ইউজাররা অজানা নম্বরগুলো আরও সহজে চিনতে পারবেন (যেমন ট্রু-কলার)।
+            </Text>
+            <View style={styles.disclosureBulletBox}>
+              <Text style={styles.disclosureBullet}>• শুধু নাম ও নম্বর সংগ্রহ করা হয়।</Text>
+              <Text style={styles.disclosureBullet}>• কোনো ব্যক্তিগত মেসেজ বা ফাইল দেখা হয় না।</Text>
+              <Text style={styles.disclosureBullet}>• আপনি চাইলে যেকোনো সময় এটি বন্ধ করতে পারেন।</Text>
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setSyncDisclosureOpen(false)}>
+                <Text style={styles.cancelBtnText}>এখন না</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.submitBtn} onPress={confirmSync}>
+                <LinearGradient colors={Colors.gradient.accent} style={styles.submitBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                  <Text style={styles.submitBtnText}>সম্মত ও সক্রিয় করুন</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Auto-block threshold modal ── */}
       <Modal visible={thresholdPickerOpen} transparent animationType="fade" onRequestClose={() => setThresholdPickerOpen(false)}>
@@ -1262,6 +1343,14 @@ const styles = StyleSheet.create({
   },
   permBtnText: { ...TextStyles.caption, color: Colors.accent, fontWeight: '700' },
 
+  muteHintBox: {
+    flexDirection: 'row', gap: 8, padding: 12,
+    backgroundColor: '#818cf815', borderRadius: 10,
+    borderWidth: 1, borderColor: '#818cf830',
+    marginBottom: 12,
+  },
+  muteHintText: { fontSize: 11, color: Colors.text.secondary, flex: 1, lineHeight: 16 },
+
   hourPicker:      { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   hourBtn:         {
     width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: Colors.borderAccent,
@@ -1331,6 +1420,15 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center',
   },
+
+  disclosureIcon: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: Colors.accentGlow, justifyContent: 'center', alignItems: 'center',
+  },
+  disclosureTitle: { ...TextStyles.h3, color: Colors.accent, textAlign: 'center' },
+  disclosureText: { ...TextStyles.body, color: Colors.text.secondary, textAlign: 'center', lineHeight: 20 },
+  disclosureBulletBox: { alignSelf: 'stretch', gap: 6, marginVertical: 8 },
+  disclosureBullet: { fontSize: 12, color: Colors.text.tertiary },
 });
 
 export default SettingsScreen;

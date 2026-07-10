@@ -35,6 +35,7 @@ import FakeAppScanScreen from '@screens/FakeAppScanScreen';
 import CallScriptCheckScreen from '@screens/CallScriptCheckScreen';
 import LinkCheckScreen from '@screens/LinkCheckScreen';
 import CyberQuizScreen from '@screens/CyberQuizScreen';
+import LiveCallListenScreen from '@screens/LiveCallListenScreen';
 
 type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -147,6 +148,7 @@ export const RootNavigator = () => {
         <Stack.Screen name="CallScriptCheck" component={CallScriptCheckScreen} />
         <Stack.Screen name="LinkCheck"       component={LinkCheckScreen} />
         <Stack.Screen name="CyberQuiz"       component={CyberQuizScreen} />
+        <Stack.Screen name="LiveCallListen"   component={LiveCallListenScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -243,9 +243,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             />
             <QuickAction
               icon="microphone-message"
-              label={t('home_qa_callcheck')}
+              label="লাইভ কল চেক"
               color={Colors.accent}
-              onPress={() => navigation.navigate('CallScriptCheck')}
+              onPress={() => navigation.navigate('LiveCallListen')}
             />
           </View>
 

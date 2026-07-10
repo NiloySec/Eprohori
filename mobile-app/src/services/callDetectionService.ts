@@ -59,14 +59,14 @@ export async function setupCallNotificationChannel(): Promise<void> {
 
     await Notifications.setNotificationCategoryAsync(CALL_CATEGORY_ID, [
       {
+        identifier: 'live_check',
+        buttonTitle: '🎙️ লাইভ কথা চেক করুন',
+        options: { isDestructive: false, opensAppToForeground: true },
+      },
+      {
         identifier: 'block',
         buttonTitle: '🚫 ব্লক করুন',
         options: { isDestructive: true, opensAppToForeground: false },
-      },
-      {
-        identifier: 'check',
-        buttonTitle: '🔍 বিস্তারিত দেখুন',
-        options: { isDestructive: false, opensAppToForeground: true },
       },
     ]);
   } catch {}

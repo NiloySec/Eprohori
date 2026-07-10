@@ -23,4 +23,4 @@ export { default as ScamNewsScreen } from './ScamNewsScreen';
 export { default as FakeAppScanScreen } from './FakeAppScanScreen';
 export { default as CallScriptCheckScreen } from './CallScriptCheckScreen';
 export { default as LinkCheckScreen } from './LinkCheckScreen';
-export { default as CyberQuizScreen } from './CyberQuizScreen';
+export { default as LiveCallListenScreen } from './LiveCallListenScreen';

@@ -125,7 +125,21 @@ function showLinkWarning(url) {
   return overlayId;
 }
 
+// M23: URL Performance Cache — avoid redundant API calls
+const URL_CACHE = new Map();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
 async function analyzeUrl(url, overlayId) {
+  const now = Date.now();
+  if (URL_CACHE.has(url)) {
+    const { data, expiry } = URL_CACHE.get(url);
+    if (now < expiry) {
+      updateOverlay(overlayId, data, url);
+      return;
+    }
+    URL_CACHE.delete(url);
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/validate/text`, {
       method: 'POST',
@@ -134,6 +148,10 @@ async function analyzeUrl(url, overlayId) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
+
+    // Cache result
+    URL_CACHE.set(url, { data, expiry: now + CACHE_TTL });
+
     updateOverlay(overlayId, data, url);
   } catch (err) {
     console.error('[EProhori]', err);

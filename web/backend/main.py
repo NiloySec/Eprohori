@@ -1180,12 +1180,15 @@ def create_threat(
         if current_conf > 1: current_conf /= 100
         if dup.status == "pending" and current_conf >= CORROBORATED_VERIFY_CONF and (dup.up_votes or 0) >= 2:
             dup.status = "verified"
-            # M21: Send global push notification for newly corroborated threats
+            # M21: Send push notification to district topic or all users
             from notification_service import send_push_notification
+            import asyncio
+            topic = f"district_{dup.district.lower()}" if dup.district else "all_users"
             asyncio.create_task(send_push_notification(
                 title="🚨 সতর্কতা: নতুন প্রতারণা সনাক্ত",
                 body=f"{dup.type.upper()}: {dup.content[:100]}...",
-                data={"screen": "Monitor", "threat_id": dup.id}
+                data={"screen": "Monitor", "threat_id": dup.id},
+                topic=topic
             ))
             # Release held alert if needed
             if not dup.alerted:
@@ -1613,9 +1616,8 @@ def admin_login_alias(request: dict, req: Request, db: Session = Depends(get_db)
 @app.post("/api/auth/admin-login", tags=["auth"])
 def admin_login(request: dict, req: Request, db: Session = Depends(get_db)):
     """Account-based admin login: email + password + mandatory TOTP."""
-    throttle(req, "admin-login", max_hits=5, window_sec=600)
-
     email = (request.get("email") or "").lower().strip()
+    throttle(req, "admin-login", max_hits=5, window_sec=600, user_id=email)
     password = request.get("password") or ""
     totp_code = (request.get("totp_code") or "").strip()
 
@@ -2180,6 +2182,7 @@ def bulk_names(payload: BulkNamesRequest, req: Request, db: Session = Depends(ge
     if app_secret != os.getenv("MOBILE_APP_SECRET", "eprohori-internal-2025"):
         raise HTTPException(403, "Invalid application signature")
 
+    # M24: Rate limit by app signature bucket to prevent mass botting
     throttle(req, "bulk-names", max_hits=10, window_sec=3600)
 
     contacts_to_add = []

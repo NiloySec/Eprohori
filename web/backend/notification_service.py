@@ -143,8 +143,8 @@ async def send_email(
 
 FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY")
 
-async def send_push_notification(title: str, body: str, data: Optional[dict] = None) -> bool:
-    """Send a global push notification to all mobile app users via FCM."""
+async def send_push_notification(title: str, body: str, data: Optional[dict] = None, topic: str = "all_users") -> bool:
+    """Send a push notification to all users or a specific district topic."""
     if not FCM_SERVER_KEY:
         return False
     try:
@@ -156,7 +156,7 @@ async def send_push_notification(title: str, body: str, data: Optional[dict] = N
                     "Content-Type": "application/json",
                 },
                 json={
-                    "to": "/topics/all_users",
+                    "to": f"/topics/{topic}",
                     "notification": {
                         "title": title,
                         "body": body,

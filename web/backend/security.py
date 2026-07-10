@@ -41,10 +41,10 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _ip_throttle: dict[str, list[float]] = {}
 
 
-def throttle(request: Request, bucket: str, max_hits: int, window_sec: int) -> None:
-    """Raise 429 if a single IP exceeds max_hits within window_sec for this bucket."""
+def throttle(request: Request, bucket: str, max_hits: int, window_sec: int, user_id: Optional[str] = None) -> None:
+    """Raise 429 if a source exceeds max_hits within window_sec. Throttles by user_id if provided, else IP."""
     ip = request.client.host if request.client else "unknown"
-    key = f"{bucket}:{ip}"
+    key = f"{bucket}:{user_id if user_id else ip}"
     now = datetime.utcnow().timestamp()
     hits = [t for t in _ip_throttle.get(key, []) if now - t < window_sec]
     if len(hits) >= max_hits:

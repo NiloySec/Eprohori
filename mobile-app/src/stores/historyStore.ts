@@ -1,12 +1,28 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto';
 import { ThreatAnalysisResponse } from '@api';
+import { encryptData, decryptData } from '../utils/encryption';
 
-// M22: Local Data Privacy — Encrypt scan history using a device-specific key
-// This prevents plain-text leakage if the phone is compromised.
-const STORAGE_KEY = 'history-storage';
+// M22: Local Data Privacy — Encrypted storage engine
+const encryptedStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    const value = await AsyncStorage.getItem(name);
+    if (!value) return null;
+    try {
+      return await decryptData(value);
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    const encrypted = await encryptData(value);
+    await AsyncStorage.setItem(name, encrypted);
+  },
+  removeItem: async (name: string): Promise<void> => {
+    await AsyncStorage.removeItem(name);
+  },
+};
 
 export interface HistoryEntry {
   id: string;
@@ -88,7 +104,7 @@ export const useHistoryStore = create<HistoryState>()(
     }),
     {
       name: 'history-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => encryptedStorage),
     }
   )
 );

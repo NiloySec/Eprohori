@@ -98,6 +98,7 @@ from schemas import (
     StatusResponse,
     ThreatCreate,
     ThreatOut,
+    ThreatPublicOut,
     TrendingScamOut,
     ValidateProfileRequest,
     ValidateProfileResponse,
@@ -204,13 +205,8 @@ async def lifespan(app: FastAPI):
             ("totp_secret",   "ALTER TABLE users ADD COLUMN totp_secret VARCHAR"),
             ("totp_enabled",  "ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE"),
         ])
-        _migrate("threats", [
-            ("reporter_email", "ALTER TABLE threats ADD COLUMN reporter_email VARCHAR"),
-            ("is_campaign",    "ALTER TABLE threats ADD COLUMN is_campaign INTEGER DEFAULT 0"),
-            ("screenshot",     "ALTER TABLE threats ADD COLUMN screenshot TEXT"),
-            ("district",       "ALTER TABLE threats ADD COLUMN district VARCHAR"),
-            ("human_reviewed", "ALTER TABLE threats ADD COLUMN human_reviewed BOOLEAN DEFAULT FALSE"),
-            ("alerted",        "ALTER TABLE threats ADD COLUMN alerted BOOLEAN DEFAULT FALSE"),
+        _migrate("admin_audit", [
+            ("ip_address", "ALTER TABLE admin_audit ADD COLUMN ip_address VARCHAR"),
         ])
         seed_db()
         phone_checker.load_blacklist()
@@ -293,8 +289,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(self), geolocation=()"
-        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; object-src 'none';"
         return response
 
 
@@ -503,7 +501,7 @@ def _is_admin_token(creds: Optional[HTTPAuthorizationCredentials]) -> bool:
         return False
 
 
-@app.get("/api/threats", response_model=list[ThreatOut], tags=["threats"])
+@app.get("/api/threats", response_model=list[ThreatOut | ThreatPublicOut], tags=["threats"])
 def list_threats(
     status: Optional[str] = Query(None),
     type: Optional[str] = Query(None),
@@ -516,17 +514,15 @@ def list_threats(
     db: Session = Depends(get_db),
 ):
     # Non-verified data is admin-only: a valid admin JWT is required to see it
+    is_admin = _is_admin_token(creds)
     wants_private = include_pending or (status and status != "verified")
-    if wants_private and not _is_admin_token(creds):
+    if wants_private and not is_admin:
         raise HTTPException(403, "Admin access required to view unverified reports")
 
     q = db.query(Threat)
     if status:
         q = q.filter(Threat.status == status)
     elif not include_pending:
-        # Public default: verified threats + admin-reviewed rejected reports
-        # (rejected ones appear like normal entries — no 'rejected' marker, no alert).
-        # Auto-rejected (never human-reviewed) stay hidden as noise.
         q = q.filter(or_(
             Threat.status == "verified",
             and_(Threat.status == "rejected", Threat.human_reviewed == True),  # noqa: E712
@@ -538,7 +534,13 @@ def list_threats(
     cutoff = _timeframe_cutoff(timeframe)
     if cutoff:
         q = q.filter(Threat.created_at >= cutoff)
-    return q.order_by(Threat.created_at.desc()).offset(skip).limit(limit).all()
+
+    results = q.order_by(Threat.created_at.desc()).offset(skip).limit(limit).all()
+
+    # OWASP PII Leakage Fix: If not admin, explicitly cast to public schema to remove emails
+    if not is_admin:
+        return [ThreatPublicOut.model_validate(r) for r in results]
+    return results
 
 
 @app.get("/api/threats/version", tags=["threats"])
@@ -1600,8 +1602,8 @@ def get_districts(
 # Store OTPs temporarily (in production use Redis)
 otp_store: dict[str, dict] = {}
 
-def _log_audit(db: Session, admin_email: str, action: str, target: str = "") -> None:
-    db.add(AdminAudit(admin_email=admin_email, action=action, target=target))
+def _log_audit(db: Session, admin_email: str, action: str, target: str = "", ip: str = "") -> None:
+    db.add(AdminAudit(admin_email=admin_email, action=action, target=target, ip_address=ip))
     db.commit()
 
 
@@ -1635,7 +1637,7 @@ def admin_login(request: dict, req: Request, db: Session = Depends(get_db)):
         if not user.totp_secret or not pyotp.TOTP(user.totp_secret).verify(totp_code, valid_window=1):
             raise HTTPException(401, "Invalid 2FA code")
 
-    _log_audit(db, email, "login", "admin panel")
+    _log_audit(db, email, "login", "admin panel", req.client.host if req.client else "")
     return {
         "token": create_token(email, "admin", ADMIN_TOKEN_HOURS),
         "expires_hours": ADMIN_TOKEN_HOURS,
@@ -2063,32 +2065,36 @@ def validate_text(req: ValidateTextRequest, request: Request, db: Session = Depe
         try:
             import whois as _whois
             from datetime import datetime as _dt
-            _wdata = _whois.whois(domain or text)
-            _cdate = _wdata.creation_date
-            if isinstance(_cdate, list):
-                _cdate = _cdate[0]
-            if _cdate:
-                _age = (_dt.utcnow() - _cdate).days
-                if _age < 30:
-                    _conf = 0.92
-                elif _age < 180:
-                    _conf = 0.75
-                else:
-                    _age = None   # old domain — skip
-                if _age is not None:
-                    _resp = ValidateTextResponse(
-                        is_threat=True,
-                        confidence=_conf,
-                        category="phishing",
-                        reasons=[f"ডোমেইনটি মাত্র {_age} দিন আগে তৈরি হয়েছে — নতুন ডোমেইন সন্দেহজনক"],
-                        explanation=f"এই লিংকের ডোমেইন {_age} দিন আগে নিবন্ধিত হয়েছে। সদ্য তৈরি ডোমেইন ফিশিং আক্রমণে বেশি ব্যবহৃত হয়।",
-                        source="whois",
-                        real_domain=url_heuristics.match_brand_domain(text),
-                        domain_age_days=_age,
-                    )
-                    if domain:
-                        domain_cache.upsert(db, domain, "malicious", "whois", _conf)
-                    return _resp
+
+            # OWASP A03: Injection protection — ensure WHOIS input is strictly a validated hostname
+            whois_target = domain or (text if _URL_RE.match(text) else None)
+            if whois_target and re.match(r"^[a-zA-Z0-9\-\.]+$", whois_target):
+                _wdata = _whois.whois(whois_target)
+                _cdate = _wdata.creation_date
+                if isinstance(_cdate, list):
+                    _cdate = _cdate[0]
+                if _cdate:
+                    _age = (_dt.utcnow() - _cdate).days
+                    if _age < 30:
+                        _conf = 0.92
+                    elif _age < 180:
+                        _conf = 0.75
+                    else:
+                        _age = None   # old domain — skip
+                    if _age is not None:
+                        _resp = ValidateTextResponse(
+                            is_threat=True,
+                            confidence=_conf,
+                            category="phishing",
+                            reasons=[f"ডোমেইনটি মাত্র {_age} দিন আগে তৈরি হয়েছে — নতুন ডোমেইন সন্দেহজনক"],
+                            explanation=f"এই লিংকের ডোমেইন {_age} দিন আগে নিবন্ধিত হয়েছে। সদ্য তৈরি ডোমেইন ফিশিং আক্রমণে বেশি ব্যবহৃত হয়।",
+                            source="whois",
+                            real_domain=url_heuristics.match_brand_domain(text),
+                            domain_age_days=_age,
+                        )
+                        if domain:
+                            domain_cache.upsert(db, domain, "malicious", "whois", _conf)
+                        return _resp
         except Exception:
             pass   # WHOIS unavailable / private registration → continue
 
@@ -2349,10 +2355,12 @@ async def assistant_chat(req: ChatbotQuery):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @app.get("/api/admin/backup", tags=["admin"])
-def admin_backup(_admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
+def admin_backup(req: Request, _admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
     """JSON dump of all tables — for off-site backup. Streams; do not call casually."""
     from fastapi.responses import StreamingResponse
     import json
+
+    _log_audit(db, _admin.get("sub", "admin"), "backup_export", "all_tables", req.client.host if req.client else "")
 
     def _serialize(obj):
         d = {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
@@ -2381,7 +2389,7 @@ def admin_backup(_admin: dict = Depends(require_admin), db: Session = Depends(ge
 
 
 @app.post("/api/admin/reputation", tags=["admin"])
-def set_domain_reputation(payload: dict, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
+def set_domain_reputation(payload: dict, req: Request, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
     """Admin sets a domain's allow/deny listing. payload: {domain, listed: 'white'|'black'|'none'}."""
     domain = domain_cache.normalize_domain((payload.get("domain") or "").strip())
     listed = (payload.get("listed") or "").lower().strip()
@@ -2402,7 +2410,7 @@ def set_domain_reputation(payload: dict, admin: dict = Depends(require_admin), d
         db.add(DomainReputation(domain=domain, verdict=verdict, source="admin",
                                 confidence=conf, listed=new_listed, hit_count=0))
     db.commit()
-    _log_audit(db, admin.get("sub", "admin"), f"reputation:{listed}", domain)
+    _log_audit(db, admin.get("sub", "admin"), f"reputation:{listed}", domain, req.client.host if req.client else "")
     return {"success": True, "domain": domain, "listed": new_listed}
 
 
@@ -2427,6 +2435,7 @@ def admin_pending(
 async def verify_threat(
     threat_id: int,
     background_tasks: BackgroundTasks,
+    req: Request,
     admin: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -2440,7 +2449,7 @@ async def verify_threat(
     t.human_reviewed = True
     db.commit()
     db.refresh(t)
-    _log_audit(db, admin.get("sub", "admin"), "verify", f"threat #{threat_id}")
+    _log_audit(db, admin.get("sub", "admin"), "verify", f"threat #{threat_id}", req.client.host if req.client else "")
 
     # Admin approval → nationwide alert always (human judgment overrides ML confidence).
     t.alerted = True
@@ -2471,6 +2480,7 @@ async def verify_threat(
 def reject_threat(
     threat_id: int,
     background_tasks: BackgroundTasks,
+    req: Request,
     admin: dict = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -2480,7 +2490,7 @@ def reject_threat(
     t.status = "rejected"
     t.human_reviewed = True
     db.commit()
-    _log_audit(db, admin.get("sub", "admin"), "reject", f"threat #{threat_id}")
+    _log_audit(db, admin.get("sub", "admin"), "reject", f"threat #{threat_id}", req.client.host if req.client else "")
 
     # Polite "your report was reviewed as safe" note to the reporter
     if t.reporter_email:
@@ -2492,12 +2502,12 @@ def reject_threat(
 
 
 @app.post("/api/alerts/broadcast", response_model=AlertOut, status_code=201, tags=["admin"])
-def broadcast_alert(payload: BroadcastRequest, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
+def broadcast_alert(payload: BroadcastRequest, req: Request, admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
     a = Alert(title=payload.title, message=payload.message, severity=payload.severity)
     db.add(a)
     db.commit()
     db.refresh(a)
-    _log_audit(db, admin.get("sub", "admin"), "broadcast", payload.title)
+    _log_audit(db, admin.get("sub", "admin"), "broadcast", payload.title, req.client.host if req.client else "")
     return a
 
 

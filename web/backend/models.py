@@ -103,6 +103,7 @@ class AdminAudit(Base):
     admin_email = Column(String, nullable=False)
     action = Column(String, nullable=False)         # approve | reject | broadcast | login
     target = Column(String, nullable=True)          # e.g. "threat #42" or alert title
+    ip_address = Column(String, nullable=True)      # for forensics
     created_at = Column(DateTime, server_default=func.now())
 
 

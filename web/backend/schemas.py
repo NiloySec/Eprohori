@@ -46,6 +46,26 @@ class ThreatOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ThreatPublicOut(BaseModel):
+    """Clean version of ThreatOut for public listing — no PII (emails)."""
+    id: int
+    type: str
+    content: str
+    region: Optional[str] = None
+    district: Optional[str] = None
+    confidence: float
+    status: str
+    up_votes: int
+    is_campaign: int = 0
+    alerted: bool = False
+    screenshot: Optional[str] = None
+    created_at: datetime
+    description: Optional[str] = None
+    platform: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
 # ── Alerts ────────────────────────────────────────────────────────────────────
 
 class AlertCreate(BaseModel):

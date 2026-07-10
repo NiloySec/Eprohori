@@ -72,8 +72,9 @@ function buildDistrictCircles(
       radius,
       fillColor: color,
       color: '#060d1a',
-      weight: 2,
-      fillOpacity: 0.85,
+      weight: 1,
+      fillOpacity: 0.9,
+      className: d.threats > 5 ? 'glowing-circle' : ''
     })
 
     circle.bindTooltip(
@@ -221,6 +222,17 @@ export default function BangladeshDivisionMap({ divisions, districts, onSelectDi
         .leaflet-container             { background: #060d1a !important; }
         .leaflet-tooltip-dark          { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
         .leaflet-tooltip-dark::before  { display: none; }
+
+        .glowing-circle {
+          filter: drop-shadow(0 0 8px currentColor);
+          animation: marker-pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes marker-pulse {
+          0% { filter: drop-shadow(0 0 2px currentColor); fill-opacity: 0.8; }
+          50% { filter: drop-shadow(0 0 12px currentColor); fill-opacity: 1.0; }
+          100% { filter: drop-shadow(0 0 2px currentColor); fill-opacity: 0.8; }
+        }
       `}</style>
     </div>
   )

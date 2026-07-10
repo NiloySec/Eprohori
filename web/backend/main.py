@@ -799,8 +799,12 @@ WHITELIST_DOMAINS = (
 
 # AI triage thresholds (confidence is 0.0–1.0)
 #   AUTO_VERIFY_CONF : at/above this → auto-verified + instant alert
-#   Below this       → pending (admin queue); no auto-rejection
+#   AUTO_REJECT_CONF : below this → marked as safe immediately (noise reduction)
 AUTO_VERIFY_CONF = float(os.getenv("AUTO_VERIFY_CONF", "0.90"))
+AUTO_REJECT_CONF = float(os.getenv("AUTO_REJECT_CONF", "0.20"))
+
+# Threshold for auto-verification when corroborated by multiple independent reports
+CORROBORATED_VERIFY_CONF = 0.70
 
 # ── User alert thresholds (System 2 — independent from triage) ───────────────
 ALERT_CRITICAL_MIN = 0.90   # 90-100% → instant email on auto-verify
@@ -1170,6 +1174,17 @@ def create_threat(
         if len(day_times) > DAILY_REVIEW_THRESHOLD and dup.status == "verified":
             dup.status = "pending"  # over-reported → human scrutiny
 
+        # Smart Auto-Verification for lower thresholds if corroborated by multiple users
+        # If confidence is >70% and we have 2+ independent reports, auto-verify.
+        current_conf = (dup.confidence or 0)
+        if current_conf > 1: current_conf /= 100
+        if dup.status == "pending" and current_conf >= CORROBORATED_VERIFY_CONF and (dup.up_votes or 0) >= 2:
+            dup.status = "verified"
+            # Release held alert if needed
+            if not dup.alerted:
+                dup.alerted = True
+                background_tasks.add_task(send_alert_emails, dup.id)
+
         # Release a previously held alert when conditions are now met.
         # Critical: always alert on first verify (already done); this handles
         # the edge case where the original insert pre-dated the ALERT_CRITICAL_MIN rule.
@@ -1218,13 +1233,16 @@ def create_threat(
     else:
         stored_confidence = confidence  # ML result is always 0.0-1.0
 
-    # ── 4. AI triage: auto-verify / admin queue ──────────────────────────────
+    # ── 4. AI triage: auto-verify / admin queue / auto-reject ────────────────
     # ≥90% confidence → auto-verified + instant alert.
-    # Everything else → pending (admin queue). No auto-rejection.
+    # ≤20% confidence → auto-rejected (reduces noise for admins).
+    # Everything else → pending (admin queue).
     if force_pending or _is_whitelisted(payload.content):
         status = "pending"
     elif ml_analyzed and confidence >= verify_threshold:
         status = "verified"
+    elif ml_analyzed and confidence <= AUTO_REJECT_CONF:
+        status = "rejected"
     else:
         status = "pending"
 

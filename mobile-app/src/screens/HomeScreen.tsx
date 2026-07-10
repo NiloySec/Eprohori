@@ -91,6 +91,17 @@ const ActionCard = ({ icon, label, sub, color, onPress }: {
   </TouchableOpacity>
 );
 
+const ServiceItem = ({ icon, label, color, onPress }: {
+  icon: MCIcon; label: string; color: string; onPress: () => void;
+}) => (
+  <TouchableOpacity style={styles.serviceItem} onPress={onPress} activeOpacity={0.7}>
+    <View style={[styles.serviceIconBox, { backgroundColor: `${color}15` }]}>
+      <Icon name={icon} size={24} color={color} />
+    </View>
+    <Text style={styles.serviceLabel}>{label}</Text>
+  </TouchableOpacity>
+);
+
 const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => void }) => {
   const conf  = entry.result.confidence;
   const color = conf >= 75 ? Colors.threat : conf >= 60 ? Colors.suspicious : Colors.safe;
@@ -203,49 +214,63 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         </LinearGradient>
 
         <View style={styles.body}>
-          <Text style={styles.sectionTitle}>নিরাপত্তা প্রোটেকশন</Text>
-          <View style={styles.toolGrid}>
-            <ActionCard
-              icon="shield-search"
-              label="স্মার্ট এনালাইজার"
-              sub="AI ভিত্তিক থ্রেট ডিটেকশন"
-              color={Colors.accent}
+          {/* ── Main Defense Core ── */}
+          <Text style={styles.sectionTitle}>মূল প্রতিরক্ষা (Core Defense)</Text>
+          <View style={styles.mainTools}>
+            <TouchableOpacity
+              style={[styles.bigCard, { backgroundColor: '#1e293b' }]}
               onPress={() => navigation.navigate('Analyzer')}
-            />
-            <ActionCard
-              icon="image-search-outline"
-              label="এআই ভিশন"
-              sub="স্ক্রিনশট বিশ্লেষণ করুন"
-              color="#f472b6"
-              onPress={() => navigation.navigate('Analyzer', { mode: 'vision' })}
-            />
-            <ActionCard
+            >
+              <LinearGradient colors={['rgba(0, 255, 204, 0.15)', 'transparent']} style={styles.bigCardGrad} />
+              <Icon name="shield-search" size={32} color={Colors.accent} />
+              <Text style={styles.bigCardTitle}>স্মার্ট এনালাইজার</Text>
+              <Text style={styles.bigCardSub}>টেক্সট ও ইমেজ এনালাইসিস</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.bigCard, { backgroundColor: '#1e293b' }]}
+              onPress={() => navigation.navigate('CallerID')}
+            >
+              <LinearGradient colors={['rgba(129, 140, 248, 0.15)', 'transparent']} style={styles.bigCardGrad} />
+              <Icon name="phone-filter" size={32} color="#818cf8" />
+              <Text style={styles.bigCardTitle}>কলার আইডি</Text>
+              <Text style={styles.bigCardSub}>স্প্যাম কল ও নম্বর ডিটেকশন</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* ── Security Services ── */}
+          <Text style={[styles.sectionTitle, { marginTop: 25 }]}>নিরাপত্তা সেবা (Security Services)</Text>
+          <View style={styles.serviceGrid}>
+            <ServiceItem
               icon="leak"
-              label="ডাটা লিক চেক"
-              sub="ইমেইল/ফোন কি হ্যাক হয়েছে?"
+              label="লিক মনিটর"
               color="#fbbf24"
               onPress={() => navigation.navigate('BreachMonitor')}
             />
-            <ActionCard
+            <ServiceItem
               icon="gavel"
               label="আইনি সহায়তা"
-              sub="প্রমাণ ও আইনি গাইডলাইন"
               color="#a78bfa"
               onPress={() => navigation.navigate('LegalSupport')}
             />
-            <ActionCard
-              icon="phone-filter"
-              label="কলার আইডি"
-              sub="স্প্যাম নম্বর ব্লক করুন"
-              color="#00dd99"
-              onPress={() => navigation.navigate('CallerID')}
+            <ServiceItem
+              icon="bell-ring-outline"
+              label="ফ্রড এলার্ট"
+              color="#f472b6"
+              onPress={() => navigation.navigate('FraudAlerts')}
+            />
+            <ServiceItem
+              icon="database-search"
+              label="স্প্যাম ডিরেক্টরি"
+              color="#2dd4bf"
+              onPress={() => navigation.navigate('SpamDirectory')}
             />
           </View>
 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>সাম্প্রতিক কার্যক্রম</Text>
             <TouchableOpacity onPress={() => navigation.navigate('History')}>
-              <Text style={styles.seeAll}>হিস্ট্রি দেখুন →</Text>
+              <Text style={styles.seeAll}>সব দেখুন →</Text>
             </TouchableOpacity>
           </View>
 
@@ -362,6 +387,34 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 15 },
   sectionTitle: { fontSize: 18, fontWeight: '900', color: '#fff', marginBottom: 15, letterSpacing: -0.3 },
   seeAll: { fontSize: 13, color: Colors.accent, fontWeight: '700' },
+
+  mainTools: { flexDirection: 'row', gap: 15, marginBottom: 20 },
+  bigCard: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+    ...Shadows.small,
+  },
+  bigCardGrad: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  bigCardTitle: { color: '#fff', fontSize: 15, fontWeight: '900', marginTop: 15 },
+  bigCardSub: { color: Colors.text.tertiary, fontSize: 11, marginTop: 4, lineHeight: 15 },
+
+  serviceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 30 },
+  serviceItem: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: '#0d1321',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  serviceIconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  serviceLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   toolGrid: { gap: 15, marginBottom: 30 },
   actionCard: {

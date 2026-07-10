@@ -102,17 +102,20 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
         {/* ── Hero ── */}
         <LinearGradient colors={heroGradient as [string, string]} style={styles.hero}>
           <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={22} color={Colors.text.secondary} />
-            <Text style={styles.backRowText}>ফিরে যান</Text>
+            <Icon name="chevron-left" size={24} color="#fff" />
+            <Text style={styles.backRowText}>ফলাফল</Text>
           </TouchableOpacity>
 
-          <View style={[styles.heroIconRing, { borderColor: `${statusColor}55`, backgroundColor: `${statusColor}14` }]}>
-            <Icon name={heroIcon} size={52} color={statusColor} />
-          </View>
-          <Text style={[styles.heroHeadline, { color: statusColor }]}>{headline}</Text>
-          <View style={[styles.confBadge, { backgroundColor: `${statusColor}22`, borderColor: `${statusColor}55` }]}>
-            <Text style={[styles.confNum, { color: statusColor }]}>{Math.round(conf)}%</Text>
-            <Text style={styles.confLabel}>নিশ্চয়তা</Text>
+          <View style={styles.heroCenter}>
+            <View style={[styles.heroIconRing, { borderColor: `${statusColor}44`, backgroundColor: `${statusColor}10` }]}>
+              <Icon name={heroIcon} size={64} color={statusColor} />
+            </View>
+            <Text style={[styles.heroHeadline, { color: statusColor }]}>{headline}</Text>
+
+            <View style={styles.scoreContainer}>
+              <Text style={[styles.scoreVal, { color: statusColor }]}>{Math.round(conf)}%</Text>
+              <Text style={styles.scoreLabel}>নিশ্চয়তা স্কোর</Text>
+            </View>
           </View>
 
           {/* S4: replay voice alert */}
@@ -425,22 +428,24 @@ const styles = StyleSheet.create({
   backBtn:   { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg, backgroundColor: Colors.secondary },
   backBtnText: { ...TextStyles.button, color: Colors.accent },
 
-  hero: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg, paddingBottom: Spacing['2xl'], alignItems: 'center' },
-  backRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, alignSelf: 'flex-start', marginBottom: Spacing.xl },
-  backRowText: { ...TextStyles.body, color: Colors.text.secondary },
+  hero: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 40, alignItems: 'center' },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginBottom: 20 },
+  backRowText: { fontSize: 16, fontWeight: '700', color: '#fff' },
 
-  heroIconRing: { width: 96, height: 96, borderRadius: 48, borderWidth: 2, justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.lg },
-  heroHeadline: { ...TextStyles.h2, textAlign: 'center', marginBottom: Spacing.md },
-  confBadge:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: 99, borderWidth: 1 },
-  confNum:      { fontSize: 24, fontWeight: '800', lineHeight: 30 },
-  confLabel:    { ...TextStyles.body, color: Colors.text.secondary },
+  heroCenter: { alignItems: 'center' },
+  heroIconRing: { width: 120, height: 120, borderRadius: 60, borderWidth: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  heroHeadline: { fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 15, letterSpacing: -0.5 },
+
+  scoreContainer: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  scoreVal: { fontSize: 28, fontWeight: '900' },
+  scoreLabel: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '700', textTransform: 'uppercase', marginTop: -2 },
 
   voiceBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.md,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99,
-    borderWidth: 1, borderColor: Colors.border,
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 25,
+    paddingHorizontal: 15, paddingVertical: 8, borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
   },
-  voiceBtnText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' },
+  voiceBtnText: { fontSize: 12, color: '#fff', fontWeight: '700' },
 
   sosBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,

@@ -185,22 +185,28 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
 
         <View style={styles.body}>
           {/* ── Mode tabs ── */}
-          <View style={styles.tabRow}>
-            {(['text', 'phone'] as InputMode[]).map((mode) => {
-              const active = inputMode === mode;
-              const label  = mode === 'text' ? t('analyzer_tab_text') : t('analyzer_tab_phone');
-              const icon   = mode === 'text' ? 'text-search' : 'phone-check';
-              return (
-                <TouchableOpacity
-                  key={mode}
-                  style={[styles.tab, active && styles.tabActive]}
-                  onPress={() => { setInputMode(mode); setMessage(''); setError(null); Haptics.selectionAsync(); }}
-                >
-                  <Icon name={icon as any} size={18} color={active ? Colors.primary : Colors.text.tertiary} />
-                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={styles.tabContainer}>
+            <View style={styles.tabBg}>
+              <Animated.View style={[styles.tabSlider, {
+                width: '50%',
+                left: inputMode === 'text' ? 0 : '50%',
+                backgroundColor: Colors.accent
+              }]} />
+              <TouchableOpacity
+                style={styles.tabBtn}
+                onPress={() => { setInputMode('text'); setMessage(''); setError(null); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              >
+                <Icon name="text-search" size={18} color={inputMode === 'text' ? Colors.primary : Colors.text.tertiary} />
+                <Text style={[styles.tabBtnText, inputMode === 'text' && styles.tabBtnTextActive]}>{t('analyzer_tab_text')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.tabBtn}
+                onPress={() => { setInputMode('phone'); setMessage(''); setError(null); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+              >
+                <Icon name="phone-check" size={18} color={inputMode === 'phone' ? Colors.primary : Colors.text.tertiary} />
+                <Text style={[styles.tabBtnText, inputMode === 'phone' && styles.tabBtnTextActive]}>{t('analyzer_tab_phone')}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* ── Multi-source hint (text mode) ── */}
@@ -388,15 +394,33 @@ const styles = StyleSheet.create({
 
   body: { padding: 24 },
 
-  tabRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  tab: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 16, borderRadius: 16,
-    backgroundColor: '#0d1321', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+  tabContainer: { marginBottom: 30 },
+  tabBg: {
+    flexDirection: 'row',
+    height: 56,
+    backgroundColor: '#0d1321',
+    borderRadius: 28,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
-  tabActive:     { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  tabText:       { fontSize: 14, fontWeight: '700', color: Colors.text.tertiary },
-  tabTextActive: { color: Colors.primary },
+  tabSlider: {
+    position: 'absolute',
+    height: 48,
+    top: 4,
+    borderRadius: 24,
+    ...Shadows.small,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    zIndex: 1,
+  },
+  tabBtnText: { fontSize: 14, fontWeight: '700', color: Colors.text.tertiary },
+  tabBtnTextActive: { color: Colors.primary },
 
   label: { fontSize: 14, fontWeight: '700', color: Colors.text.secondary, marginBottom: 12, marginTop: 24, textTransform: 'uppercase', letterSpacing: 1 },
 

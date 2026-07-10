@@ -32,7 +32,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "mkniloy1568@gmail.com")
+FROM_EMAIL = os.getenv("FROM_EMAIL")
 FROM_NAME = os.getenv("FROM_NAME", "EProhori")
 
 

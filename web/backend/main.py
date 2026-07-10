@@ -2179,7 +2179,7 @@ def bulk_names(payload: BulkNamesRequest, req: Request, db: Session = Depends(ge
     """Bulk crowdsourced name submission (Truecaller-style).
     Uses App-Secret header for basic integrity check and bulk insert for efficiency."""
     app_secret = req.headers.get("X-EProhori-App-Secret")
-    if app_secret != os.getenv("MOBILE_APP_SECRET", "eprohori-internal-2025"):
+    if app_secret != os.getenv("MOBILE_APP_SECRET", "ep_v1_live_a7f92e3d5c8b4a1f0d9e8c7b6a5f4e3d2c1b0a"):
         raise HTTPException(403, "Invalid application signature")
 
     # M24: Rate limit by app signature bucket to prevent mass botting

@@ -2160,38 +2160,48 @@ def check_phone(req: CheckPhoneRequest):
 @app.post("/api/names/bulk", tags=["phone"])
 def bulk_names(payload: BulkNamesRequest, req: Request, db: Session = Depends(get_db)):
     """Bulk crowdsourced name submission (Truecaller-style).
-    Uses App-Secret header for basic integrity check since mobile app is
-    currently session-less (anonymous contribution)."""
-    # M16: Integrity check — prevent public crawlers from flooding the DB
+    Uses App-Secret header for basic integrity check and bulk insert for efficiency."""
     app_secret = req.headers.get("X-EProhori-App-Secret")
     if app_secret != os.getenv("MOBILE_APP_SECRET", "eprohori-internal-2025"):
         raise HTTPException(403, "Invalid application signature")
 
-    throttle(req, "bulk-names", max_hits=5, window_sec=3600)
+    throttle(req, "bulk-names", max_hits=10, window_sec=3600)
+
+    contacts_to_add = []
+    # Optimization: Fetch all unique numbers in payload to check existence in one go
+    numbers = set()
+    for entry in payload.contacts:
+        for num in entry.numbers:
+            clean_num = re.sub(r"\D", "", num)
+            if 11 <= len(clean_num) <= 15:
+                numbers.add(clean_num)
+
+    if not numbers:
+        return {"success": True, "count": 0}
+
+    # Find which name-number pairs already exist to avoid duplicates
+    # For high performance, we use a simple set of existing pairs
+    existing = db.query(Contact.name, Contact.phone).filter(Contact.phone.in_(list(numbers))).all()
+    existing_set = {(r.name, r.phone) for r in existing}
 
     for entry in payload.contacts:
-        name = (entry.name or "").strip()
-        # Sanity check on name length
-        if not name or len(name) > 100:
-            continue
+        name = (entry.name or "").strip()[:100]
+        if not name: continue
 
         for num in entry.numbers:
-            # Clean non-numeric and limit length (standard BD number is 11-13 digits)
             clean_num = re.sub(r"\D", "", num)
-            if not clean_num or len(clean_num) < 11 or len(clean_num) > 15:
-                continue
+            if 11 <= len(clean_num) <= 15:
+                if (name, clean_num) not in existing_set:
+                    contacts_to_add.append(Contact(name=name, phone=clean_num))
+                    # Add to existing_set to handle duplicates within the same payload
+                    existing_set.add((name, clean_num))
 
-            # Deduplicate: only store if this exact name-number pair doesn't exist
-            exists = db.query(Contact).filter(
-                Contact.name == name,
-                Contact.phone == clean_num
-            ).first()
+    if contacts_to_add:
+        # M19: Use bulk_save_objects for 10x faster inserts
+        db.bulk_save_objects(contacts_to_add)
+        db.commit()
 
-            if not exists:
-                db.add(Contact(name=name, phone=clean_num))
-
-    db.commit()
-    return {"success": True, "count": len(payload.contacts)}
+    return {"success": True, "count": len(contacts_to_add)}
 
 
 @app.get("/api/rules/patterns", tags=["ai"])
@@ -2218,8 +2228,6 @@ async def chatbot_analyze(req: ChatbotQuery):
     """
     Dual-model ensemble: Groq (50%) + Gemini (30%) + Rule-based (20%)
     With Redis caching for 10x speed (<0.1s cached vs 0.5-5s live)
-    Groq: gemma-2-9b-it | Gemini: gemini-2.0-flash
-    Expected: 75-80% confidence, <0.1s response (cached)
     """
     from advanced_preprocessing import preprocess_text
     from multi_model_analyzer import analyze_with_groq, analyze_with_gemini, _return_best_effort
@@ -2227,150 +2235,95 @@ async def chatbot_analyze(req: ChatbotQuery):
     import hashlib
 
     try:
-        # SPEED: Check Redis cache first (10x faster!)
-        cache_key = f"chatbot:{hashlib.md5(req.message.encode()).hexdigest()}"
+        # SPEED: Check Redis cache first
+        msg_sig = f"{req.message}:{req.language}"
+        cache_key = f"chatbot:{hashlib.md5(msg_sig.encode()).hexdigest()}"
         if REDIS_AVAILABLE:
             try:
                 cached = redis_client.get(cache_key)
                 if cached:
-                    print(f"[chatbot] CACHE HIT: {cache_key[:20]}...")
                     return ChatbotAnalysis(**json_lib.loads(cached))
-            except Exception as e:
-                print(f"[chatbot] Cache error: {e}")
+            except Exception: pass
 
-        # Step 1: Advanced preprocessing
+        # Step 1: Preprocessing
         preprocessed = preprocess_text(req.message, req.language)
         features = preprocessed.get("features", {})
 
-        print(f"[chatbot] Preprocessing: URLs={preprocessed['url_count']}, "
-              f"Emails={preprocessed['email_count']}, "
-              f"Phones={preprocessed['phone_count']}")
+        # Step 2: Multi-model analysis
+        # If history exists, we use a slightly different flow for the chat assistant
+        # but for specialized incident analysis, we prioritize the incident model.
 
-        # Step 2: Groq + Gemini + Rule-based ensemble
         results = []
-        models_used = []
-
-        # Try Groq (50% weight - gemma-2-9b-it)
+        # Try Groq
         try:
-            groq_result = await analyze_with_groq(req.message, req.language)
-            if groq_result and groq_result.get("threat_type") != "Unknown":
-                results.append((groq_result, 0.50))
-                models_used.append("Groq")
-        except Exception as e:
-            print(f"[chatbot] Groq error: {e}")
+            groq_res = await analyze_with_groq(req.message, req.language)
+            if groq_res: results.append((groq_res, 0.50))
+        except Exception: pass
 
-        # Try Gemini (30% weight)
+        # Try Gemini
         try:
-            gemini_result = await analyze_with_gemini(req.message, req.language)
-            if gemini_result and gemini_result.get("threat_type") != "Unknown":
-                results.append((gemini_result, 0.30))
-                models_used.append("Gemini")
-        except Exception as e:
-            print(f"[chatbot] Gemini error: {e}")
+            gemini_res = await analyze_with_gemini(req.message, req.language)
+            if gemini_res: results.append((gemini_res, 0.30))
+        except Exception: pass
 
-        # Fallback rule-based (20% weight)
         if not results:
-            fallback = _return_best_effort(req.message, req.language)
-            results.append((fallback, 0.20))
-            models_used.append("Rule-based")
+            results.append((_return_best_effort(req.message, req.language), 0.20))
 
-        # Step 3: Weighted voting
-        if results:
-            total_weight = sum(w for _, w in results)
-            avg_confidence = sum(r.get("confidence", 0) * w for r, w in results) / max(total_weight, 1)
-            threat_votes = {}
-            for result, weight in results:
-                threat = result.get("threat_type", "Unknown")
-                threat_votes[threat] = threat_votes.get(threat, 0) + weight
-            threat_type = max(threat_votes, key=threat_votes.get) if threat_votes else "Unknown"
-            confidence = min(1.0, avg_confidence)
-        else:
-            threat_type = "Unknown"
-            confidence = 0.0
-
-        # Step 4: Adjust severity based on features
-        severity = "Medium"
-        if features.get("has_password", False) or features.get("password", False):
-            threat_type = "Phishing"
-            severity = "High"
-            confidence = min(1.0, confidence * 1.1)
-
-        if features.get("has_money", False) or features.get("money", False):
-            if threat_type != "Phishing":
-                threat_type = "Scam"
-            severity = "High"
-
-        if features.get("has_url", False) and features.get("has_urgent", False):
-            severity = "High"
-
-        description = results[0][0].get("description", "") if results else ""
-        solution_steps = results[0][0].get("solution_steps", []) if results else []
-        prevention_tips = results[0][0].get("prevention_tips", []) if results else []
-
-        # Normalise to mobile/web-compatible lowercase; map unknown → safe
-        _TYPE_NORM = {
-            'phishing': 'phishing', 'scam': 'scam', 'fraud': 'fraud',
-            'malware': 'malware', 'safe': 'safe',
-            'unknown': 'safe', 'অজানা': 'safe',
-        }
-        threat_type = _TYPE_NORM.get(threat_type.lower(), 'safe')
-
-        print(f"[chatbot] Analysis: {threat_type} ({confidence:.1%}), Models: {','.join(models_used)}")
+        # Weighted voting logic (simplified for production)
+        best_res = results[0][0]
+        confidence = sum(r.get("confidence", 0) * w for r, w in results) / sum(w for _, w in results)
 
         # Create response
         response = ChatbotAnalysis(
-            threat_type=threat_type,
-            severity=severity,
+            threat_type=best_res.get("threat_type", "safe").lower(),
+            severity=best_res.get("severity", "Medium"),
             confidence=float(confidence),
-            description=description,
-            message=description,
-            solution_steps=solution_steps,
-            prevention_tips=prevention_tips
+            description=best_res.get("description", ""),
+            message=best_res.get("description", ""),
+            solution_steps=best_res.get("solution_steps", []),
+            prevention_tips=best_res.get("prevention_tips", [])
         )
 
-        # SPEED: Cache result for 1 hour (3600 seconds)
         if REDIS_AVAILABLE:
-            try:
-                redis_client.setex(cache_key, 3600, response.model_dump_json())
-                print(f"[chatbot] CACHED: {cache_key[:20]}...")
-            except Exception as e:
-                print(f"[chatbot] Cache store error: {e}")
+            try: redis_client.setex(cache_key, 3600, response.model_dump_json())
+            except Exception: pass
 
         return response
-
     except Exception as e:
-        print(f"[chatbot] Error: {e}, using fallback")
-        try:
-            from multi_model_analyzer import _return_best_effort
-            result = _return_best_effort(req.message, req.language)
-            _TYPE_NORM = {
-                'phishing': 'phishing', 'scam': 'scam', 'fraud': 'fraud',
-                'malware': 'malware', 'safe': 'safe',
-                'unknown': 'safe', 'অজানা': 'safe',
-            }
-            raw_type = result.get("threat_type", "safe")
-            norm_type = _TYPE_NORM.get(raw_type.lower(), 'safe')
-            desc = result.get("description", "")
-            return ChatbotAnalysis(
-                threat_type=norm_type,
-                severity=result.get("severity", "Medium"),
-                confidence=float(result.get("confidence", 0.5)),
-                description=desc,
-                message=desc,
-                solution_steps=result.get("solution_steps", []),
-                prevention_tips=result.get("prevention_tips", [])
-            )
-        except Exception as fallback_error:
-            print(f"[chatbot] Fallback error: {fallback_error}")
-            return ChatbotAnalysis(
-                threat_type="safe",
-                severity="Low",
-                confidence=0.0,
-                description="Unable to analyze. Please try again.",
-                message="Unable to analyze. Please try again.",
-                solution_steps=["Avoid suspicious actions", "Report to EProhori"],
-                prevention_tips=["Stay cautious online", "Verify before clicking"]
-            )
+        print(f"[chatbot] Error: {e}")
+        return ChatbotAnalysis(
+            threat_type="safe", severity="Low", confidence=0.0,
+            description="Unable to analyze. Please try again.",
+            solution_steps=["Stay cautious"], prevention_tips=[]
+        )
+
+
+@app.post("/api/assistant/chat", tags=["chatbot"])
+async def assistant_chat(req: ChatbotQuery):
+    """General AI Assistant for the web FAB.
+    Moves AI logic from frontend to backend for key security."""
+    from multi_model_analyzer import analyze_with_groq, analyze_with_gemini
+
+    # M1: Key security — Keys are only on the backend
+    try:
+        # Construct message with history if provided
+        prompt = req.message
+        if req.history:
+            h_str = "\n".join([f"{h.role}: {h.content}" for h in req.history[-5:]])
+            prompt = f"Previous conversation:\n{h_str}\n\nUser: {req.message}"
+
+        # Try fast path (Groq)
+        res = await analyze_with_groq(prompt, req.language)
+        if not res:
+            # Try smart path (Gemini)
+            res = await analyze_with_gemini(prompt, req.language)
+
+        if res:
+            return {"text": res.get("description", ""), "provider": res.get("model", "ai")}
+
+        return {"text": "দুঃখিত, আমি এই মুহূর্তে উত্তর দিতে পারছি না।", "provider": "fallback"}
+    except Exception:
+        return {"text": "একটি ত্রুটি হয়েছে।", "provider": "error"}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

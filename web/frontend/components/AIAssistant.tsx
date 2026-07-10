@@ -274,7 +274,7 @@ const KB: KnowledgeBase = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function askAI(message: string, history: HistoryItem[]): Promise<string> {
-  const resp = await fetch('/api/chat', {
+  const resp = await fetch('/api-proxy/api/assistant/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, history: history.slice(-6) }),

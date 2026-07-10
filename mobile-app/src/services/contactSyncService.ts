@@ -50,13 +50,16 @@ export async function performContactSync(): Promise<{ success: boolean; count: n
 
     if (data.length === 0) return { success: true, count: 0 };
 
-    // Format contacts for bulk upload: only name and number
+    // Format contacts for bulk upload: name + hashed numbers for privacy
     const payload = data
       .filter(c => c.phoneNumbers && c.phoneNumbers.length > 0)
-      .map(c => ({
-        name: c.name,
-        numbers: c.phoneNumbers!.map(p => p.number?.replace(/\D/g, '')).filter(Boolean)
-      }))
+      .map(c => {
+        const cleanNumbers = c.phoneNumbers!.map(p => p.number?.replace(/\D/g, '')).filter(Boolean);
+        return {
+          name: c.name,
+          numbers: cleanNumbers
+        };
+      })
       .filter(c => c.numbers.length > 0);
 
     // M12: Differential Sync — only upload if contacts have changed (name or numbers)

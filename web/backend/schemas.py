@@ -238,9 +238,15 @@ class QuizDailyResult(BaseModel):
     already_done: bool = False
 
 
+class ChatHistoryItem(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 class ChatbotQuery(BaseModel):
     message: str
     language: str = "bn"  # bn or en
+    history: Optional[list[ChatHistoryItem]] = None
 
 
 class ChatbotAnalysis(BaseModel):

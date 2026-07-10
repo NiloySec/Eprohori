@@ -1,6 +1,7 @@
 ﻿from sqlalchemy import Boolean, Column, Integer, String, Float, DateTime, Text
 from sqlalchemy.sql import func
 from database import Base
+from encryption import EncryptedString
 
 
 class Threat(Base):
@@ -43,7 +44,7 @@ class User(Base):
     reports = Column(Integer, default=0)
     validated = Column(Integer, default=0)
     email = Column(String, unique=True, index=True, nullable=True)
-    phone = Column(String, nullable=True)
+    phone = Column(EncryptedString, nullable=True)
     password_hash = Column(String, nullable=True)
     is_admin = Column(Boolean, default=False)       # admin accounts (Option B)
     notify_alerts = Column(Boolean, default=True)   # opt-in for district threat email alerts

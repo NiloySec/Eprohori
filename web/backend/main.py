@@ -1180,6 +1180,13 @@ def create_threat(
         if current_conf > 1: current_conf /= 100
         if dup.status == "pending" and current_conf >= CORROBORATED_VERIFY_CONF and (dup.up_votes or 0) >= 2:
             dup.status = "verified"
+            # M21: Send global push notification for newly corroborated threats
+            from notification_service import send_push_notification
+            asyncio.create_task(send_push_notification(
+                title="🚨 সতর্কতা: নতুন প্রতারণা সনাক্ত",
+                body=f"{dup.type.upper()}: {dup.content[:100]}...",
+                data={"screen": "Monitor", "threat_id": dup.id}
+            ))
             # Release held alert if needed
             if not dup.alerted:
                 dup.alerted = True

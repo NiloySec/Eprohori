@@ -12,6 +12,8 @@ import { threatAnalysisAPI } from '@api';
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+  const [requires2fa, setRequires2fa] = useState(false);
   const [loading, setLoading] = useState(false);
   const setAuth = useAuthStore((s) => s.setAuth);
 
@@ -22,7 +24,20 @@ export default function LoginScreen({ navigation }: any) {
     }
     setLoading(true);
     try {
-      const res = await threatAnalysisAPI.login(email, password);
+      const res = await threatAnalysisAPI.login(email, password, totpCode);
+      if (res.requires_2fa) {
+        setRequires2fa(true);
+        Alert.alert('২-ফ্যাক্টর যাচাইকরণ', 'আপনার অথেন্টিকেটর অ্যাপ থেকে কোডটি দিন');
+        setLoading(false);
+        return;
+      }
+
+      if (!res.token) {
+        Alert.alert('ত্রুটি', 'সিস্টেম টোকেন পাওয়া যায়নি');
+        setLoading(false);
+        return;
+      }
+
       setAuth({
         id: res.id,
         name: res.name,
@@ -73,6 +88,21 @@ export default function LoginScreen({ navigation }: any) {
             secureTextEntry
           />
         </View>
+
+        {requires2fa && (
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: Colors.accent }]}>২-ফ্যাক্টর কোড (TOTP)</Text>
+            <TextInput
+              style={[styles.input, { borderColor: Colors.accent }]}
+              value={totpCode}
+              onChangeText={setTotpCode}
+              placeholder="123456"
+              placeholderTextColor={Colors.text.tertiary}
+              keyboardType="number-pad"
+              maxLength={6}
+            />
+          </View>
+        )}
 
         <TouchableOpacity
           style={styles.loginBtn}

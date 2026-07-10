@@ -50,7 +50,7 @@ export interface UserAuthResponse {
   xp: number;
   badge: string;
   reports: number;
-  token: string;
+  token?: string; // Optional if 2FA is required
 }
 
 const SOLUTION_STEPS: Record<'bn' | 'en', Record<string, string[]>> = {
@@ -499,9 +499,11 @@ class ThreatAnalysisAPI {
 
   // ── Auth Methods ─────────────────────────────────────────────────────────
 
-  async login(email: string, password: string): Promise<UserAuthResponse> {
+  async login(email: string, password: string, totpCode?: string): Promise<UserAuthResponse & { requires_2fa?: boolean }> {
     try {
-      const res = await this.axiosInstance.post<UserAuthResponse>('/api/auth/login', { email, password });
+      const res = await this.axiosInstance.post('/api/auth/login', {
+        email, password, totp_code: totpCode
+      });
       return res.data;
     } catch (error) {
       throw this.handleError(error as AxiosError);

@@ -76,12 +76,13 @@ from security import (
     require_admin,
     throttle,
 )
-from models import AdminAudit, Alert, DomainReputation, GlobalStat, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
+from models import AdminAudit, Alert, Contact, DomainReputation, GlobalStat, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
 import quiz_bank
 from schemas import (
     ActivityOut,
     AlertOut,
     BroadcastRequest,
+    BulkNamesRequest,
     ChatbotAnalysis,
     ChatbotQuery,
     CheckPhoneRequest,
@@ -2136,6 +2137,38 @@ def check_phone(req: CheckPhoneRequest):
     if not req.number.strip():
         raise HTTPException(status_code=422, detail="number cannot be empty")
     return CheckPhoneResponse(**phone_checker.check_phone(req.number))
+
+
+@app.post("/api/names/bulk", tags=["phone"])
+def bulk_names(payload: BulkNamesRequest, req: Request, db: Session = Depends(get_db)):
+    """Bulk crowdsourced name submission (Truecaller-style).
+    Stores name-number pairs to improve local caller ID for the community."""
+    # Rate limit: max 5 bulk syncs per hour per IP to prevent spamming the DB
+    throttle(req, "bulk-names", max_hits=5, window_sec=3600)
+
+    for entry in payload.contacts:
+        name = (entry.name or "").strip()
+        # Sanity check on name length
+        if not name or len(name) > 100:
+            continue
+
+        for num in entry.numbers:
+            # Clean non-numeric and limit length (standard BD number is 11-13 digits)
+            clean_num = re.sub(r"\D", "", num)
+            if not clean_num or len(clean_num) < 11 or len(clean_num) > 15:
+                continue
+
+            # Deduplicate: only store if this exact name-number pair doesn't exist
+            exists = db.query(Contact).filter(
+                Contact.name == name,
+                Contact.phone == clean_num
+            ).first()
+
+            if not exists:
+                db.add(Contact(name=name, phone=clean_num))
+
+    db.commit()
+    return {"success": True, "count": len(payload.contacts)}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

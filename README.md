@@ -43,7 +43,7 @@ EProhori is a **Bengali cybersecurity platform** that uses AI to detect real-tim
 
 **Backend:**
 ```bash
-cd backend
+cd web/backend
 pip install -r requirements.txt
 export GROQ_API_KEY=your_key
 export GEMINI_API_KEY=your_key
@@ -52,7 +52,7 @@ python -m uvicorn main:app --reload
 
 **Frontend:**
 ```bash
-cd frontend
+cd web/frontend
 npm install
 npm run dev
 ```
@@ -257,7 +257,7 @@ Output:
 
 ```bash
 # Backend tests
-cd backend
+cd web/backend
 pytest tests/
 
 # Integration tests

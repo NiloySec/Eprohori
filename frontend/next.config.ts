@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['leaflet', 'react-leaflet'],
   },
 
+  async rewrites() {
+    return [
+      {
+        source: '/api-proxy/:path*',
+        destination: 'https://eprohori-production.up.railway.app/:path*',
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

@@ -53,6 +53,17 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+class Contact(Base):
+    """Crowdsourced contact names (Truecaller-style). Stores name-number pairs
+    contributed by users to build a local caller ID database."""
+    __tablename__ = "contacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    phone = Column(String, index=True, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+
+
 class DomainReputation(Base):
     """Persistent verdict cache per DOMAIN (privacy-safe: host only, no path/query,
     not linked to any user). Speeds up repeat scans, saves VirusTotal quota, and

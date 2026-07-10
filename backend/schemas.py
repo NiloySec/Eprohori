@@ -197,6 +197,17 @@ class CheckPhoneResponse(BaseModel):
     message: str
 
 
+# ── Crowdsourced Names (Truecaller-style) ─────────────────────────────────────
+
+class ContactBulkIn(BaseModel):
+    name: str
+    numbers: list[str]
+
+
+class BulkNamesRequest(BaseModel):
+    contacts: list[ContactBulkIn]
+
+
 # ── Admin & Quiz ──────────────────────────────────────────────────────────────
 
 class BroadcastRequest(BaseModel):

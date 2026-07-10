@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "eprohori-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "D:\\Project\\Eprohori\\frontend",
+      "port": 3000,
+      "autoPort": false
+    }
+  ]
+}

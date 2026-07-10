@@ -60,3 +60,20 @@ extension/*.sh
 extension/icons/*.sh
 mobile-app/android/gradlew*
 mobile-app/android/*.properties
+
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Environment
+.env
+.env.*
+
+# Firebase
+firebase-admin.json
+
+# IDE
+.vscode/
+.idea/

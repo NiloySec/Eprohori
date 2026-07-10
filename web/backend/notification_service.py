@@ -24,6 +24,7 @@ TELEGRAM BOT (Optional):
 """
 
 import os
+from typing import Optional, Dict, List, Any
 
 import httpx
 

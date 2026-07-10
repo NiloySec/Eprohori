@@ -138,7 +138,39 @@ async def send_email(
     return {"success": False, "provider": None}
 
 
-# ── Email templates ──────────────────────────────────────────────────────────
+# ── FCM Push Notifications (Firebase) ────────────────────────────────────────
+
+FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY")
+
+async def send_push_notification(title: str, body: str, data: Optional[dict] = None) -> bool:
+    """Send a global push notification to all mobile app users via FCM."""
+    if not FCM_SERVER_KEY:
+        return False
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://fcm.googleapis.com/fcm/send",
+                headers={
+                    "Authorization": f"key={FCM_SERVER_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "to": "/topics/all_users",
+                    "notification": {
+                        "title": title,
+                        "body": body,
+                        "sound": "default",
+                        "badge": "1",
+                    },
+                    "data": data or {},
+                    "priority": "high",
+                },
+                timeout=15,
+            )
+            return response.status_code == 200
+    except Exception as e:
+        print(f"[notify] FCM failed: {e}")
+        return False
 
 # Brand header: the main navbar logo (hosted on the site, same image everywhere)
 EMAIL_LOGO_URL = os.getenv("EMAIL_LOGO_URL", "https://eprohori.tech/logo.png")

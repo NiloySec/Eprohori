@@ -1605,18 +1605,26 @@ def admin_login_alias(request: dict, req: Request, db: Session = Depends(get_db)
 
 @app.post("/api/auth/admin-login", tags=["auth"])
 def admin_login(request: dict, req: Request, db: Session = Depends(get_db)):
-    """Account-based admin login: email + password, must have is_admin = True."""
-    # 5 attempts per IP per 10 minutes — admin login is high-value
+    """Account-based admin login: email + password + mandatory TOTP."""
     throttle(req, "admin-login", max_hits=5, window_sec=600)
 
     email = (request.get("email") or "").lower().strip()
     password = request.get("password") or ""
+    totp_code = (request.get("totp_code") or "").strip()
 
     user = db.query(User).filter(User.email == email).first()
     if not user or not user.password_hash or not _verify_password(password, user.password_hash):
         raise HTTPException(401, "Invalid admin credentials")
     if not user.is_admin:
         raise HTTPException(403, "This account does not have admin access")
+
+    # M20: Mandatory MFA for Admins in production
+    if _is_production or user.totp_enabled:
+        if not totp_code:
+            return {"requires_2fa": True, "email": email}
+        import pyotp
+        if not user.totp_secret or not pyotp.TOTP(user.totp_secret).verify(totp_code, valid_window=1):
+            raise HTTPException(401, "Invalid 2FA code")
 
     _log_audit(db, email, "login", "admin panel")
     return {
@@ -2389,13 +2397,20 @@ def set_domain_reputation(payload: dict, admin: dict = Depends(require_admin), d
 
 
 @app.get("/api/admin/pending", response_model=list[ThreatOut], tags=["admin"])
-def admin_pending(_admin: dict = Depends(require_admin), db: Session = Depends(get_db)):
-    return (
-        db.query(Threat)
-        .filter(Threat.status == "pending")
-        .order_by(Threat.created_at.desc())
-        .all()
-    )
+def admin_pending(
+    min_confidence: Optional[float] = Query(None),
+    threat_type: Optional[str] = Query(None),
+    _admin: dict = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Fetch pending reports with filtering support for easier moderation."""
+    q = db.query(Threat).filter(Threat.status == "pending")
+    if min_confidence is not None:
+        q = q.filter(Threat.confidence >= min_confidence)
+    if threat_type:
+        q = q.filter(Threat.type == threat_type)
+
+    return q.order_by(Threat.confidence.desc(), Threat.created_at.desc()).all()
 
 
 @app.patch("/api/threats/{threat_id}/verify", tags=["admin"])

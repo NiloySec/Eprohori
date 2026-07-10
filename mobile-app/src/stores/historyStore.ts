@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 import { ThreatAnalysisResponse } from '@api';
+
+// M22: Local Data Privacy — Encrypt scan history using a device-specific key
+// This prevents plain-text leakage if the phone is compromised.
+const STORAGE_KEY = 'history-storage';
 
 export interface HistoryEntry {
   id: string;

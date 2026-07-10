@@ -519,9 +519,11 @@ class ThreatAnalysisAPI {
 
   // ── Admin Methods ────────────────────────────────────────────────────────
 
-  async fetchPendingThreats(): Promise<any[]> {
+  async fetchPendingThreats(minConfidence?: number | null): Promise<any[]> {
     try {
-      const res = await this.axiosInstance.get('/api/admin/pending');
+      const res = await this.axiosInstance.get('/api/admin/pending', {
+        params: { min_confidence: minConfidence }
+      });
       return res.data;
     } catch (error) {
       throw this.handleError(error as AxiosError);

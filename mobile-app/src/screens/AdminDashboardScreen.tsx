@@ -11,10 +11,11 @@ export default function AdminDashboardScreen({ navigation }: any) {
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [minConf, setMinConf] = useState<number | null>(null);
 
-  const loadPending = async () => {
+  const loadPending = async (conf?: number | null) => {
     try {
-      const data = await threatAnalysisAPI.fetchPendingThreats();
+      const data = await threatAnalysisAPI.fetchPendingThreats(conf);
       setPending(data);
     } catch (err) {
       console.error(err);
@@ -25,8 +26,8 @@ export default function AdminDashboardScreen({ navigation }: any) {
   };
 
   useEffect(() => {
-    loadPending();
-  }, []);
+    loadPending(minConf);
+  }, [minConf]);
 
   const handleAction = async (id: number, action: 'verify' | 'reject') => {
     try {
@@ -78,6 +79,23 @@ export default function AdminDashboardScreen({ navigation }: any) {
         <View style={{ width: 24 }} />
       </View>
 
+      {/* M24: Admin Filtering Chips */}
+      <View style={styles.filterRow}>
+        {[
+          { label: 'All', val: null },
+          { label: 'High (80%+)', val: 0.8 },
+          { label: 'Med (50%+)', val: 0.5 }
+        ].map(f => (
+          <TouchableOpacity
+            key={f.label}
+            style={[styles.filterChip, minConf === f.val && styles.filterChipActive]}
+            onPress={() => setMinConf(f.val)}
+          >
+            <Text style={[styles.filterText, minConf === f.val && styles.filterTextActive]}>{f.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {loading ? (
         <ActivityIndicator style={{ flex: 1 }} color={Colors.accent} size="large" />
       ) : (
@@ -112,6 +130,11 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   title: { ...TextStyles.h3, color: Colors.text.primary },
+  filterRow: { flexDirection: 'row', paddingHorizontal: Spacing.lg, paddingBottom: 10, gap: 10 },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: Colors.secondary, borderWidth: 1, borderColor: Colors.border },
+  filterChipActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  filterText: { fontSize: 12, color: Colors.text.secondary },
+  filterTextActive: { color: Colors.primary, fontWeight: 'bold' },
   list: { padding: Spacing.lg, gap: 15 },
   card: {
     backgroundColor: Colors.secondary,

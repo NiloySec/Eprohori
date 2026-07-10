@@ -1,0 +1,49 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "lib": [
+      "ES2020"
+    ],
+    "jsx": "react-native",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"],
+      "@api": ["./api/index.ts"],
+      "@api/*": ["./api/*"],
+      "@stores": ["./stores/index.ts"],
+      "@stores/*": ["./stores/*"],
+      "@hooks": ["./hooks/index.ts"],
+      "@hooks/*": ["./hooks/*"],
+      "@components": ["./components/index.ts"],
+      "@components/*": ["./components/*"],
+      "@navigation": ["./navigation/index.ts"],
+      "@navigation/*": ["./navigation/*"],
+      "@screens": ["./screens/index.ts"],
+      "@screens/*": ["./screens/*"],
+      "@theme": ["./theme/index.ts"],
+      "@theme/*": ["./theme/*"],
+      "@utils": ["./utils/index.ts"],
+      "@utils/*": ["./utils/*"]
+    },
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
+  "extends": "expo/tsconfig.base"
+}

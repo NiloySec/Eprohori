@@ -4,8 +4,7 @@
  * All functions fall back to mock data if the server is unreachable.
  */
 
-const API_BASE =
-  (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + '/api'
+const API_BASE = '/api-proxy/api'
 
 // ── Division translation maps ──────────────────────────────────────────────
 

@@ -9,36 +9,16 @@ import { useSettingsStore } from '@stores';
 import { ClipboardGuardBanner } from '@components';
 import type { RootStackParamList, TabParamList } from './types';
 
-import HomeScreen from '@screens/HomeScreen';
-import AnalyzerScreen from '@screens/AnalyzerScreen';
-import MonitorScreen from '@screens/MonitorScreen';
-import HistoryScreen from '@screens/HistoryScreen';
-import SettingsScreen from '@screens/SettingsScreen';
-import ResultScreen from '@screens/ResultScreen';
-import BlocklistScreen from '@screens/BlocklistScreen';
-import CommunityReportScreen from '@screens/CommunityReportScreen';
-import FamilyScreen from '@screens/FamilyScreen';
-import OnboardingScreen from '@screens/OnboardingScreen';
-import LoginScreen from '@screens/LoginScreen';
-import SignupScreen from '@screens/SignupScreen';
-import AdminDashboardScreen from '@screens/AdminDashboardScreen';
-import CallerIDScreen from '@screens/CallerIDScreen';
-import SMSScanScreen from '@screens/SMSScanScreen';
-import SpamDirectoryScreen from '@screens/SpamDirectoryScreen';
-import CallLogScreen from '@screens/CallLogScreen';
-import MyReportsScreen from '@screens/MyReportsScreen';
-import CyberReportScreen from '@screens/CyberReportScreen';
-import CyberSafetyScreen from '@screens/CyberSafetyScreen';
-import FraudAlertsScreen from '@screens/FraudAlertsScreen';
-import InboxScanScreen from '@screens/InboxScanScreen';
-import QRScanScreen from '@screens/QRScanScreen';
-import TrustedContactsScreen from '@screens/TrustedContactsScreen';
-import ScamNewsScreen from '@screens/ScamNewsScreen';
-import FakeAppScanScreen from '@screens/FakeAppScanScreen';
-import CallScriptCheckScreen from '@screens/CallScriptCheckScreen';
-import LinkCheckScreen from '@screens/LinkCheckScreen';
-import CyberQuizScreen from '@screens/CyberQuizScreen';
-import LiveCallListenScreen from '@screens/LiveCallListenScreen';
+import {
+  HomeScreen, AnalyzerScreen, MonitorScreen, HistoryScreen, SettingsScreen,
+  ResultScreen, BlocklistScreen, CommunityReportScreen, FamilyScreen,
+  OnboardingScreen, LoginScreen, SignupScreen, AdminDashboardScreen,
+  CallerIDScreen, SMSScanScreen, SpamDirectoryScreen, CallLogScreen,
+  MyReportsScreen, CyberReportScreen, CyberSafetyScreen, FraudAlertsScreen,
+  InboxScanScreen, QRScanScreen, TrustedContactsScreen, ScamNewsScreen,
+  FakeAppScanScreen, CallScriptCheckScreen, LinkCheckScreen, CyberQuizScreen,
+  LiveCallListenScreen, BreachMonitorScreen, LegalSupportScreen
+} from '@screens';
 
 type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -155,6 +135,8 @@ export const RootNavigator = () => {
         <Stack.Screen name="LinkCheck"       component={LinkCheckScreen} />
         <Stack.Screen name="CyberQuiz"       component={CyberQuizScreen} />
         <Stack.Screen name="LiveCallListen"   component={LiveCallListenScreen} />
+        <Stack.Screen name="BreachMonitor"    component={BreachMonitorScreen} />
+        <Stack.Screen name="LegalSupport"     component={LegalSupportScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

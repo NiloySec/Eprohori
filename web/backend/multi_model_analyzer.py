@@ -41,6 +41,47 @@ if GEMINI_AVAILABLE and GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
 
+async def analyze_screenshot(image_bytes: bytes, mime_type: str = "image/png") -> Optional[dict]:
+    """
+    Advanced AI Vision: Analyzes a screenshot for fake UI, phishing layouts,
+    or suspicious OCR text using Gemini 1.5 Pro Vision.
+    """
+    if not GEMINI_AVAILABLE or not GEMINI_API_KEY:
+        return None
+
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = """
+        Analyze this screenshot from a mobile phone.
+        1. Perform OCR to read all text.
+        2. Identify any brand impersonation (e.g., fake bKash, Nagad, or Bank login).
+        3. Check for suspicious elements like "OTP needed", "Win Prize", or "Urgent action".
+        4. Provide a threat assessment.
+
+        Respond ONLY in JSON format:
+        {
+            "is_threat": boolean,
+            "confidence": 0-1,
+            "threat_type": "phishing" | "scam" | "safe",
+            "detected_text": "...",
+            "description": "Bengali description of findings",
+            "indicators": ["reason1", "reason2"]
+        }
+        """
+
+        response = await model.generate_content_async([
+            prompt,
+            {"mime_type": mime_type, "data": image_bytes}
+        ])
+
+        # Extract JSON from response
+        clean_text = re.sub(r'```json|```', '', response.text).strip()
+        return json.loads(clean_text)
+    except Exception as e:
+        print(f"[vision] Error: {e}")
+        return None
+
+
 async def analyze_with_groq(message: str, language: str = "bn") -> Optional[dict]:
     """Fast incident analysis using Groq LLaMA (0.1-0.5 seconds)."""
     if not groq_client:

@@ -26,6 +26,8 @@ export type RootStackParamList = {
   LinkCheck:       { url: string };
   CyberQuiz:       undefined;
   LiveCallListen:   undefined;
+  BreachMonitor:    undefined;
+  LegalSupport:     undefined;
 };
 
 export type TabParamList = {

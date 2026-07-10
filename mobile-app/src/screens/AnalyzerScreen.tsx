@@ -18,7 +18,9 @@ import { OfflineBanner, CollapsibleSection } from '@components';
 import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
 import type { AnalyzerScreenProps } from '@navigation/types';
 
-type InputMode = 'text' | 'phone';
+import * as ImagePicker from 'expo-image-picker';
+
+type InputMode = 'text' | 'phone' | 'vision';
 
 const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
   const [message,      setMessage]      = useState('');
@@ -60,6 +62,64 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
 
   const isBlocklisted = (text: string) =>
     blocklist.some((kw) => text.toLowerCase().includes(kw.toLowerCase()));
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      setError('গ্যালারি এক্সেস প্রয়োজন');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      handleVisionAnalysis(result.assets[0].uri);
+    }
+  };
+
+  const handleVisionAnalysis = async (uri: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // In a real app, use the actual API URL.
+      const API_BASE_URL = 'https://eprohori-production.up.railway.app';
+
+      const formData = new FormData();
+      // @ts-ignore
+      formData.append('file', {
+        uri,
+        name: 'screenshot.png',
+        type: 'image/png',
+      });
+
+      // Using fetch instead of axios for simplicity in React Native if axios not configured
+      const response = await fetch(`${API_BASE_URL}/api/validate/screenshot`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const data = await response.json();
+
+      setAnalysisMessage('Vision Analysis Result');
+      setResult({
+        threat_type: data.threat_type,
+        confidence: data.confidence * 100,
+        message: data.description,
+        solution_steps: data.indicators || [],
+        prevention_tips: [],
+      });
+      navigation.navigate('ResultDetail');
+    } catch (err) {
+      setError('ভিশন এনালাইসিস ব্যর্থ হয়েছে');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     // M8: 800 ms debounce — prevents API quota exhaustion from rapid taps
@@ -421,6 +481,26 @@ const styles = StyleSheet.create({
   },
   tabBtnText: { fontSize: 14, fontWeight: '700', color: Colors.text.tertiary },
   tabBtnTextActive: { color: Colors.primary },
+
+  visionBox: {
+    backgroundColor: '#0d1321',
+    borderRadius: 24,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginTop: 20,
+  },
+  visionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 15 },
+  visionSub: { color: '#94a3b8', fontSize: 13, textAlign: 'center', marginTop: 8 },
+  uploadBtn: {
+    backgroundColor: Colors.accent,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 25,
+  },
+  uploadBtnText: { color: '#000', fontWeight: '800', fontSize: 14 },
 
   label: { fontSize: 14, fontWeight: '700', color: Colors.text.secondary, marginBottom: 12, marginTop: 24, textTransform: 'uppercase', letterSpacing: 1 },
 

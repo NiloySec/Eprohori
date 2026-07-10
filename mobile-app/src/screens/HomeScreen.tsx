@@ -213,11 +213,25 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
               onPress={() => navigation.navigate('Analyzer')}
             />
             <ActionCard
-              icon="message-text-lock-outline"
-              label="SMS স্ক্যানার"
-              sub="ইনবক্সের লিংক যাচাই করুন"
-              color="#818cf8"
-              onPress={() => navigation.navigate('SMSScan')}
+              icon="image-search-outline"
+              label="এআই ভিশন"
+              sub="স্ক্রিনশট বিশ্লেষণ করুন"
+              color="#f472b6"
+              onPress={() => navigation.navigate('Analyzer', { mode: 'vision' })}
+            />
+            <ActionCard
+              icon="leak"
+              label="ডাটা লিক চেক"
+              sub="ইমেইল/ফোন কি হ্যাক হয়েছে?"
+              color="#fbbf24"
+              onPress={() => navigation.navigate('BreachMonitor')}
+            />
+            <ActionCard
+              icon="gavel"
+              label="আইনি সহায়তা"
+              sub="প্রমাণ ও আইনি গাইডলাইন"
+              color="#a78bfa"
+              onPress={() => navigation.navigate('LegalSupport')}
             />
             <ActionCard
               icon="phone-filter"

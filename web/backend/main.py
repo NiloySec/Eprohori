@@ -45,6 +45,9 @@ import url_heuristics
 import domain_cache
 import multi_model_analyzer  # Groq + Gemini APIs
 import advanced_preprocessing  # Advanced preprocessing: +5% accuracy
+import breach_monitor
+import report_generator
+from fastapi import File, UploadFile
 
 # Redis caching for speed optimization
 try:
@@ -2011,6 +2014,34 @@ def reset_password(request: dict, req: Request, db: Session = Depends(get_db)):
     db.commit()
     del otp_store[email]
     return {"success": True, "message": "পাসওয়ার্ড পরিবর্তন হয়েছে — এখন লগইন করুন"}
+
+
+@app.post("/api/validate/screenshot", tags=["ai"])
+async def validate_screenshot(file: UploadFile = File(...)):
+    """Advanced AI Vision analysis of suspicious screenshots."""
+    content = await file.read()
+    res = await multi_model_analyzer.analyze_screenshot(content, file.content_type or "image/png")
+    if not res:
+        raise HTTPException(500, "Vision analysis failed")
+    return res
+
+
+@app.get("/api/check/breach/{identifier}", tags=["security"])
+async def check_data_breach(identifier: str, req: Request):
+    """Checks if email or phone is in known data leaks."""
+    throttle(req, "breach-check", max_hits=3, window_sec=3600) # strict limit
+    return await breach_monitor.check_breach(identifier)
+
+
+@app.post("/api/reports/generate-pdf", tags=["legal"])
+async def generate_report_pdf(incident: dict):
+    """Generates a legal evidence PDF for reporting to authorities."""
+    pdf_bytes = report_generator.generate_evidence_pdf(incident)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=eprohori-evidence.pdf"}
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -24,3 +24,5 @@ export { default as FakeAppScanScreen } from './FakeAppScanScreen';
 export { default as CallScriptCheckScreen } from './CallScriptCheckScreen';
 export { default as LinkCheckScreen } from './LinkCheckScreen';
 export { default as LiveCallListenScreen } from './LiveCallListenScreen';
+export { default as BreachMonitorScreen } from './BreachMonitorScreen';
+export { default as LegalSupportScreen } from './LegalSupportScreen';

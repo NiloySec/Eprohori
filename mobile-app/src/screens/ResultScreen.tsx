@@ -417,7 +417,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: Colors.primary },
+  safe:  { flex: 1, backgroundColor: '#050810' },
   scroll: { paddingBottom: Spacing['3xl'] },
 
   emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing.lg, padding: Spacing.xl },
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
 
   body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg },
 
-  card: { backgroundColor: Colors.secondary, borderRadius: BorderRadius.lg, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border, ...Shadows.small },
+  card: { backgroundColor: '#0d1321', borderRadius: BorderRadius.lg, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', ...Shadows.small },
   cardLabel: { ...TextStyles.bodyMedium, color: Colors.text.tertiary, marginBottom: Spacing.sm },
   cardBody:  { ...TextStyles.body, color: Colors.text.secondary, lineHeight: 24 },
 

@@ -41,6 +41,21 @@ export const DarkColors = {
   suspiciousGlow:  'rgba(255,179,0,0.14)',
   threatGlow:      'rgba(255,85,85,0.14)',
   accentGlow:      'rgba(0,255,204,0.12)',
+
+  // M25: Glassmorphism and Professional Surfaces
+  glass: {
+    primary:   'rgba(45, 27, 61, 0.7)',
+    secondary: 'rgba(61, 40, 96, 0.4)',
+    accent:    'rgba(0, 255, 204, 0.1)',
+    threat:    'rgba(255, 85, 85, 0.1)',
+    safe:      'rgba(0, 221, 153, 0.1)',
+  },
+  surface: {
+    low:     '#130818',
+    medium:  '#1a0a1f',
+    high:    '#251230',
+    highest: '#2d1b3d',
+  }
 };
 
 // R8: Light theme — WCAG contrast checked against #f8f9fa bg (~1.0 luminance)

@@ -1,16 +1,17 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
-  View, ScrollView, Text, StyleSheet, TouchableOpacity, RefreshControl, Animated,
+  View, ScrollView, Text, StyleSheet, TouchableOpacity, RefreshControl, Animated, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useHistoryStore, useAnalysisStore, useSettingsStore, useSpamNumberStore, type HistoryEntry } from '@stores';
 import { categorizeSms } from '@utils';
 import { useTranslation } from '@hooks';
 import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
-import { DevWarningBanner, NoScansIllustration } from '@components';
+import { DevWarningBanner, NoScansIllustration, Skeleton } from '@components';
 import SeniorHomeView from './SeniorHomeView';
 import type { HomeScreenProps } from '@navigation/types';
 
@@ -18,58 +19,73 @@ type MCIcon = React.ComponentProps<typeof Icon>['name'];
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
-const QuickAction = ({ icon, label, color, onPress }: {
-  icon: MCIcon; label: string; color: string; onPress: () => void;
-}) => {
-  const scale = useRef(new Animated.Value(1)).current;
-  const onPressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    Animated.spring(scale, { toValue: 0.92, useNativeDriver: true, speed: 30 }).start();
-  };
-  const onPressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 20 }).start();
+const SecurityStatus = ({ threats }: { threats: number }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+  const isSafe = threats === 0;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.15, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
   return (
-    <TouchableOpacity
-      style={styles.qaCard} onPress={onPress}
-      activeOpacity={1} onPressIn={onPressIn} onPressOut={onPressOut}
-    >
-      <Animated.View style={{ transform: [{ scale }], alignItems: 'center' }}>
-        <View style={[styles.qaIcon, { backgroundColor: `${color}18` }]}>
-          <Icon name={icon} size={22} color={color} />
-        </View>
-        <Text style={styles.qaLabel}>{label}</Text>
-      </Animated.View>
-    </TouchableOpacity>
+    <View style={styles.statusRoot}>
+      <Animated.View style={[styles.statusRing, { transform: [{ scale: pulse }], borderColor: isSafe ? Colors.safe : Colors.threat }]} />
+      <LinearGradient colors={isSafe ? [Colors.safe, Colors.accentDark] : [Colors.threat, '#b91c1c']} style={styles.statusCircle}>
+        <Icon name={isSafe ? 'shield-check' : 'shield-alert'} size={48} color={Colors.primary} />
+      </LinearGradient>
+      <View style={styles.statusTexts}>
+        <Text style={[styles.statusTitle, { color: isSafe ? Colors.safe : Colors.threat }]}>
+          {isSafe ? 'আপনার ফোন সুরক্ষিত' : 'বিপদ সনাক্ত হয়েছে!'}
+        </Text>
+        <Text style={styles.statusSub}>
+          {isSafe ? 'কোনো সক্রিয় হুমকি নেই' : `${threats}টি গুরুত্বপূর্ণ হুমকি পাওয়া গেছে`}
+        </Text>
+      </View>
+    </View>
   );
 };
 
-const EntryRow = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => void }) => {
+const ActionCard = ({ icon, label, sub, color, onPress }: {
+  icon: MCIcon; label: string; sub: string; color: string; onPress: () => void;
+}) => (
+  <TouchableOpacity style={styles.actionCard} onPress={onPress} activeOpacity={0.8}>
+    <View style={[styles.actionIconBox, { backgroundColor: `${color}15` }]}>
+      <Icon name={icon} size={24} color={color} />
+    </View>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.actionLabel}>{label}</Text>
+      <Text style={styles.actionSub}>{sub}</Text>
+    </View>
+    <Icon name="chevron-right" size={20} color={Colors.text.tertiary} />
+  </TouchableOpacity>
+);
+
+const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => void }) => {
   const conf  = entry.result.confidence;
   const color = conf >= 75 ? Colors.threat : conf >= 60 ? Colors.suspicious : Colors.safe;
-  const icon: MCIcon = conf >= 75 ? 'alert-circle' : conf >= 60 ? 'alert' : 'check-circle';
   const date  = new Date(entry.timestamp).toLocaleDateString('bn-BD', { month: 'short', day: 'numeric' });
   const cat   = categorizeSms(entry.message);
 
   return (
-    <TouchableOpacity style={styles.entryCard} onPress={onPress} activeOpacity={0.75}>
-      <View style={[styles.entryIconBox, { backgroundColor: `${color}18` }]}>
-        <Icon name={icon} size={20} color={color} />
-      </View>
-      <View style={styles.entryBody}>
-        <Text style={styles.entryMsg} numberOfLines={1}>{entry.message}</Text>
-        <View style={styles.entryMeta}>
-          {cat.category !== 'unknown' && (
-            <View style={[styles.catChip, { backgroundColor: `${cat.color}18`, borderColor: `${cat.color}40` }]}>
-              <Text style={styles.catChipIcon}>{cat.icon}</Text>
-              <Text style={[styles.catChipText, { color: cat.color }]}>{cat.label_bn}</Text>
-            </View>
-          )}
-          <Text style={[styles.confText, { color }]}>
-            {entry.result.threat_type} · {Math.round(conf)}%
-          </Text>
-          <Text style={styles.entryDate}>{date}</Text>
+    <TouchableOpacity style={styles.historyItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={[styles.historyDot, { backgroundColor: color }]} />
+      <View style={styles.historyBody}>
+        <Text style={styles.historyMsg} numberOfLines={1}>{entry.message}</Text>
+        <View style={styles.historyMeta}>
+          <Text style={[styles.historyConf, { color }]}>{Math.round(conf)}% নিশ্চিত</Text>
+          <Text style={styles.historyDate}>{date}</Text>
         </View>
       </View>
-      <Icon name="chevron-right" size={18} color={Colors.text.tertiary} />
+      {cat.category !== 'unknown' && (
+        <View style={[styles.miniBadge, { backgroundColor: `${cat.color}15` }]}>
+          <Text style={[styles.miniBadgeText, { color: cat.color }]}>{cat.label_bn}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -78,7 +94,6 @@ const EntryRow = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => void
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [refreshing, setRefreshing] = React.useState(false);
-  const [showMoreActions, setShowMoreActions] = React.useState(false);
   const seniorModeEnabled = useSettingsStore((s) => s.seniorModeEnabled);
 
   const t = useTranslation();
@@ -86,45 +101,22 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const getEntriesForProfile = useHistoryStore((s) => s.getEntriesForProfile);
   const setCurrentMessage    = useAnalysisStore((s) => s.setMessage);
   const setCurrentResult     = useAnalysisStore((s) => s.setResult);
-  const getAllNumbers         = useSpamNumberStore((s) => s.getAllNumbers);
 
   const entries = React.useMemo(
     () => getEntriesForProfile(activeProfile),
     [activeProfile, getEntriesForProfile],
   );
 
-  const todayStart = React.useMemo(() => {
-    const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime();
-  }, []);
+  const stats = React.useMemo(() => ({
+    today:    entries.filter((e) => e.timestamp >= new Date().setHours(0,0,0,0)).length,
+    critical: entries.filter((e) => e.result.confidence >= 75).length,
+  }), [entries]);
 
-  const stats = React.useMemo(() => {
-    const today    = entries.filter((e) => e.timestamp >= todayStart);
-    const enriched = entries.map((e) => categorizeSms(e.message));
-    return {
-      today:      today.length,
-      critical:   entries.filter((e) => e.result.confidence >= 75).length,
-      suspicious: entries.filter((e) => e.result.confidence >= 60 && e.result.confidence < 75).length,
-      safe:       entries.filter((e) => e.result.confidence < 60).length,
-      mfsFraud:   enriched.filter((c) => c.category === 'mfs_fraud').length,
-      otpTheft:   enriched.filter((c) => c.category === 'otp_theft').length,
-      spamNums:   getAllNumbers().length,
-    };
-  }, [entries, todayStart, getAllNumbers]);
-
-  // Latest threat entry (for the alert widget)
-  const latestThreat = React.useMemo(
-    () => entries.slice().reverse().find((e) => e.result.confidence >= 60),
-    [entries],
-  );
-
-  // S2: senior mode — simplified large-button view instead of the full dashboard
-  if (seniorModeEnabled) {
-    return <SeniorHomeView navigation={navigation} />;
-  }
+  if (seniorModeEnabled) return <SeniorHomeView navigation={navigation} />;
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 800));
     setRefreshing(false);
   };
 
@@ -134,8 +126,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     navigation.navigate('ResultDetail');
   };
 
-  const hasCriticalActivity = stats.mfsFraud > 0 || stats.otpTheft > 0;
-
   return (
     <SafeAreaView style={styles.safe}>
       <DevWarningBanner />
@@ -144,276 +134,194 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
       >
-        {/* ── Hero ── */}
-        <LinearGradient colors={Colors.gradient.hero} style={styles.hero}>
-          <View style={styles.heroBrand}>
-            <LinearGradient colors={Colors.gradient.accent} style={styles.shieldBadge}>
-              <Icon name="shield-check" size={26} color={Colors.primary} />
-            </LinearGradient>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.heroTitle}>EProhori</Text>
-              <Text style={styles.heroSub}>{t('home_subtitle')}</Text>
+        {/* ── Dashboard Header ── */}
+        <LinearGradient colors={['#1a0a1f', '#130818']} style={styles.header}>
+          <View style={styles.navRow}>
+            <View style={styles.brand}>
+              <Text style={styles.brandTitle}>EProhori</Text>
+              <View style={styles.liveTag}><View style={styles.liveDot} /><Text style={styles.liveText}>Live</Text></View>
             </View>
-            {/* Live badge */}
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>Live</Text>
-            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.profileBtn}>
+              <Icon name="account-circle-outline" size={28} color={Colors.text.secondary} />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.heroDivider} />
+          <SecurityStatus threats={stats.critical} />
 
-          {/* Today's summary */}
-          <View style={styles.todayRow}>
-            <View style={styles.todayStat}>
-              <Text style={styles.todayNum}>{stats.today}</Text>
-              <Text style={styles.todayLabel}>আজ স্ক্যান</Text>
+          <View style={styles.statGrid}>
+            <View style={styles.statBox}>
+              {refreshing ? <Skeleton width={30} height={24} /> : <Text style={styles.statVal}>{stats.today}</Text>}
+              <Text style={styles.statLabel}>আজ স্ক্যান</Text>
             </View>
-            <View style={[styles.todayStat, { borderColor: `${Colors.threat}44` }]}>
-              <Text style={[styles.todayNum, { color: Colors.threat }]}>{stats.critical}</Text>
-              <Text style={styles.todayLabel}>মোট হুমকি</Text>
-            </View>
-            <View style={styles.todayStat}>
-              <Text style={[styles.todayNum, { color: '#a78bfa' }]}>{stats.spamNums}</Text>
-              <Text style={styles.todayLabel}>রিপোর্ট নম্বর</Text>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              {refreshing ? <Skeleton width={30} height={24} /> : <Text style={[styles.statVal, { color: Colors.threat }]}>{stats.critical}</Text>}
+              <Text style={styles.statLabel}>মোট হুমকি</Text>
             </View>
           </View>
         </LinearGradient>
 
-        {/* ── Critical alert widget (shown only when critical patterns detected) ── */}
-        {hasCriticalActivity && (
-          <View style={styles.critWidget}>
-            <View style={styles.critWidgetLeft}>
-              <Icon name="shield-alert" size={22} color="#f87171" />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.critWidgetTitle}>সক্রিয় প্রতারণা সনাক্ত!</Text>
-                <Text style={styles.critWidgetSub}>
-                  {stats.mfsFraud > 0 ? `${stats.mfsFraud}টি বিকাশ/নগদ` : ''}
-                  {stats.mfsFraud > 0 && stats.otpTheft > 0 ? ' · ' : ''}
-                  {stats.otpTheft > 0 ? `${stats.otpTheft}টি OTP চুরি` : ''}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.critWidgetBtn}
-              onPress={() => navigation.navigate('InboxScan')}
-            >
-              <Text style={styles.critWidgetBtnText}>দেখুন</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ── Government / Trust badges ── */}
-        <View style={styles.trustStrip}>
-          {([
-            { icon: 'bank', label: 'BTRC', sub: 'সহযোগী লক্ষ্য' },
-            { icon: 'police-badge', label: 'পুলিশ', sub: 'রিপোর্টিং' },
-            { icon: 'shield-check-outline', label: 'র‍্যাব', sub: 'সচেতনতা' },
-            { icon: 'scale-balance', label: 'ভোক্তা', sub: 'সুরক্ষা' },
-          ] as { icon: MCIcon; label: string; sub: string }[]).map((badge) => (
-            <View key={badge.label} style={styles.trustBadge}>
-              <Icon name={badge.icon} size={20} color={Colors.accent} style={styles.trustBadgeIcon} />
-              <Text style={styles.trustBadgeLabel}>{badge.label}</Text>
-              <Text style={styles.trustBadgeSub}>{badge.sub}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* ── Quick Actions ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>দ্রুত অ্যাকশন</Text>
-          <View style={styles.qaRow}>
-            <QuickAction
-              icon="message-processing"
+        <View style={styles.body}>
+          <Text style={styles.sectionTitle}>নিরাপত্তা টুলস</Text>
+          <View style={styles.toolGrid}>
+            <ActionCard
+              icon="message-processing-outline"
               label="SMS স্ক্যান"
+              sub="ইনবক্সের থ্রেট পরীক্ষা করুন"
               color={Colors.accent}
               onPress={() => navigation.navigate('SMSScan')}
             />
-            <QuickAction
-              icon="phone-check"
+            <ActionCard
+              icon="phone-check-outline"
               label="নম্বর যাচাই"
-              color={Colors.accent}
+              sub="অজানা কলার আইডি খুঁজুন"
+              color="#818cf8"
               onPress={() => navigation.navigate('CallerID')}
             />
-            <QuickAction
+            <ActionCard
               icon="qrcode-scan"
-              label={t('home_qa_qr')}
-              color={Colors.accent}
+              label="QR স্ক্যান"
+              sub="লিঙ্ক খোলার আগে যাচাই করুন"
+              color="#00dd99"
               onPress={() => navigation.navigate('QRScan')}
             />
-            <QuickAction
-              icon="microphone-message"
-              label="লাইভ কল চেক"
-              color={Colors.accent}
-              onPress={() => navigation.navigate('LiveCallListen')}
-            />
           </View>
 
-          {showMoreActions && (
-            <>
-              <View style={styles.qaRow}>
-                <QuickAction
-                  icon="message-text-outline"
-                  label="ইনবক্স"
-                  color={Colors.accent}
-                  onPress={() => navigation.navigate('InboxScan')}
-                />
-                <QuickAction
-                  icon="newspaper-variant-outline"
-                  label="সতর্কতা"
-                  color="#818cf8"
-                  onPress={() => navigation.navigate('FraudAlerts')}
-                />
-                <QuickAction
-                  icon="school-outline"
-                  label="সাইবার শিক্ষা"
-                  color="#818cf8"
-                  onPress={() => navigation.navigate('CyberSafety')}
-                />
-                <QuickAction
-                  icon="shield-alert"
-                  label="রিপোর্ট"
-                  color={Colors.threat}
-                  onPress={() => navigation.navigate('CyberReport')}
-                />
-              </View>
-              <View style={styles.qaRow}>
-                <QuickAction
-                  icon="shield-account"
-                  label="স্প্যাম লিস্ট"
-                  color="#818cf8"
-                  onPress={() => navigation.navigate('SpamDirectory')}
-                />
-                <QuickAction
-                  icon="history"
-                  label="ইতিহাস"
-                  color="#818cf8"
-                  onPress={() => navigation.navigate('History')}
-                />
-                <QuickAction
-                  icon="cellphone-remove"
-                  label={t('home_qa_fakeapp')}
-                  color={Colors.accent}
-                  onPress={() => navigation.navigate('FakeAppScan')}
-                />
-                <QuickAction
-                  icon="newspaper"
-                  label={t('home_qa_scamnews')}
-                  color="#818cf8"
-                  onPress={() => navigation.navigate('ScamNews')}
-                />
-              </View>
-            </>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>সাম্প্রতিক কার্যক্রম</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('History')}>
+              <Text style={styles.seeAll}>সব দেখুন</Text>
+            </TouchableOpacity>
+          </View>
+
+          {refreshing ? (
+            <View style={styles.historyList}>
+              {[1, 2, 3].map(i => (
+                <View key={i} style={{ padding: 14, gap: 8 }}>
+                  <Skeleton width="80%" height={16} />
+                  <Skeleton width="40%" height={12} />
+                </View>
+              ))}
+            </View>
+          ) : entries.length === 0 ? (
+            <View style={styles.empty}>
+              <NoScansIllustration size={80} color={Colors.text.tertiary} />
+              <Text style={styles.emptyText}>এখনো কোনো স্ক্যান করা হয়নি</Text>
+            </View>
+          ) : (
+            <View style={styles.historyList}>
+              {entries.slice(0, 5).map(e => (
+                <HistoryItem key={e.id} entry={e} onPress={() => handleEntryPress(e)} />
+              ))}
+            </View>
           )}
 
+          {/* AI Analyzer Button */}
           <TouchableOpacity
-            style={styles.moreToggle}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-              setShowMoreActions((v) => !v);
-            }}
-            activeOpacity={0.7}
+            style={styles.mainCta}
+            onPress={() => navigation.navigate('Analyzer')}
+            activeOpacity={0.9}
           >
-            <Text style={styles.moreToggleText}>
-              {showMoreActions ? t('home_qa_less') : t('home_qa_more')}
-            </Text>
-            <Icon name={showMoreActions ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.accent} />
+            <LinearGradient colors={[Colors.accent, '#0891b2']} start={{x:0, y:0}} end={{x:1, y:0}} style={styles.ctaGrad}>
+              <Icon name="brain" size={24} color={Colors.primary} />
+              <Text style={styles.ctaText}>স্মার্ট এনালাইজার শুরু করুন</Text>
+              <Icon name="arrow-right" size={20} color={Colors.primary} />
+            </LinearGradient>
           </TouchableOpacity>
         </View>
-
-        {/* ── Fraud alert teaser ── */}
-        <TouchableOpacity
-          style={styles.alertTeaser}
-          onPress={() => navigation.navigate('FraudAlerts')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.alertTeaserLeft}>
-            <Icon name="bullhorn-outline" size={22} color={Colors.accent} />
-            <View>
-              <Text style={styles.alertTeaserTitle}>সর্বশেষ সতর্কতা</Text>
-              <Text style={styles.alertTeaserSub}>বিকাশ এজেন্ট প্রতারণা নতুনভাবে সক্রিয়</Text>
-            </View>
-          </View>
-          <Icon name="chevron-right" size={18} color={Colors.accent} />
-        </TouchableOpacity>
-
-        {/* ── Overall stats ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionRow}>
-            <Text style={styles.sectionTitle}>{t('home_recent')}</Text>
-            {entries.length > 0 && (
-              <TouchableOpacity onPress={() => navigation.navigate('History')}>
-                <Text style={styles.seeAll}>সব দেখুন →</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.statsGrid}>
-            <View style={[styles.statMini, { borderColor: `${Colors.threat}44` }]}>
-              <Icon name="alert-circle" size={16} color={Colors.threat} />
-              <Text style={[styles.statMiniNum, { color: Colors.threat }]}>{stats.critical}</Text>
-              <Text style={styles.statMiniLabel}>{t('home_critical')}</Text>
-            </View>
-            <View style={[styles.statMini, { borderColor: `${Colors.suspicious}44` }]}>
-              <Icon name="alert" size={16} color={Colors.suspicious} />
-              <Text style={[styles.statMiniNum, { color: Colors.suspicious }]}>{stats.suspicious}</Text>
-              <Text style={styles.statMiniLabel}>{t('home_suspicious')}</Text>
-            </View>
-            <View style={[styles.statMini, { borderColor: `${Colors.safe}44` }]}>
-              <Icon name="check-circle" size={16} color={Colors.safe} />
-              <Text style={[styles.statMiniNum, { color: Colors.safe }]}>{stats.safe}</Text>
-              <Text style={styles.statMiniLabel}>{t('home_safe')}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── Main CTA ── */}
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-            navigation.navigate('Analyzer');
-          }}
-          activeOpacity={0.85}
-          style={styles.ctaWrap}
-        >
-          <LinearGradient
-            colors={Colors.gradient.accent}
-            style={styles.cta}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-          >
-            <Icon name="shield-search" size={22} color={Colors.primary} />
-            <Text style={styles.ctaText}>{t('home_cta')}</Text>
-            <Icon name="arrow-right" size={20} color={Colors.primary} />
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* ── Recent entries ── */}
-        {entries.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <NoScansIllustration color={Colors.accent} size={120} />
-            <Text style={styles.emptyTitle}>{t('home_empty')}</Text>
-            <Text style={styles.emptyHint}>{t('home_empty_hint')}</Text>
-          </View>
-        ) : (
-          <>
-            {latestThreat && (
-              <View style={styles.latestThreat}>
-                <View style={styles.latestThreatLeft}>
-                  <Icon name="alert-circle" size={16} color={Colors.threat} />
-                  <Text style={styles.latestThreatLabel}>সর্বশেষ হুমকি</Text>
-                </View>
-                <Text style={styles.latestThreatMsg} numberOfLines={1}>{latestThreat.message}</Text>
-              </View>
-            )}
-            {entries.slice(0, 6).map((entry) => (
-              <EntryRow key={entry.id} entry={entry} onPress={() => handleEntryPress(entry)} />
-            ))}
-          </>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#050810' },
+  scroll: { paddingBottom: 40 },
+
+  header: {
+    paddingTop: 20,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    ...Shadows.medium,
+  },
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  brandTitle: { fontSize: 20, fontWeight: '800', color: '#fff', letterSpacing: -0.5 },
+  liveTag: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(34, 197, 94, 0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12,
+  },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22c55e' },
+  liveText: { fontSize: 10, fontWeight: '700', color: '#22c55e', textTransform: 'uppercase' },
+  profileBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
+
+  // Status Circle
+  statusRoot: { alignItems: 'center', marginVertical: 10 },
+  statusRing: {
+    position: 'absolute', width: 140, height: 140, borderRadius: 70, borderWidth: 2, opacity: 0.3,
+  },
+  statusCircle: {
+    width: 110, height: 110, borderRadius: 55, alignItems: 'center', justifyContent: 'center',
+    ...Shadows.large,
+  },
+  statusTexts: { alignItems: 'center', marginTop: 15 },
+  statusTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.2 },
+  statusSub: { fontSize: 13, color: Colors.text.tertiary, marginTop: 4 },
+
+  statGrid: {
+    flexDirection: 'row', marginTop: 30, marginHorizontal: 40,
+    backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 20, padding: 15,
+  },
+  statBox: { flex: 1, alignItems: 'center' },
+  statVal: { fontSize: 20, fontWeight: '800', color: Colors.accent },
+  statLabel: { fontSize: 11, color: Colors.text.tertiary, marginTop: 2 },
+  statDivider: { width: 1, height: '70%', backgroundColor: 'rgba(255,255,255,0.1)', alignSelf: 'center' },
+
+  body: { padding: 24 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 10 },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 15 },
+  seeAll: { fontSize: 13, color: Colors.accent, fontWeight: '600' },
+
+  toolGrid: { gap: 12, marginBottom: 25 },
+  actionCard: {
+    flexDirection: 'row', alignItems: 'center', padding: 16,
+    backgroundColor: '#0d1321', borderRadius: 20,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+  },
+  actionIconBox: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 15 },
+  actionLabel: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  actionSub: { fontSize: 12, color: Colors.text.tertiary, marginTop: 2 },
+
+  historyList: { backgroundColor: '#0d1321', borderRadius: 24, padding: 8, overflow: 'hidden' },
+  historyItem: {
+    flexDirection: 'row', alignItems: 'center', padding: 14,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)',
+  },
+  historyDot: { width: 8, height: 8, borderRadius: 4, marginRight: 12 },
+  historyBody: { flex: 1 },
+  historyMsg: { fontSize: 14, color: Colors.text.primary, fontWeight: '500' },
+  historyMeta: { flexDirection: 'row', gap: 10, marginTop: 4 },
+  historyConf: { fontSize: 11, fontWeight: '600' },
+  historyDate: { fontSize: 11, color: Colors.text.tertiary },
+  miniBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  miniBadgeText: { fontSize: 10, fontWeight: '800' },
+
+  mainCta: { marginTop: 30, borderRadius: 20, overflow: 'hidden', ...Shadows.medium },
+  ctaGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 },
+  ctaText: { fontSize: 16, fontWeight: '800', color: Colors.primary, flex: 1, marginHorizontal: 15 },
+
+  empty: { alignItems: 'center', paddingVertical: 30 },
+  emptyText: { color: Colors.text.tertiary, fontSize: 13, marginTop: 10 },
+});
+
+export default HomeScreen;
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
 

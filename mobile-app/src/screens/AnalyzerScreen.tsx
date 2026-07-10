@@ -31,6 +31,9 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
   const [ocrBusy, setOcrBusy] = useState(false); // N5: screenshot OCR in progress
   const lastAnalyzeRef = useRef(0); // M8: debounce — prevent rapid fire
 
+  // Micro-interaction: Scale animation for analyze button
+  const btnScale = useRef(new Animated.Value(1)).current;
+
   const t = useTranslation();
   const setAnalysisMessage   = useAnalysisStore((s) => s.setMessage);
   const setResult            = useAnalysisStore((s) => s.setResult);
@@ -67,6 +70,13 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
     const text = message.trim();
     if (!text) { setError(t('analyzer_required')); return; }
     Keyboard.dismiss();
+
+    // Micro-interaction: button press feel
+    Animated.sequence([
+      Animated.timing(btnScale, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.timing(btnScale, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     // Blocklist fast-path — no API call needed
     if (isBlocklisted(text)) {
@@ -165,9 +175,9 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
         {/* ── Header ── */}
-        <LinearGradient colors={Colors.gradient.hero} style={styles.header}>
+        <LinearGradient colors={['#1a0a1f', '#050810']} style={styles.header}>
           <View style={styles.headerIcon}>
-            <Icon name="magnify-scan" size={26} color={Colors.accent} />
+            <Icon name="brain" size={32} color={Colors.accent} />
           </View>
           <Text style={styles.title}>{t('analyzer_title')}</Text>
           <Text style={styles.subtitle}>{t('analyzer_subtitle')}</Text>
@@ -179,14 +189,14 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
             {(['text', 'phone'] as InputMode[]).map((mode) => {
               const active = inputMode === mode;
               const label  = mode === 'text' ? t('analyzer_tab_text') : t('analyzer_tab_phone');
-              const icon   = mode === 'text' ? 'message-text-outline' : 'phone-outline';
+              const icon   = mode === 'text' ? 'text-search' : 'phone-check';
               return (
                 <TouchableOpacity
                   key={mode}
                   style={[styles.tab, active && styles.tabActive]}
-                  onPress={() => { setInputMode(mode); setMessage(''); setError(null); }}
+                  onPress={() => { setInputMode(mode); setMessage(''); setError(null); Haptics.selectionAsync(); }}
                 >
-                  <Icon name={icon as any} size={15} color={active ? Colors.primary : Colors.text.tertiary} />
+                  <Icon name={icon as any} size={18} color={active ? Colors.primary : Colors.text.tertiary} />
                   <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
                 </TouchableOpacity>
               );
@@ -328,26 +338,27 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
           )}
 
           {/* ── Analyze button ── */}
-          <TouchableOpacity
-            onPress={handleAnalyze}
-            disabled={!canAnalyze}
-            activeOpacity={0.85}
-            style={[styles.btnWrap, !canAnalyze && { opacity: 0.45 }]}
-          >
-            <LinearGradient colors={Colors.gradient.accent} style={styles.btn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              {loading ? (
-                <>
-                  <ActivityIndicator size="small" color={Colors.primary} />
-                  <Text style={styles.btnText}>{t('analyzer_loading')}</Text>
-                </>
-              ) : (
-                <>
-                  <Icon name={inputMode === 'phone' ? 'phone-check' : 'shield-search'} size={20} color={Colors.primary} />
-                  <Text style={styles.btnText}>{t('analyzer_btn')}</Text>
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
+          <Animated.View style={[styles.btnWrap, { transform: [{ scale: btnScale }] }, !canAnalyze && { opacity: 0.45 }]}>
+            <TouchableOpacity
+              onPress={handleAnalyze}
+              disabled={!canAnalyze}
+              activeOpacity={0.85}
+            >
+              <LinearGradient colors={[Colors.accent, '#0891b2']} style={styles.btn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
+                {loading ? (
+                  <>
+                    <ActivityIndicator size="small" color={Colors.primary} />
+                    <Text style={styles.btnText}>{t('analyzer_loading')}</Text>
+                  </>
+                ) : (
+                  <>
+                    <Icon name={inputMode === 'phone' ? 'phone-check' : 'shield-search'} size={20} color={Colors.primary} />
+                    <Text style={styles.btnText}>{t('analyzer_btn')}</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
 
           {/* ── Tips ── */}
           <View style={{ marginTop: Spacing['2xl'] }}>
@@ -364,40 +375,39 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: Colors.primary },
+  safe:  { flex: 1, backgroundColor: '#050810' },
   scroll: { paddingBottom: Spacing['3xl'] },
 
-  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing['2xl'] },
+  header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
   headerIcon: {
-    width: 52, height: 52, borderRadius: 14, backgroundColor: Colors.accentGlow,
-    borderWidth: 1, borderColor: Colors.borderAccent, justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.md,
+    width: 64, height: 64, borderRadius: 20, backgroundColor: 'rgba(0,255,204,0.08)',
+    borderWidth: 1, borderColor: 'rgba(0,255,204,0.2)', justifyContent: 'center', alignItems: 'center', marginBottom: 20,
   },
-  title:    { ...TextStyles.h2, color: Colors.accent },
-  subtitle: { ...TextStyles.body, color: Colors.text.secondary, marginTop: Spacing.xs },
+  title:    { fontSize: 28, fontWeight: '800', color: Colors.accent, letterSpacing: -0.5 },
+  subtitle: { fontSize: 15, color: Colors.text.secondary, marginTop: 4, lineHeight: 22 },
 
-  body: { padding: Spacing.lg },
+  body: { padding: 24 },
 
-  tabRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg },
+  tabRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   tab: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.secondary, borderWidth: 1.5, borderColor: Colors.border,
+    gap: 8, paddingVertical: 16, borderRadius: 16,
+    backgroundColor: '#0d1321', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
   tabActive:     { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  tabText:       { ...TextStyles.bodyMedium, color: Colors.text.tertiary },
+  tabText:       { fontSize: 14, fontWeight: '700', color: Colors.text.tertiary },
   tabTextActive: { color: Colors.primary },
 
-  label: { ...TextStyles.bodyMedium, color: Colors.text.secondary, marginBottom: Spacing.sm, marginTop: Spacing.lg },
+  label: { fontSize: 14, fontWeight: '700', color: Colors.text.secondary, marginBottom: 12, marginTop: 24, textTransform: 'uppercase', letterSpacing: 1 },
 
   input: {
-    backgroundColor: Colors.secondary, color: Colors.text.primary,
-    padding: Spacing.md, borderRadius: BorderRadius.lg,
-    borderWidth: 1.5, borderColor: Colors.border,
-    minHeight: 140, fontSize: 15, lineHeight: 24,
-    ...Shadows.small,
+    backgroundColor: '#0d1321', color: Colors.text.primary,
+    padding: 20, borderRadius: 20,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+    minHeight: 160, fontSize: 16, lineHeight: 26,
   },
-  inputPhone:   { minHeight: 54, lineHeight: 22 },
-  inputFocused: { borderColor: Colors.accent, backgroundColor: '#2d1b3d' },
+  inputPhone:   { minHeight: 64, lineHeight: 22 },
+  inputFocused: { borderColor: Colors.accent, backgroundColor: '#131b2e' },
 
   clearRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'flex-end' },
   clearText: { ...TextStyles.caption, color: Colors.text.tertiary },
@@ -453,14 +463,16 @@ const styles = StyleSheet.create({
   errorText: { ...TextStyles.body, color: Colors.threat, flex: 1 },
 
   btnWrap: {
-    marginTop: Spacing.xl,
-    ...Shadows.medium, shadowColor: Colors.accent, shadowOpacity: 0.35,
+    marginTop: 32,
+    borderRadius: 20,
+    ...Shadows.large,
+    shadowColor: Colors.accent,
   },
   btn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: 17,
-    borderRadius: BorderRadius.lg, overflow: 'hidden',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 20,
+    borderRadius: 20,
   },
-  btnText: { ...TextStyles.button, color: Colors.primary },
+  btnText: { fontSize: 16, fontWeight: '800', color: Colors.primary },
 
   tipText: { ...TextStyles.caption, color: Colors.text.secondary, lineHeight: 22, marginBottom: 4 },
 });

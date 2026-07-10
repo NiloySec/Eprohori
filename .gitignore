@@ -50,3 +50,8 @@ frontend/dev.log
 web/frontend/CLAUDE.md
 web/frontend/AGENTS.md
 web/frontend/dev.log
+
+# Documentation and meta-files
+*.md
+web/docs/
+web/0.7

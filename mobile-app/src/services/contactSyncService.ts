@@ -8,7 +8,19 @@ import { threatAnalysisAPI } from '../api/threatAnalysis';
 // caller ID database. Complies with Play Store Prominent Disclosure requirements.
 
 const SYNC_KEY = 'eprohori.contact_sync_last_at';
+const HASH_KEY = 'eprohori.contact_sync_hash';
 const SYNC_INTERVAL = 7 * 24 * 60 * 60 * 1000; // Sync once a week
+
+// Simple hash function for string to avoid large deps
+function quickHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(16);
+}
 
 export interface SyncStats {
   totalSynced: number;
@@ -47,23 +59,28 @@ export async function performContactSync(): Promise<{ success: boolean; count: n
       }))
       .filter(c => c.numbers.length > 0);
 
+    // M12: Differential Sync — only upload if contacts have changed (name or numbers)
+    const contactsString = JSON.stringify(payload);
+    const currentHash = quickHash(contactsString);
+    const savedHash = await AsyncStorage.getItem(HASH_KEY);
+
+    if (currentHash === savedHash) {
+      if (__DEV__) console.log('[Sync] Contacts unchanged, skipping upload');
+      return { success: true, count: 0 };
+    }
+
     // M12: Chunking — never send 1000s of contacts in one request to avoid timeout/DoS
     const CHUNK_SIZE = 100;
     let syncedCount = 0;
 
     for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
       const chunk = payload.slice(i, i + CHUNK_SIZE);
-
-      // Sending to backend (Note: You'll need an endpoint for this on eprohori-production)
-      // For now, we use a specialized method in the API class
-      await threatAnalysisAPI.submitBulkNames(chunk).catch(() => {
-          // partially failing a chunk is okay
-      });
-
+      await threatAnalysisAPI.submitBulkNames(chunk).catch(() => {});
       syncedCount += chunk.length;
     }
 
     await AsyncStorage.setItem(SYNC_KEY, Date.now().toString());
+    await AsyncStorage.setItem(HASH_KEY, currentHash);
     return { success: true, count: syncedCount };
   } catch (err) {
     return { success: false, count: 0, error: String(err) };

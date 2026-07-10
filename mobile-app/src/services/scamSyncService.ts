@@ -22,7 +22,9 @@ interface ThreatItem {
 export async function runScamSync(): Promise<void> {
   const store = useSettingsStore.getState();
   const lastSync = store.scamSyncLastAt;
-  if (Date.now() - lastSync < SYNC_TTL) return; // still fresh
+
+  // M18: Resource Efficiency — skip sync if battery saver is on or data is still fresh
+  if (store.batterySaverEnabled || Date.now() - lastSync < SYNC_TTL) return;
 
   try {
     const controller = new AbortController();

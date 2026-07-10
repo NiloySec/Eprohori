@@ -9,9 +9,10 @@ import { RootNavigator, navigationRef } from '@navigation';
 import { Colors, ThemeProvider } from '@theme';
 import { useHistoryStore, useSettingsStore, useAnalysisStore } from '@stores';
 import { ErrorBoundary, AppLockOverlay } from '@components';
-import { categorizeSms } from '@utils';
+import { categorizeSms, updateCachedPatterns } from '@utils';
 import { startCallDetection, stopCallDetection } from './services/callDetectionService';
 import { runScamSync } from './services/scamSyncService';
+import { fetchLatestPatterns, getLocalPatterns } from './services/patternUpdateService';
 import { checkDistrictAlerts } from './services/districtAlertService';
 import { checkWeeklyDigest } from './services/weeklyDigestService';
 import { startChatGuard, stopChatGuard } from './services/notifGuardService';
@@ -296,7 +297,12 @@ function App() {
   }, []);
 
   // R3: community scam number sync — runs once on startup, respects 24h TTL
-  useEffect(() => { runScamSync().catch(() => {}); }, []);
+  useEffect(() => {
+    runScamSync().catch(() => {});
+    // M17: Fetch and load dynamic threat patterns
+    getLocalPatterns().then(updateCachedPatterns);
+    fetchLatestPatterns().then(() => getLocalPatterns().then(updateCachedPatterns));
+  }, []);
 
   // N2: weekly safety digest — throttled to once per week internally
   useEffect(() => { checkWeeklyDigest().catch(() => {}); }, []);

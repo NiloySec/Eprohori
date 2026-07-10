@@ -2160,8 +2160,13 @@ def check_phone(req: CheckPhoneRequest):
 @app.post("/api/names/bulk", tags=["phone"])
 def bulk_names(payload: BulkNamesRequest, req: Request, db: Session = Depends(get_db)):
     """Bulk crowdsourced name submission (Truecaller-style).
-    Stores name-number pairs to improve local caller ID for the community."""
-    # Rate limit: max 5 bulk syncs per hour per IP to prevent spamming the DB
+    Uses App-Secret header for basic integrity check since mobile app is
+    currently session-less (anonymous contribution)."""
+    # M16: Integrity check — prevent public crawlers from flooding the DB
+    app_secret = req.headers.get("X-EProhori-App-Secret")
+    if app_secret != os.getenv("MOBILE_APP_SECRET", "eprohori-internal-2025"):
+        raise HTTPException(403, "Invalid application signature")
+
     throttle(req, "bulk-names", max_hits=5, window_sec=3600)
 
     for entry in payload.contacts:
@@ -2187,6 +2192,21 @@ def bulk_names(payload: BulkNamesRequest, req: Request, db: Session = Depends(ge
 
     db.commit()
     return {"success": True, "count": len(payload.contacts)}
+
+
+@app.get("/api/rules/patterns", tags=["ai"])
+def get_latest_patterns():
+    """Serves the latest regex-based threat patterns to the mobile app.
+    Allows for real-time updates without releasing a new APK."""
+    return {
+        "version": "1.0.5",
+        "patterns": [
+            {"id": "b-1", "regex": "bKash.*prize", "label": "বিকাশ লটারি", "severity": "critical"},
+            {"id": "n-1", "regex": "Nagad.*bonus", "label": "নগদ বোনাস", "severity": "critical"},
+            {"id": "o-1", "regex": "OTP.*share", "label": "OTP চুরি", "severity": "critical"},
+            {"id": "i-1", "regex": "investment.*profit", "label": "ভুয়া বিনিয়োগ", "severity": "high"},
+        ]
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -5,6 +5,7 @@ import { categorizeSms } from '../utils/smsCategories';
 // C5: Hardcoded config — never use process.env in mobile bundle (baked into APK)
 const API_BASE_URL = 'https://eprohori-production.up.railway.app';
 const API_TIMEOUT  = 30000;
+const APP_SECRET   = 'eprohori-internal-2025'; // M16: shared secret for bulk API integrity
 
 // C2: Runtime type guard for API response
 function validateApiThreatResponse(data: unknown): ValidateTextResponse {
@@ -459,7 +460,10 @@ class ThreatAnalysisAPI {
   // S9: Crowdsourced Name Submission (Truecaller-style)
   async submitBulkNames(contacts: { name: string; numbers: string[] }[]): Promise<void> {
     try {
-      await this.axiosInstance.post('/api/names/bulk', { contacts }, { timeout: 15000 });
+      await this.axiosInstance.post('/api/names/bulk', { contacts }, {
+        timeout: 15000,
+        headers: { 'X-EProhori-App-Secret': APP_SECRET }
+      });
     } catch {
       // fire-and-forget
     }

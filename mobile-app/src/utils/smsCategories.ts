@@ -1,3 +1,5 @@
+import { getLocalPatterns } from '../services/patternUpdateService';
+
 export type SmsCategory =
   | 'otp'
   | 'otp_theft'
@@ -17,6 +19,12 @@ export interface SmsCategoryInfo {
   icon: string;
   color: string;
   confidence: number; // 0–1
+}
+
+// Global cache for dynamic patterns to avoid async calls in the middle of sync scoring
+let cachedDynamicPatterns: any[] = [];
+export function updateCachedPatterns(patterns: any[]) {
+  cachedDynamicPatterns = patterns;
 }
 
 // ── Pattern sets ─────────────────────────────────────────────────────────────
@@ -266,6 +274,24 @@ function countMatches(text: string, patterns: RegExp[]): number {
 export function categorizeSms(rawText: string): SmsCategoryInfo {
   // C3: Limit input to 2 KB before running regex — prevents ReDoS on crafted strings
   const t = rawText.slice(0, 2000);
+
+  // M17: Check dynamic patterns first (Live Intelligence)
+  for (const dp of cachedDynamicPatterns) {
+    try {
+      const rx = new RegExp(dp.regex, 'i');
+      if (rx.test(t)) {
+        const catMap: Record<string, SmsCategory> = {
+          critical: 'fraud', high: 'fraud', medium: 'promotional',
+        };
+        const cat = catMap[dp.severity] || 'fraud';
+        return {
+          ...CATEGORY_META[cat],
+          label_bn: dp.label,
+          confidence: 0.95, // Dynamic matches are high-confidence by default
+        };
+      }
+    } catch {}
+  }
 
   const otpHits      = countMatches(t, OTP_PATTERNS);
   const mfsHits      = countMatches(t, MFS_PATTERNS);

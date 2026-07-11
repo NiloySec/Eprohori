@@ -18,5 +18,4 @@ COPY . .
 ENV PORT=8000
 EXPOSE 8000
 
-RUN chmod +x start.sh
-CMD ["./start.sh"]
+CMD ["python", "run.py"]

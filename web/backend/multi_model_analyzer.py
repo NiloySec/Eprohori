@@ -542,7 +542,7 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
     Detection accuracy: 95%+ (4-layer defense)
     Cost: $81.46/month (Groq $80 + Gemini $1.46)
     """
-    from zero_shot_classifier import classify_threat_zero_shot
+    # Zero-shot import removed
 
     # Layer 0: VirusTotal (70+ engines for URLs)
     print(f"[multi-model] Layer 0: Checking VirusTotal (70+ engines)...")
@@ -565,14 +565,7 @@ async def analyze_incident_smart(message: str, language: str = "bn") -> dict:
         print(f"[multi-model] Domain age check error: {e}")
 
     # Layer 1: Ultra-fast zero-shot (0.01-0.05 seconds, offline)
-    print(f"[multi-model] Layer 1: Trying Zero-Shot (ultra-fast)...")
-    try:
-        zero_shot_result = await classify_threat_zero_shot(message, language, confidence_threshold=0.90)
-        if zero_shot_result:
-            print(f"[multi-model] OK: Zero-Shot confident: {zero_shot_result['confidence']:.0%}")
-            return zero_shot_result
-    except Exception as e:
-        print(f"[multi-model] Zero-Shot error: {e}")
+    # Skipping Zero-Shot as it is currently unavailable
 
     # Layer 2: Fast path (Groq) - 0.1-0.5 seconds
     print(f"[multi-model] Layer 2: Trying Groq (fast LLM)...")

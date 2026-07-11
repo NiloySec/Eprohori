@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import {
   View, ScrollView, Text, TextInput, StyleSheet,
   TouchableOpacity, Keyboard, Vibration, ActivityIndicator, Alert,
+  Animated,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';

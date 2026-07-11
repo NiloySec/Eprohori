@@ -75,20 +75,6 @@ export const NoBlockedIllustration = ({ color, size = 120 }: IllustrationProps) 
   </Svg>
 );
 
-export const NoAppsIllustration = ({ color, size = 120 }: IllustrationProps) => (
-  <Svg width={size} height={size} viewBox="0 0 120 120">
-    <Circle cx={60} cy={62} r={48} fill={color} opacity={0.08} />
-    {/* phone silhouette */}
-    <Rect x={38} y={24} width={38} height={68} rx={8} fill={color} opacity={0.16} />
-    <Rect x={44} y={32} width={26} height={46} rx={2} fill={color} opacity={0.26} />
-    <Circle cx={57} cy={86} r={2.5} fill={color} opacity={0.4} />
-    {/* scan magnifier */}
-    <Circle cx={80} cy={76} r={17} fill="#0d1117" opacity={0.92} />
-    <Circle cx={80} cy={76} r={17} fill="none" stroke={color} strokeWidth={4} />
-    <Line x1={92} y1={88} x2={104} y2={100} stroke={color} strokeWidth={6} strokeLinecap="round" />
-  </Svg>
-);
-
 export const NoContactsIllustration = ({ color, size = 120 }: IllustrationProps) => (
   <Svg width={size} height={size} viewBox="0 0 120 120">
     <Circle cx={60} cy={62} r={48} fill={color} opacity={0.08} />

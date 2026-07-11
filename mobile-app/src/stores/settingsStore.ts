@@ -58,7 +58,6 @@ interface SettingsState {
   chatGuardApps: string[];           // P1: package names to watch
   callScreeningEnabled: boolean;     // P3: block spam calls before ring (role)
   clipboardGuardEnabled: boolean;    // S1: suggest checking copied number/link
-  seniorModeEnabled: boolean;        // S2: large-button simplified home view
   guardianAlertEnabled: boolean;     // S3: SMS a trusted contact on high-confidence threat
   guardianNumber: string;            // S3: guardian's phone number
   guardianThreshold: number;         // S3: confidence 0-100 that triggers the alert
@@ -106,7 +105,6 @@ interface SettingsState {
   toggleChatGuardApp: (pkg: string) => void;
   setCallScreeningEnabled: (v: boolean) => void;
   setClipboardGuardEnabled: (v: boolean) => void;
-  setSeniorModeEnabled: (v: boolean) => void;
   setGuardianAlertEnabled: (v: boolean) => void;
   setGuardianNumber: (v: string) => void;
   setGuardianThreshold: (v: number) => void;
@@ -157,7 +155,6 @@ export const useSettingsStore = create<SettingsState>()(
       ],
       callScreeningEnabled: false,
       clipboardGuardEnabled: true,
-      seniorModeEnabled: false,
       guardianAlertEnabled: false,
       guardianNumber: '',
       guardianThreshold: 90,
@@ -250,7 +247,6 @@ export const useSettingsStore = create<SettingsState>()(
       },
       setCallScreeningEnabled: (v) => set({ callScreeningEnabled: v }),
       setClipboardGuardEnabled: (v) => set({ clipboardGuardEnabled: v }),
-      setSeniorModeEnabled: (v) => set({ seniorModeEnabled: v }),
       setGuardianAlertEnabled: (v) => set({ guardianAlertEnabled: v }),
       setGuardianNumber: (v) => set({ guardianNumber: v.replace(/[^\d+]/g, '').slice(0, 15) }),
       setGuardianThreshold: (v) => set({ guardianThreshold: Math.max(50, Math.min(100, Math.round(v))) }),

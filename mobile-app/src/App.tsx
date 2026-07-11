@@ -10,13 +10,11 @@ import { Colors, ThemeProvider } from '@theme';
 import { useHistoryStore, useSettingsStore, useAnalysisStore } from '@stores';
 import { ErrorBoundary, AppLockOverlay } from '@components';
 import { categorizeSms, updateCachedPatterns } from '@utils';
-import { startCallDetection, stopCallDetection } from './services/callDetectionService';
 import { runScamSync } from './services/scamSyncService';
 import { fetchLatestPatterns, getLocalPatterns } from './services/patternUpdateService';
 import { checkDistrictAlerts } from './services/districtAlertService';
 import { checkWeeklyDigest } from './services/weeklyDigestService';
 import { startChatGuard, stopChatGuard } from './services/notifGuardService';
-import { syncBlocklistToNative } from './services/callScreenService';
 import { maybeAlertGuardian } from './services/familyGuardianService';
 import { syncWidgetStats } from './services/widgetStatsService';
 import { loadSecurePin } from './stores/settingsStore';
@@ -71,8 +69,6 @@ function App() {
   const batterySaverEnabled   = useSettingsStore((s) => s.batterySaverEnabled);
   const otpGuardEnabled       = useSettingsStore((s) => s.otpGuardEnabled);
   const chatGuardEnabled      = useSettingsStore((s) => s.chatGuardEnabled);
-  const callScreeningEnabled  = useSettingsStore((s) => s.callScreeningEnabled);
-  const blocklist             = useSettingsStore((s) => s.blocklist);
   const setSharedText       = useAnalysisStore((s) => s.setSharedText);
   const setPendingSmsText   = useAnalysisStore((s) => s.setPendingSmsText);
 
@@ -89,11 +85,9 @@ function App() {
 
   const setSharedRef           = useRef(setSharedText);
   const setPendingSmsRef       = useRef(setPendingSmsText);
-  const smsAlertCategoriesRef  = useRef(smsAlertCategories);
   const otpGuardEnabledRef     = useRef(otpGuardEnabled);
   setSharedRef.current          = setSharedText;
   setPendingSmsRef.current      = setPendingSmsText;
-  smsAlertCategoriesRef.current = smsAlertCategories;
   otpGuardEnabledRef.current    = otpGuardEnabled;
 
   useEffect(() => {
@@ -270,11 +264,7 @@ function App() {
 
       // Default tap or specific action -> route to the target screen
       navigateWhenReady(() => {
-        if (actionId === 'live_check') {
-          navigationRef.navigate('LiveCallListen');
-        } else if (data?.action === 'inbox_scan') {
-          navigationRef.navigate('InboxScan');
-        } else if (data?.screen === 'Analyzer' && data?.sharedText) {
+        if (data?.screen === 'Analyzer' && data?.sharedText) {
           // P1: chat-guard warning tapped — prefill the analyzer with the message
           setSharedRef.current(data.sharedText);
           navigationRef.navigate('MainTabs', { screen: 'Analyzer' });
@@ -324,25 +314,12 @@ function App() {
     return () => sub.remove();
   }, []);
 
-  // Call detection — runs silently; no-op until expo prebuild completes.
-  useEffect(() => {
-    startCallDetection().catch(() => {});
-    return () => stopCallDetection();
-  }, []);
-
   // P1: chat guard — listen for chat-app notifications when enabled
   useEffect(() => {
     if (!chatGuardEnabled) { stopChatGuard(); return; }
     startChatGuard();
     return () => stopChatGuard();
   }, [chatGuardEnabled]);
-
-  // P3: keep the native call-screening blocklist in sync. Android has no API
-  // to force-revoke the screening role once granted, so clear the native list
-  // on disable too — otherwise a still-held role keeps blocking silently.
-  useEffect(() => {
-    syncBlocklistToNative(callScreeningEnabled ? blocklist : []);
-  }, [callScreeningEnabled, blocklist]);
 
   return (
     <ErrorBoundary>

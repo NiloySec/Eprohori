@@ -14,5 +14,5 @@ export {
 } from './OnboardingIllustrations';
 export {
   NoScansIllustration, NoHistoryIllustration, RadarEmptyIllustration, AllSafeIllustration,
-  NoBlockedIllustration, NoAppsIllustration, NoContactsIllustration, NoResultsIllustration,
+  NoBlockedIllustration, NoContactsIllustration, NoResultsIllustration,
 } from './EmptyStateIllustrations';

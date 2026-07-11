@@ -14,11 +14,8 @@ import { Colors, Shadows } from '@theme';
 import { exportBackup, importBackup } from '../services/backupService';
 import { performContactSync } from '../services/contactSyncService';
 import {
-  isChatGuardAvailable, isChatGuardPermitted, openChatGuardSettings, CHAT_GUARD_APPS,
+  isChatGuardAvailable, isChatGuardPermitted, openChatGuardSettings,
 } from '../services/notifGuardService';
-import {
-  isCallScreeningAvailable, isCallScreeningSupported, isCallScreeningRoleHeld, requestCallScreeningRole,
-} from '../services/callScreenService';
 import type { SettingsScreenProps } from '@navigation/types';
 
 type MCIcon = React.ComponentProps<typeof Icon>['name'];
@@ -121,12 +118,12 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     scheduledScanEnabled, scheduledScanHour, privacyModeEnabled, batterySaverEnabled,
     biometricEnabled, themeMode, userDistrict, districtAlertEnabled,
     otpGuardEnabled, weeklyDigestEnabled, trustedNumbers,
-    chatGuardEnabled, chatGuardApps, callScreeningEnabled,
-    clipboardGuardEnabled, seniorModeEnabled, contactSyncEnabled,
+    chatGuardEnabled,
+    clipboardGuardEnabled, contactSyncEnabled,
     guardianAlertEnabled, guardianNumber, guardianThreshold, guardianLocationEnabled, voiceAlertEnabled,
     setOtpGuardEnabled, setWeeklyDigestEnabled, setContactSyncEnabled,
-    setChatGuardEnabled, toggleChatGuardApp, setCallScreeningEnabled,
-    setClipboardGuardEnabled, setSeniorModeEnabled,
+    setChatGuardEnabled,
+    setClipboardGuardEnabled,
     setGuardianAlertEnabled, setGuardianNumber, setGuardianThreshold, setGuardianLocationEnabled, setVoiceAlertEnabled,
     setLanguage, setNotificationsEnabled, setDailySummaryEnabled,
     setSoundAlertEnabled, setAutoDeleteDays, setAutoBlockEnabled, setAutoBlockThreshold,
@@ -187,15 +184,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     }
   };
 
-  const handleCallScreeningToggle = async (v: boolean) => {
-    if (!v) { setCallScreeningEnabled(false); return; }
-    if (!isCallScreeningAvailable()) { Alert.alert('', t('settings_call_screening_expo_go')); return; }
-    const supported = await isCallScreeningSupported();
-    if (!supported) { Alert.alert('', t('settings_call_screening_unsupported')); return; }
-    setCallScreeningEnabled(true);
-    await requestCallScreeningRole();
-  };
-
   const handleGuardianSave = () => {
     const v = guardianInput.trim(); if (!v) return;
     setGuardianNumber(v); setGuardianInput(''); Alert.alert('', t('settings_guardian_saved'));
@@ -216,14 +204,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     const v = districtInput.trim(); if (!v) return;
     setUserDistrict(v); setDistrictInput(''); Alert.alert('', `"${v}" জেলার সতর্কতা সক্রিয় হয়েছে`);
   };
-
-  useEffect(() => {
-    if (!isCallScreeningAvailable()) return;
-    const verify = async () => { if (!useSettingsStore.getState().callScreeningEnabled) return; const held = await isCallScreeningRoleHeld(); if (!held) setCallScreeningEnabled(false); };
-    verify();
-    const sub = AppState.addEventListener('change', (state) => { if (state === 'active') verify(); });
-    return () => sub.remove();
-  }, []);
 
   const openPinSetup = () => { setPinStep1(''); setPinEntry(''); setPinError(''); setPinModal('setup'); };
   const openPinDisable = () => { setPinEntry(''); setPinError(''); setPinModal('verify_disable'); };
@@ -386,8 +366,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <View style={styles.divider} />
             <SettingRow icon="message-alert-outline" label="Chat Guard" right={<Switch value={chatGuardEnabled} onValueChange={hv(handleChatGuardToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
-            <SettingRow icon="phone-cancel" label="কল ব্লকার" right={<Switch value={callScreeningEnabled} onValueChange={hv(handleCallScreeningToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.threat }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
             <SettingRow icon="alarm-check" label="দৈনিক স্ক্যান রিমাইন্ডার" right={<Switch value={scheduledScanEnabled} onValueChange={hv(setScheduledScanEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
           </View>
 
@@ -409,8 +387,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
           {/* ── Family ── */}
           <Text style={styles.sectionLabel}>পরিবার ও সুরক্ষা</Text>
           <View style={styles.card}>
-            <SettingRow icon="account-supervisor-circle-outline" label="সিনিয়র মোড" right={<Switch value={seniorModeEnabled} onValueChange={hv(setSeniorModeEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
             <SettingRow icon="volume-high" label="ভয়েস অ্যালার্ট" right={<Switch value={voiceAlertEnabled} onValueChange={hv(setVoiceAlertEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
             <SettingRow icon="account-alert-outline" label="Guardian Alert" right={<Switch value={guardianAlertEnabled} onValueChange={hv(setGuardianAlertEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.threat }} thumbColor={Colors.white} />} />
@@ -555,14 +531,35 @@ const styles = StyleSheet.create({
   catLabel:        { fontSize: 14, flex: 1, color: '#fff', fontWeight: '600' },
   districtInput: { fontSize: 15, color: '#fff', fontWeight: '600', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, marginTop: 5 },
   districtSaveBtn: { width: 38, height: 38, borderRadius: 10, backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center', ...Shadows.medium },
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  appChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: '#0d1321' },
-  appChipActive: { borderColor: Colors.accent, backgroundColor: 'rgba(0,255,204,0.1)' },
-  appChipIcon: { fontSize: 12 },
-  appChipText: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '600' },
-  appChipTextActive: { color: Colors.accent },
-  permBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,255,204,0.2)', backgroundColor: 'rgba(0,255,204,0.05)' },
-  permBtnText: { fontSize: 12, color: Colors.accent, fontWeight: '800' },
-  muteHintBox: { flexDirection: 'row', gap: 10, padding: 12, backgroundColor: 'rgba(129, 140, 248, 0.1)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(129, 140, 248, 0.2)', marginBottom: 15 },
-  muteHintText: { fontSize: 11, color: Colors.text.secondary, flex: 1, lineHeight: 16 },
+  overlay:     { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 24 },
+  modalCard:   { backgroundColor: '#0d1321', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  modalTitle:  { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 20 },
+  modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  modalOptionText: { fontSize: 14, color: Colors.text.secondary, fontWeight: '600' },
+  pinOverlay: { flex: 1, backgroundColor: 'rgba(5,8,16,0.95)', justifyContent: 'center', padding: 30 },
+  pinCard:    { backgroundColor: '#0d1321', borderRadius: 32, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', ...Shadows.large },
+  pinHeader:  { alignItems: 'center', gap: 10, marginBottom: 25 },
+  pinTitle:   { fontSize: 18, fontWeight: '800', color: '#fff' },
+  pinDots:    { flexDirection: 'row', gap: 20, marginBottom: 30 },
+  pinDot:     { width: 14, height: 14, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  pinDotFilled: { backgroundColor: Colors.accent, borderColor: Colors.accent, ...Shadows.small },
+  pinError:   { color: '#ef4444', fontSize: 13, fontWeight: '700', marginBottom: 20 },
+  pinKeypad:  { width: '100%', gap: 15 },
+  pinRow:     { flexDirection: 'row', justifyContent: 'center', gap: 20 },
+  pinKey:     { width: 64, height: 64, borderRadius: 32, backgroundColor: '#131b2e', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  pinKeyConfirm: { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  pinKeyText: { fontSize: 24, fontWeight: '700', color: '#fff' },
+  pinCancel: { marginTop: 25, paddingVertical: 10, paddingHorizontal: 20 },
+  pinCancelText: { color: Colors.text.tertiary, fontSize: 14, fontWeight: '600' },
+  disclosureIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(0,255,204,0.1)', alignItems: 'center', justifyContent: 'center' },
+  disclosureTitle: { fontSize: 20, fontWeight: '800', color: '#fff', textAlign: 'center' },
+  disclosureText: { fontSize: 14, color: Colors.text.secondary, textAlign: 'center', lineHeight: 22, paddingHorizontal: 10 },
+  modalActions: { flexDirection: 'row', gap: 12, width: '100%', marginTop: 10 },
+  cancelBtn: { flex: 1, height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
+  cancelBtnText: { color: Colors.text.secondary, fontWeight: '700' },
+  submitBtn: { flex: 2, height: 50, borderRadius: 14, overflow: 'hidden' },
+  submitBtnGrad: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  submitBtnText: { color: Colors.primary, fontWeight: '800' },
 });
+
+export default SettingsScreen;

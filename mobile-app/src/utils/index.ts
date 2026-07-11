@@ -6,5 +6,4 @@ export { analyzePhoneLocally, extractPhoneNumbers, type PhoneFeatures } from './
 export { categorizeSms, CATEGORY_META, type SmsCategory, type SmsCategoryInfo } from './smsCategories';
 export { getDivision } from './phonePrefix';
 export { levenshtein } from './levenshtein';
-export { analyzeCallScript, type CallScriptResult, type ScriptMatch } from './callScriptDetector';
 export { analyzeQrContent, type QrAnalysis, type QrKind, type QrRisk } from './qrAnalyzer';

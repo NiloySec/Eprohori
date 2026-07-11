@@ -18,34 +18,9 @@ type MCIcon = React.ComponentProps<typeof Icon>['name'];
 const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
   const t = useTranslation();
   const { currentMessage, currentResult } = useAnalysisStore();
-  const voiceAlertEnabled = useSettingsStore((s) => s.voiceAlertEnabled);
   const language           = useSettingsStore((s) => s.language);
   const guardianNumber     = useSettingsStore((s) => s.guardianNumber);
   const [speaking, setSpeaking] = useState(false);
-  const spokenRef = useRef(false);
-
-  // S4: speak the verdict aloud once, in Bengali/English per the app's language
-  useEffect(() => {
-    if (!voiceAlertEnabled || !currentResult || spokenRef.current) return;
-    spokenRef.current = true;
-    const conf = currentResult.confidence;
-    const isBn = language === 'bn';
-    const headline = conf >= 75
-      ? (isBn ? 'সতর্কতা, এটি একটি হুমকি বার্তা' : 'Warning, this is a threat message')
-      : conf >= 60
-      ? (isBn ? 'সতর্কতা, এটি একটি সন্দেহজনক বার্তা' : 'Caution, this message is suspicious')
-      : (isBn ? 'এই বার্তাটি নিরাপদ মনে হচ্ছে' : 'This message appears safe');
-    const text = `${headline}। ${isBn ? 'নিশ্চয়তা' : 'Confidence'} ${Math.round(conf)} ${isBn ? 'শতাংশ' : 'percent'}।`;
-    setSpeaking(true);
-    Speech.speak(text, {
-      language: isBn ? 'bn-BD' : 'en-US',
-      onDone: () => setSpeaking(false),
-      onStopped: () => setSpeaking(false),
-      onError: () => setSpeaking(false),
-    });
-    return () => { Speech.stop(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voiceAlertEnabled, currentResult]);
 
   const handleSOS = () => {
     const buttons: any[] = [
@@ -119,25 +94,6 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
           </View>
 
           {/* S4: replay voice alert */}
-          <TouchableOpacity
-            style={styles.voiceBtn}
-            onPress={() => {
-              if (speaking) { Speech.stop(); setSpeaking(false); return; }
-              spokenRef.current = false;
-              setSpeaking(true);
-              const isBn = language === 'bn';
-              const text = `${headline}। ${isBn ? 'নিশ্চয়তা' : 'Confidence'} ${Math.round(conf)} ${isBn ? 'শতাংশ' : 'percent'}।`;
-              Speech.speak(text, {
-                language: isBn ? 'bn-BD' : 'en-US',
-                onDone: () => setSpeaking(false),
-                onStopped: () => setSpeaking(false),
-                onError: () => setSpeaking(false),
-              });
-            }}
-          >
-            <Icon name={speaking ? 'volume-mute' : 'volume-high'} size={14} color={Colors.text.tertiary} />
-            <Text style={styles.voiceBtnText}>{speaking ? t('result_voice_stop') : t('result_voice_listen')}</Text>
-          </TouchableOpacity>
         </LinearGradient>
 
         <View style={styles.body}>
@@ -439,13 +395,6 @@ const styles = StyleSheet.create({
   scoreContainer: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   scoreVal: { fontSize: 28, fontWeight: '900' },
   scoreLabel: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '700', textTransform: 'uppercase', marginTop: -2 },
-
-  voiceBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 25,
-    paddingHorizontal: 15, paddingVertical: 8, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
-  },
-  voiceBtnText: { fontSize: 12, color: '#fff', fontWeight: '700' },
 
   sosBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,

@@ -8,7 +8,6 @@ export type RootStackParamList = {
   ResultDetail:    undefined;
   Blocklist:       undefined;
   CommunityReport: undefined;
-  Family:          undefined;
   CallerID:        { initialNumber?: string } | undefined;
   SpamDirectory:   undefined;
   CallLog:         undefined;
@@ -19,7 +18,6 @@ export type RootStackParamList = {
   TrustedContacts: undefined;
   ScamNews:        undefined;
   LinkCheck:       { url: string };
-  CyberQuiz:       undefined;
   BreachMonitor:    undefined;
   LegalSupport:     undefined;
 };
@@ -37,7 +35,6 @@ export type OnboardingScreenProps    = NativeStackScreenProps<RootStackParamList
 export type ResultDetailScreenProps  = NativeStackScreenProps<RootStackParamList, 'ResultDetail'>;
 export type BlocklistScreenProps     = NativeStackScreenProps<RootStackParamList, 'Blocklist'>;
 export type CommunityReportScreenProps = NativeStackScreenProps<RootStackParamList, 'CommunityReport'>;
-export type FamilyScreenProps        = NativeStackScreenProps<RootStackParamList, 'Family'>;
 export type CallerIDScreenProps      = NativeStackScreenProps<RootStackParamList, 'CallerID'>;
 export type SpamDirectoryScreenProps = NativeStackScreenProps<RootStackParamList, 'SpamDirectory'>;
 export type CallLogScreenProps       = NativeStackScreenProps<RootStackParamList, 'CallLog'>;
@@ -47,7 +44,6 @@ export type FraudAlertsScreenProps   = NativeStackScreenProps<RootStackParamList
 export type TrustedContactsScreenProps = NativeStackScreenProps<RootStackParamList, 'TrustedContacts'>;
 export type ScamNewsScreenProps      = NativeStackScreenProps<RootStackParamList, 'ScamNews'>;
 export type LinkCheckScreenProps       = NativeStackScreenProps<RootStackParamList, 'LinkCheck'>;
-export type CyberQuizScreenProps       = NativeStackScreenProps<RootStackParamList, 'CyberQuiz'>;
 
 // Tab screen props (can also navigate the root stack)
 export type HomeScreenProps     = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Home'>,     NativeStackScreenProps<RootStackParamList>>;

@@ -228,34 +228,12 @@ class BulkNamesRequest(BaseModel):
     contacts: list[ContactBulkIn]
 
 
-# ── Admin & Quiz ──────────────────────────────────────────────────────────────
+# ── Admin ─────────────────────────────────────────────────────────────────────
 
 class BroadcastRequest(BaseModel):
     title: str
     message: str
     severity: str = "medium"
-
-
-class DailyQuizOut(BaseModel):
-    date: str
-    questions: list[dict]          # [{id, q, options:[{key,text}]}]
-    already_done: bool
-    total_xp: int = 0
-    last_score: Optional[int] = None
-
-
-class QuizDailySubmit(BaseModel):
-    email: str
-    answers: dict[str, str]        # {"3": "b", "7": "a", ...}
-
-
-class QuizDailyResult(BaseModel):
-    score: int
-    total: int
-    xp_earned: int
-    total_xp: int
-    correct: dict[str, str]        # {id: correct_key}
-    already_done: bool = False
 
 
 class ChatHistoryItem(BaseModel):

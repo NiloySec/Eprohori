@@ -83,18 +83,6 @@ class DomainReputation(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
-class QuizCompletion(Base):
-    """One row per user per day they finish the daily quiz (caps XP at once/day)."""
-    __tablename__ = "quiz_completions"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, index=True, nullable=False)
-    quiz_date = Column(String, index=True, nullable=False)  # "YYYY-MM-DD"
-    score = Column(Integer, default=0)
-    xp_earned = Column(Integer, default=0)
-    created_at = Column(DateTime, server_default=func.now())
-
-
 class AdminAudit(Base):
     """Audit trail — who did what, when (multi-admin accountability)."""
     __tablename__ = "admin_audit"

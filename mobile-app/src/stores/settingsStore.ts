@@ -31,7 +31,6 @@ interface SettingsState {
   lastSummaryDate: string;
   blocklist: string[];
   activeProfile: string;
-  familyProfiles: string[];
   hasOnboarded: boolean;
   hasShownRatingPrompt: boolean;
   autoBlockEnabled: boolean;
@@ -62,7 +61,6 @@ interface SettingsState {
   guardianNumber: string;            // S3: guardian's phone number
   guardianThreshold: number;         // S3: confidence 0-100 that triggers the alert
   guardianLocationEnabled: boolean;  // S3b: attach a Google Maps link of current location to the guardian SMS
-  voiceAlertEnabled: boolean;        // S4: speak threat result aloud (TTS)
   contactSyncEnabled: boolean;       // S9: contribute to community caller ID database
 
   setLanguage: (language: 'bn' | 'en') => void;
@@ -73,9 +71,6 @@ interface SettingsState {
   setLastSummaryDate: (date: string) => void;
   addToBlocklist: (item: string) => void;
   removeFromBlocklist: (item: string) => void;
-  setActiveProfile: (name: string) => void;
-  addFamilyProfile: (name: string) => void;
-  removeFamilyProfile: (name: string) => void;
   setHasOnboarded: (v: boolean) => void;
   setHasShownRatingPrompt: (v: boolean) => void;
   setAutoBlockEnabled: (v: boolean) => void;
@@ -109,7 +104,6 @@ interface SettingsState {
   setGuardianNumber: (v: string) => void;
   setGuardianThreshold: (v: number) => void;
   setGuardianLocationEnabled: (v: boolean) => void;
-  setVoiceAlertEnabled: (v: boolean) => void;
   checkAndAutoBlock: (number: string, score: number) => boolean;
 }
 
@@ -124,7 +118,6 @@ export const useSettingsStore = create<SettingsState>()(
       lastSummaryDate: '',
       blocklist: [],
       activeProfile: 'আমি',
-      familyProfiles: [],
       hasOnboarded: false,
       hasShownRatingPrompt: false,
       autoBlockEnabled: false,
@@ -159,7 +152,6 @@ export const useSettingsStore = create<SettingsState>()(
       guardianNumber: '',
       guardianThreshold: 90,
       guardianLocationEnabled: false,
-      voiceAlertEnabled: false,
       contactSyncEnabled: false,
 
       setLanguage: (language) => set({ language }),
@@ -179,20 +171,6 @@ export const useSettingsStore = create<SettingsState>()(
         set((s) => ({ blocklist: s.blocklist.filter((x) => x !== item) }));
       },
 
-      setActiveProfile: (name) => set({ activeProfile: name }),
-      addFamilyProfile: (name) => {
-        const trimmed = name.trim();
-        if (!trimmed) return;
-        const profiles = get().familyProfiles;
-        if (!profiles.includes(trimmed)) set({ familyProfiles: [...profiles, trimmed] });
-      },
-      removeFamilyProfile: (name) => {
-        const { familyProfiles, activeProfile } = get();
-        set({
-          familyProfiles: familyProfiles.filter((p) => p !== name),
-          activeProfile: activeProfile === name ? 'আমি' : activeProfile,
-        });
-      },
       setHasOnboarded: (v) => set({ hasOnboarded: v }),
       setHasShownRatingPrompt: (v) => set({ hasShownRatingPrompt: v }),
       setAutoBlockEnabled: (v) => set({ autoBlockEnabled: v }),
@@ -251,7 +229,6 @@ export const useSettingsStore = create<SettingsState>()(
       setGuardianNumber: (v) => set({ guardianNumber: v.replace(/[^\d+]/g, '').slice(0, 15) }),
       setGuardianThreshold: (v) => set({ guardianThreshold: Math.max(50, Math.min(100, Math.round(v))) }),
       setGuardianLocationEnabled: (v) => set({ guardianLocationEnabled: v }),
-      setVoiceAlertEnabled: (v) => set({ voiceAlertEnabled: v }),
       setContactSyncEnabled: (v) => set({ contactSyncEnabled: v }),
       checkAndAutoBlock: (number, score) => {
         const state = get();

@@ -29,17 +29,15 @@ export interface HistoryEntry {
   message: string;
   result: ThreatAnalysisResponse;
   timestamp: number;
-  profile: string;
 }
 
 interface HistoryState {
   entries: HistoryEntry[];
-  addEntry: (message: string, result: ThreatAnalysisResponse, profile?: string) => void;
+  addEntry: (message: string, result: ThreatAnalysisResponse) => void;
   removeEntry: (id: string) => void;
-  clearHistory: (profile?: string) => void;
+  clearHistory: () => void;
   cleanupOldEntries: (days: number) => void;
-  getFilteredEntries: (type?: string, profile?: string) => HistoryEntry[];
-  getEntriesForProfile: (profile: string) => HistoryEntry[];
+  getFilteredEntries: (type?: string) => HistoryEntry[];
 }
 
 export const useHistoryStore = create<HistoryState>()(
@@ -47,7 +45,7 @@ export const useHistoryStore = create<HistoryState>()(
     (set, get) => ({
       entries: [],
 
-      addEntry: (message, result, profile = 'আমি') => {
+      addEntry: (message, result) => {
         // M13: cap entry size to prevent AsyncStorage bloat
         const safeMessage = message.slice(0, 2000);
         const safeResult: typeof result = {
@@ -63,7 +61,6 @@ export const useHistoryStore = create<HistoryState>()(
           message:   safeMessage,
           result:    safeResult,
           timestamp: Date.now(),
-          profile,
         };
         set((state) => ({
           entries: [entry, ...state.entries].slice(0, 200),
@@ -76,12 +73,8 @@ export const useHistoryStore = create<HistoryState>()(
         }));
       },
 
-      clearHistory: (profile) => {
-        if (!profile) {
-          set({ entries: [] });
-        } else {
-          set((s) => ({ entries: s.entries.filter((e) => e.profile !== profile) }));
-        }
+      clearHistory: () => {
+        set({ entries: [] });
       },
 
       cleanupOldEntries: (days) => {
@@ -92,15 +85,11 @@ export const useHistoryStore = create<HistoryState>()(
         }));
       },
 
-      getFilteredEntries: (type, profile) => {
+      getFilteredEntries: (type) => {
         let entries = get().entries;
-        if (profile) entries = entries.filter((e) => (e.profile ?? 'আমি') === profile);
         if (type) entries = entries.filter((e) => e.result.threat_type === type);
         return entries;
       },
-
-      getEntriesForProfile: (profile) =>
-        get().entries.filter((e) => (e.profile ?? 'আমি') === profile),
     }),
     {
       name: 'history-storage',

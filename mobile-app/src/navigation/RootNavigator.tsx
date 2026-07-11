@@ -115,7 +115,6 @@ export const RootNavigator = () => {
         <Stack.Screen name="ResultDetail"    component={ResultScreen} />
         <Stack.Screen name="Blocklist"       component={BlocklistScreen} />
         <Stack.Screen name="CommunityReport" component={CommunityReportScreen} />
-        <Stack.Screen name="Family"          component={FamilyScreen} />
         <Stack.Screen name="CallerID"        component={CallerIDScreen} />
         <Stack.Screen name="SpamDirectory"   component={SpamDirectoryScreen} />
         <Stack.Screen name="CallLog"         component={CallLogScreen} />
@@ -126,7 +125,6 @@ export const RootNavigator = () => {
         <Stack.Screen name="TrustedContacts" component={TrustedContactsScreen} />
         <Stack.Screen name="ScamNews"        component={ScamNewsScreen} />
         <Stack.Screen name="LinkCheck"       component={LinkCheckScreen} />
-        <Stack.Screen name="CyberQuiz"       component={CyberQuizScreen} />
         <Stack.Screen name="BreachMonitor"    component={BreachMonitorScreen} />
         <Stack.Screen name="LegalSupport"     component={LegalSupportScreen} />
       </Stack.Navigator>

@@ -112,7 +112,7 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
 
   const {
     language, notificationsEnabled, dailySummaryEnabled,
-    soundAlertEnabled, autoDeleteDays, blocklist, activeProfile,
+    soundAlertEnabled, autoDeleteDays, blocklist,
     autoBlockEnabled, autoBlockThreshold, ghostModeEnabled,
     smsAutoScanEnabled, smsAlertCategories, appLockEnabled, appLockPin,
     scheduledScanEnabled, scheduledScanHour, privacyModeEnabled, batterySaverEnabled,
@@ -120,11 +120,11 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     otpGuardEnabled, weeklyDigestEnabled, trustedNumbers,
     chatGuardEnabled,
     clipboardGuardEnabled, contactSyncEnabled,
-    guardianAlertEnabled, guardianNumber, guardianThreshold, guardianLocationEnabled, voiceAlertEnabled,
+    guardianAlertEnabled, guardianNumber, guardianThreshold, guardianLocationEnabled,
     setOtpGuardEnabled, setWeeklyDigestEnabled, setContactSyncEnabled,
     setChatGuardEnabled,
     setClipboardGuardEnabled,
-    setGuardianAlertEnabled, setGuardianNumber, setGuardianThreshold, setGuardianLocationEnabled, setVoiceAlertEnabled,
+    setGuardianAlertEnabled, setGuardianNumber, setGuardianThreshold, setGuardianLocationEnabled,
     setLanguage, setNotificationsEnabled, setDailySummaryEnabled,
     setSoundAlertEnabled, setAutoDeleteDays, setAutoBlockEnabled, setAutoBlockThreshold,
     setGhostModeEnabled, setSmsAutoScanEnabled, toggleSmsAlertCategory,
@@ -134,8 +134,7 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     setBiometricEnabled, setThemeMode, setUserDistrict, setDistrictAlertEnabled,
   } = useSettingsStore();
 
-  const getEntriesForProfile = useHistoryStore((s) => s.getEntriesForProfile);
-  const entries = getEntriesForProfile(activeProfile);
+  const entries = useHistoryStore((s) => s.entries);
   const getAllNumbers  = useSpamNumberStore((s) => s.getAllNumbers);
   const spamRecords   = getAllNumbers();
   const totalReports  = spamRecords.reduce((s, n) => s + n.reports.length, 0);
@@ -248,12 +247,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
               <View style={styles.headerIcon}><Icon name="cog-outline" size={28} color={Colors.accent} /></View>
               <Text style={styles.title}>{t('settings_title')}</Text>
             </View>
-            {activeProfile !== 'আমি' && (
-              <View style={styles.profileBadge}>
-                <Icon name="account-circle" size={14} color={Colors.accent} />
-                <Text style={styles.profileBadgeText}>{activeProfile}</Text>
-              </View>
-            )}
           </View>
         </LinearGradient>
 
@@ -385,10 +378,8 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
           </View>
 
           {/* ── Family ── */}
-          <Text style={styles.sectionLabel}>পরিবার ও সুরক্ষা</Text>
+          <Text style={styles.sectionLabel}>সুরক্ষা</Text>
           <View style={styles.card}>
-            <SettingRow icon="volume-high" label="ভয়েস অ্যালার্ট" right={<Switch value={voiceAlertEnabled} onValueChange={hv(setVoiceAlertEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
             <SettingRow icon="account-alert-outline" label="Guardian Alert" right={<Switch value={guardianAlertEnabled} onValueChange={hv(setGuardianAlertEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.threat }} thumbColor={Colors.white} />} />
             {guardianAlertEnabled && (
               <><View style={styles.divider} /><View style={styles.row}><View style={styles.rowIcon}><Icon name="phone-outline" size={18} color={Colors.accent} /></View><View style={styles.rowContent}><Text style={styles.rowLabel}>অভিভাবকের নম্বর</Text><TextInput style={styles.districtInput} value={guardianInput || guardianNumber} onChangeText={setGuardianInput} placeholder="017XXXXXXXX" placeholderTextColor={Colors.text.tertiary} keyboardType="phone-pad" onSubmitEditing={handleGuardianSave} returnKeyType="done" /></View><TouchableOpacity style={styles.districtSaveBtn} onPress={handleGuardianSave}><Icon name="check" size={18} color={Colors.primary} /></TouchableOpacity></View></>

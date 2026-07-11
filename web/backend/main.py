@@ -79,8 +79,7 @@ from security import (
     require_admin,
     throttle,
 )
-from models import AdminAudit, Alert, Contact, DomainReputation, GlobalStat, ImpactFeedback, PhoneBlacklist, QuizCompletion, Threat, User
-import quiz_bank
+from models import AdminAudit, Alert, Contact, DomainReputation, GlobalStat, ImpactFeedback, PhoneBlacklist, Threat, User
 from schemas import (
     ActivityOut,
     AlertOut,
@@ -1370,73 +1369,6 @@ def list_rangers(
     return out
 
 
-# ── Daily cybersecurity quiz (5 rotating questions/day, XP once/day) ───────────
-QUIZ_XP_PER_CORRECT = 1    # 5 correct → 5 XP/day max (1 XP per question)
-
-
-@app.get("/api/quiz/daily", response_model=DailyQuizOut, tags=["rangers"])
-def get_daily_quiz(email: Optional[str] = Query(None), db: Session = Depends(get_db)):
-    today = date.today().isoformat()
-    questions = quiz_bank.daily_questions()
-    already_done = False
-    total_xp = 0
-    last_score = None
-    if email:
-        em = email.lower().strip()
-        user = db.query(User).filter(func.lower(User.email) == em).first()
-        if user:
-            total_xp = user.xp or 0
-        done = (
-            db.query(QuizCompletion)
-            .filter(QuizCompletion.email == em, QuizCompletion.quiz_date == today)
-            .first()
-        )
-        if done:
-            already_done = True
-            last_score = done.score
-    return DailyQuizOut(
-        date=today, questions=questions, already_done=already_done,
-        total_xp=total_xp, last_score=last_score,
-    )
-
-
-@app.post("/api/quiz/daily", response_model=QuizDailyResult, tags=["rangers"])
-def submit_daily_quiz(payload: QuizDailySubmit, req: Request, db: Session = Depends(get_db)):
-    throttle(req, "daily-quiz", max_hits=20, window_sec=300)
-    em = (payload.email or "").lower().strip()
-    if not em:
-        raise HTTPException(401, "কুইজ দিতে লগইন করুন।")
-    user = db.query(User).filter(func.lower(User.email) == em).first()
-    if not user:
-        raise HTTPException(404, "ব্যবহারকারী পাওয়া যায়নি — লগইন করুন।")
-
-    today = date.today().isoformat()
-    score, correct = quiz_bank.grade(payload.answers)
-    total = len(correct)
-
-    existing = (
-        db.query(QuizCompletion)
-        .filter(QuizCompletion.email == em, QuizCompletion.quiz_date == today)
-        .first()
-    )
-    if existing:
-        # Already completed today — no extra XP, but show the answers.
-        return QuizDailyResult(
-            score=existing.score, total=total, xp_earned=0,
-            total_xp=user.xp or 0, correct=correct, already_done=True,
-        )
-
-    xp_earned = score * QUIZ_XP_PER_CORRECT
-    user.xp = (user.xp or 0) + xp_earned
-    db.add(QuizCompletion(email=em, quiz_date=today, score=score, xp_earned=xp_earned))
-    db.commit()
-    db.refresh(user)
-    return QuizDailyResult(
-        score=score, total=total, xp_earned=xp_earned,
-        total_xp=user.xp or 0, correct=correct, already_done=False,
-    )
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Division heatmap
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1868,10 +1800,6 @@ def delete_account(
             # Anonymise: keep the reports on the monitor/map, drop the PII link.
             db.query(Threat).filter(Threat.reporter_email == email).update(
                 {Threat.reporter_email: None}, synchronize_session=False
-            )
-            # Remove personal quiz history (no community value, pure PII).
-            db.query(QuizCompletion).filter(QuizCompletion.email == email).delete(
-                synchronize_session=False
             )
         db.delete(user)
         db.commit()

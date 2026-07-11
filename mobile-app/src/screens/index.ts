@@ -22,3 +22,4 @@ export { default as ScamNewsScreen } from './ScamNewsScreen';
 export { default as LinkCheckScreen } from './LinkCheckScreen';
 export { default as BreachMonitorScreen } from './BreachMonitorScreen';
 export { default as LegalSupportScreen } from './LegalSupportScreen';
+export { default as PrivacyPolicyScreen } from './PrivacyPolicyScreen';

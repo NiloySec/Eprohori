@@ -20,6 +20,7 @@ export type RootStackParamList = {
   LinkCheck:       { url: string };
   BreachMonitor:    undefined;
   LegalSupport:     undefined;
+  PrivacyPolicy:    undefined;
 };
 
 export type TabParamList = {

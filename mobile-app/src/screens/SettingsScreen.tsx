@@ -8,11 +8,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useSettingsStore, useHistoryStore, useSpamNumberStore, useAuthStore } from '@stores';
-import { CATEGORY_META, exportHistoryCSV } from '@utils';
+import { CATEGORY_META, exportHistoryCSV, updateCachedPatterns } from '@utils';
 import { useTranslation } from '@hooks';
 import { Colors, Shadows } from '@theme';
 import { exportBackup, importBackup } from '../services/backupService';
 import { performContactSync } from '../services/contactSyncService';
+import { fetchLatestPatterns, getLocalPatterns } from '../services/patternUpdateService';
 import {
   isChatGuardAvailable, isChatGuardPermitted, openChatGuardSettings,
 } from '../services/notifGuardService';
@@ -360,6 +361,15 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <SettingRow icon="message-alert-outline" label="Chat Guard" right={<Switch value={chatGuardEnabled} onValueChange={hv(handleChatGuardToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
             <SettingRow icon="alarm-check" label="দৈনিক স্ক্যান রিমাইন্ডার" right={<Switch value={scheduledScanEnabled} onValueChange={hv(setScheduledScanEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
+            <View style={styles.divider} />
+            <NavRow icon="database-sync" label="হুমকি সিগনেচার আপডেট" description="নতুন প্রতারণা প্যাটার্ন ডাউনলোড করুন" onPress={async () => {
+              setBackupBusy(true);
+              await fetchLatestPatterns();
+              const p = await getLocalPatterns();
+              updateCachedPatterns(p);
+              setBackupBusy(false);
+              Alert.alert('সফল', 'লেটেস্ট হুমকি সিগনেচার আপডেট হয়েছে');
+            }} right={backupBusy ? <ActivityIndicator size="small" color={Colors.accent} /> : undefined} />
           </View>
 
           {/* ── Privacy ── */}
@@ -392,6 +402,8 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <NavRow icon="school-outline" label="সাইবার শিক্ষা" color="#818cf8" onPress={() => navigation.navigate('CyberSafety')} />
             <View style={styles.divider} />
             <NavRow icon="shield-alert-outline" label="রিপোর্ট করুন" color={Colors.threat} onPress={() => navigation.navigate('CyberReport')} />
+            <View style={styles.divider} />
+            <NavRow icon="file-document-outline" label="প্রাইভেসি পলিসি" color={Colors.text.tertiary} onPress={() => navigation.navigate('PrivacyPolicy')} />
           </View>
 
           <View style={styles.aboutCard}>

@@ -7,6 +7,7 @@ export { ErrorBoundary } from './ErrorBoundary';
 export { Skeleton, DistrictSkeleton } from './SkeletonLoader';
 export { AppLockOverlay } from './AppLockOverlay';
 export { DevWarningBanner } from './DevWarningBanner';
+export { DeviceSecurityBanner } from './DeviceSecurityBanner';
 export { ClipboardGuardBanner } from './ClipboardGuardBanner';
 export { CollapsibleSection } from './CollapsibleSection';
 export {

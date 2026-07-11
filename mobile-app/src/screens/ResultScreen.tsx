@@ -63,6 +63,18 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
 
   const stepsBg = isThreat ? Colors.threatGlow : isSuspicious ? Colors.suspiciousGlow : Colors.safeGlow;
 
+  // Micro-interaction: specialized haptics based on safety level
+  useEffect(() => {
+    if (!currentResult) return;
+    if (isThreat) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } else if (isSuspicious) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  }, []);
+
   const handleShare = async () => {
     const statusEmoji = isThreat ? '🔴' : isSuspicious ? '⚠️' : '✅';
     const preview = currentMessage.length > 120 ? `${currentMessage.slice(0, 120)}...` : currentMessage;

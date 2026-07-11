@@ -127,6 +127,7 @@ export const RootNavigator = () => {
         <Stack.Screen name="LinkCheck"       component={LinkCheckScreen} />
         <Stack.Screen name="BreachMonitor"    component={BreachMonitorScreen} />
         <Stack.Screen name="LegalSupport"     component={LegalSupportScreen} />
+        <Stack.Screen name="PrivacyPolicy"    component={PrivacyPolicyScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

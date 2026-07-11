@@ -10,7 +10,7 @@ import { useHistoryStore, useAnalysisStore, useSettingsStore, useSpamNumberStore
 import { categorizeSms } from '@utils';
 import { useTranslation } from '@hooks';
 import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
-import { DevWarningBanner, NoScansIllustration, Skeleton } from '@components';
+import { DevWarningBanner, DeviceSecurityBanner, NoScansIllustration, Skeleton } from '@components';
 import type { HomeScreenProps } from '@navigation/types';
 
 type MCIcon = React.ComponentProps<typeof Icon>['name'];
@@ -165,6 +165,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   return (
     <SafeAreaView style={styles.safe}>
       <DevWarningBanner />
+      <DeviceSecurityBanner />
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}

@@ -19,14 +19,19 @@ from dotenv import load_dotenv
 
 load_dotenv()  # must run before notification_service reads env keys
 
-# Initialize Sentry for error tracking
+# Sentry initialization
 import sentry_sdk
-sentry_sdk.init(
-    dsn=os.getenv("SENTRY_DSN", ""),
-    traces_sample_rate=0.1,
-    environment=os.getenv("ENVIRONMENT", "production"),
-    attach_stacktrace=True,
-)
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+
+_sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
+if _sentry_dsn:
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        environment=os.getenv("ENVIRONMENT", "production"),
+        traces_sample_rate=0.1,
+        attach_stacktrace=True,
+        integrations=[FastApiIntegration()],
+    )
 
 import jwt
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request, Response
@@ -237,24 +242,7 @@ async def lifespan(app: FastAPI):
 
 # ── App ────────────────────────────────────────────────────────────────────────
 
-_is_production = os.getenv("ENV", "development").lower() == "production"
-
-# Phishing-labelled entries already in the training dataset (see BENCHMARK.md: 3,815
-# phishing of 5,772 samples). Shown as the base "known threats blocked" count;
-# verified user reports are added on top. Override via env if the dataset changes.
-DATASET_BLOCKED_BASE = int(os.getenv("DATASET_BLOCKED_BASE", "3815"))
-
-_sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
-if _sentry_dsn:
-    import sentry_sdk
-    from sentry_sdk.integrations.fastapi import FastApiIntegration
-    sentry_sdk.init(
-        dsn=_sentry_dsn,
-        environment="production" if _is_production else "development",
-        traces_sample_rate=0.1 if _is_production else 1.0,
-        send_default_pii=False,
-        integrations=[FastApiIntegration()],
-    )
+# Sentry handled above
 
 app = FastAPI(
     title="EProhori API",

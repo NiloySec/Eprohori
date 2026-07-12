@@ -11,4 +11,10 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# Expo modules
+-keep class expo.modules.** { *; }
+-keep class com.facebook.react.** { *; }
+
 # Add any project specific keep options here:
+-ignorewarnings
+-dontwarn expo.modules.**

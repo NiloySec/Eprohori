@@ -22,7 +22,7 @@ web/backend/security_verify.py
 frontend/.next/
 mobile-app/node_modules/
 extension/node_modules/
-package-lock.json
+# package-lock.json  <-- Removed global ignore to ensure consistent builds in sub-projects
 
 # Databases
 *.db

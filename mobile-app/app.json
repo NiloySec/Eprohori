@@ -4,6 +4,7 @@
     "slug": "eprohori",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "eprohori",
     "updates": {
       "fallbackToCacheTimeout": 0,
@@ -15,11 +16,16 @@
     ],
     "ios": {
       "supportsTabletMode": true,
-      "bundleIdentifier": "com.eprohori.app"
+      "bundleIdentifier": "com.eprohori.app",
+      "icon": "./assets/icon.png"
     },
     "android": {
       "package": "com.eprohori.app",
       "backgroundColor": "#1a0a1f",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a0a1f"
+      },
       "permissions": [
         "android.permission.READ_PHONE_STATE",
         "android.permission.RECEIVE_SMS",

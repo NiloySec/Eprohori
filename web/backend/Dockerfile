@@ -1,28 +1,32 @@
 FROM python:3.11-slim
 
-# Faster Python, no .pyc clutter, unbuffered output for live logs
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-# Install system dependencies
+# Install runtime system dependencies
 RUN apt-get update && apt-get install -y \
     whois \
-    libpq-dev \
-    gcc \
-    python3-dev \
+    libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install deps first (better layer caching)
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    libpq-dev
+
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy source (data/, *.py, Procfile, etc.)
+# Clean up build dependencies
+RUN apt-get purge -y --auto-remove gcc python3-dev libpq-dev && rm -rf /var/lib/apt/lists/*
+
 COPY . .
 
-# Railway provides $PORT at runtime; default 8000 for local docker runs
+# Railway automatically sets $PORT
 ENV PORT=8000
 EXPOSE 8000
 

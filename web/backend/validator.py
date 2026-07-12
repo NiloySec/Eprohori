@@ -30,7 +30,7 @@ def _load_dataset() -> tuple[list[str], list[int]]:
 
     # 1. BangalaBarta — label column is string: smish/promo → 1, normal → 0
     df1 = pd.read_csv(
-        DATA_DIR / "BangalaBarta bangla_spam_sms smishing.csv",
+        DATA_DIR / "bangla_spam_sms_smishing.csv",
         encoding="utf-8",
         on_bad_lines="skip",
     )

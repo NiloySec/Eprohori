@@ -18,4 +18,3 @@ export {
   BD_OPERATORS,
   type TagSource,
 } from './nameTagStore';
-export { useQuizStore, QUIZ_QUESTIONS, type QuizQuestion } from './quizStore';

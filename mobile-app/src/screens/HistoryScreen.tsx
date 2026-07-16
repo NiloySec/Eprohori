@@ -12,7 +12,6 @@ import type { HistoryScreenProps } from '@navigation/types';
 const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
   const [filter, setFilter] = useState<string | null>(null);
   const t = useTranslation();
-  const activeProfile      = useSettingsStore((s) => s.activeProfile);
   const getFilteredEntries = useHistoryStore((s) => s.getFilteredEntries);
   const removeEntry        = useHistoryStore((s) => s.removeEntry);
   const clearHistory       = useHistoryStore((s) => s.clearHistory);
@@ -20,8 +19,8 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
   const setResult          = useAnalysisStore((s) => s.setResult);
 
   const entries = useMemo(
-    () => getFilteredEntries(filter ?? undefined, activeProfile),
-    [filter, activeProfile, getFilteredEntries]
+    () => getFilteredEntries(filter ?? undefined),
+    [filter, getFilteredEntries]
   );
 
   const FILTERS = [
@@ -36,7 +35,7 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
   const handleClear = () => {
     Alert.alert(t('history_confirm_title'), t('history_confirm_msg'), [
       { text: t('history_cancel'), style: 'cancel' },
-      { text: t('history_delete'), style: 'destructive', onPress: () => clearHistory(activeProfile) },
+      { text: t('history_delete'), style: 'destructive', onPress: () => clearHistory() },
     ]);
   };
 
@@ -59,12 +58,6 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
             </TouchableOpacity>
           )}
         </View>
-        {activeProfile !== 'আমি' && (
-          <View style={styles.profileBanner}>
-            <Icon name="account-circle" size={14} color={Colors.accent} />
-            <Text style={styles.profileBannerText}>{activeProfile} এর ইতিহাস</Text>
-          </View>
-        )}
       </LinearGradient>
 
       {/* ── Filter chips ── */}

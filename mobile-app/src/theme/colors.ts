@@ -96,6 +96,21 @@ export const LightColors = {
   suspiciousGlow:  'rgba(230,81,0,0.10)',
   threatGlow:      'rgba(198,40,40,0.10)',
   accentGlow:      'rgba(0,121,107,0.08)',
+
+  // M25: Glassmorphism and Professional Surfaces — light equivalents
+  glass: {
+    primary:   'rgba(255, 255, 255, 0.7)',
+    secondary: 'rgba(233, 236, 239, 0.4)',
+    accent:    'rgba(0, 121, 107, 0.1)',
+    threat:    'rgba(198, 40, 40, 0.1)',
+    safe:      'rgba(0, 121, 107, 0.1)',
+  },
+  surface: {
+    low:     '#ffffff',
+    medium:  '#f8f9fa',
+    high:    '#e9ecef',
+    highest: '#dee2e6',
+  }
 };
 
 export type ThemeColors = typeof DarkColors;

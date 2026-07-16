@@ -68,7 +68,7 @@ export async function importBackup(): Promise<{ imported: number; error?: string
     const newEntries    = parsed.entries.filter((e) => !existingIds.has(e.id));
 
     newEntries.forEach((e) => {
-      store.addEntry(e.message, e.result, e.profile ?? 'আমি');
+      store.addEntry(e.message, e.result);
     });
 
     return { imported: newEntries.length };

@@ -30,7 +30,6 @@ interface SettingsState {
   autoDeleteDays: number;
   lastSummaryDate: string;
   blocklist: string[];
-  activeProfile: string;
   hasOnboarded: boolean;
   hasShownRatingPrompt: boolean;
   autoBlockEnabled: boolean;
@@ -110,7 +109,6 @@ export const useSettingsStore = create<SettingsState>()(
       autoDeleteDays: 30,
       lastSummaryDate: '',
       blocklist: [],
-      activeProfile: 'আমি',
       hasOnboarded: false,
       hasShownRatingPrompt: false,
       autoBlockEnabled: false,

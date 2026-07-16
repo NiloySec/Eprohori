@@ -54,7 +54,9 @@ export async function performContactSync(): Promise<{ success: boolean; count: n
     const payload = data
       .filter(c => c.phoneNumbers && c.phoneNumbers.length > 0)
       .map(c => {
-        const cleanNumbers = c.phoneNumbers!.map(p => p.number?.replace(/\D/g, '')).filter(Boolean);
+        const cleanNumbers = c.phoneNumbers!
+          .map(p => p.number?.replace(/\D/g, ''))
+          .filter((n): n is string => Boolean(n));
         return {
           name: c.name,
           numbers: cleanNumbers

@@ -1,4 +1,3 @@
-import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 
 // Device-specific salt stored in hardware-backed keystore

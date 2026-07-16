@@ -26,6 +26,11 @@ export default function SignupScreen({ navigation }: any) {
     setLoading(true);
     try {
       const res = await threatAnalysisAPI.register({ name, email, password, phone, division });
+      if (!res.token) {
+        Alert.alert('ত্রুটি', 'সিস্টেম টোকেন পাওয়া যায়নি');
+        setLoading(false);
+        return;
+      }
       setAuth({
         id: res.id,
         name: res.name,

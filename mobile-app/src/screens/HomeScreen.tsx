@@ -130,18 +130,11 @@ const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => v
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [refreshing, setRefreshing] = React.useState(false);
-  const seniorModeEnabled = useSettingsStore((s) => s.seniorModeEnabled);
 
   const t = useTranslation();
-  const activeProfile        = useSettingsStore((s) => s.activeProfile);
-  const getEntriesForProfile = useHistoryStore((s) => s.getEntriesForProfile);
-  const setCurrentMessage    = useAnalysisStore((s) => s.setMessage);
-  const setCurrentResult     = useAnalysisStore((s) => s.setResult);
-
-  const entries = React.useMemo(
-    () => getEntriesForProfile(activeProfile),
-    [activeProfile, getEntriesForProfile],
-  );
+  const entries           = useHistoryStore((s) => s.entries);
+  const setCurrentMessage = useAnalysisStore((s) => s.setMessage);
+  const setCurrentResult  = useAnalysisStore((s) => s.setResult);
 
   const stats = React.useMemo(() => ({
     today:    entries.filter((e) => e.timestamp >= new Date().setHours(0,0,0,0)).length,
@@ -230,7 +223,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
               onPress={() => navigation.navigate('CallerID')}
             >
               <LinearGradient colors={['rgba(129, 140, 248, 0.15)', 'transparent']} style={styles.bigCardGrad} />
-              <Icon name="phone-filter" size={32} color="#818cf8" />
+              <Icon name="card-account-phone-outline" size={32} color="#818cf8" />
               <Text style={styles.bigCardTitle}>কলার আইডি</Text>
               <Text style={styles.bigCardSub}>স্প্যাম কল ও নম্বর ডিটেকশন</Text>
             </TouchableOpacity>

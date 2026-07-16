@@ -25,9 +25,7 @@ const SummaryCard = ({ value, label, color, icon }: { value: number; label: stri
 
 const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
   const t = useTranslation();
-  const activeProfile        = useSettingsStore((s) => s.activeProfile);
-  const getEntriesForProfile = useHistoryStore((s) => s.getEntriesForProfile);
-  const entries = useMemo(() => getEntriesForProfile(activeProfile), [activeProfile, getEntriesForProfile]);
+  const entries = useHistoryStore((s) => s.entries);
   const [districts,     setDistricts]     = useState<DistrictStat[]>([]);
   const [districtError, setDistrictError] = useState(false);
   const [districtLoad,  setDistrictLoad]  = useState(true);
@@ -110,12 +108,6 @@ const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
           {/* ── Summary cards (profile-scoped personal stats) ── */}
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>{t('monitor_my_scans')}</Text>
-            {activeProfile !== 'আমি' && (
-              <View style={styles.profilePill}>
-                <Icon name="account-circle" size={12} color={Colors.accent} />
-                <Text style={styles.profilePillText}>{activeProfile}</Text>
-              </View>
-            )}
           </View>
           <View style={styles.summaryRow}>
             <SummaryCard value={total}      label={t('monitor_total')}     color={Colors.accent}    icon="chart-donut" />

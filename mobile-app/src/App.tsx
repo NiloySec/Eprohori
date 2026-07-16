@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, AppState, NativeModules, NativeEventEmitter } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,6 +9,7 @@ import * as Updates from 'expo-updates';
 import { RootNavigator, navigationRef } from '@navigation';
 import { Colors, ThemeProvider } from '@theme';
 import { useHistoryStore, useSettingsStore, useAnalysisStore } from '@stores';
+import { threatAnalysisAPI } from '@api';
 import { ErrorBoundary, AppLockOverlay } from '@components';
 import { categorizeSms, updateCachedPatterns } from '@utils';
 import { runScamSync } from './services/scamSyncService';
@@ -15,7 +17,6 @@ import { fetchLatestPatterns, getLocalPatterns } from './services/patternUpdateS
 import { checkDistrictAlerts } from './services/districtAlertService';
 import { checkWeeklyDigest } from './services/weeklyDigestService';
 import { startChatGuard, stopChatGuard } from './services/notifGuardService';
-import { maybeAlertGuardian } from './services/familyGuardianService';
 import { syncWidgetStats } from './services/widgetStatsService';
 import { loadSecurePin } from './stores/settingsStore';
 import { initSentry, Sentry } from './services/sentry';
@@ -198,8 +199,6 @@ function App() {
             },
             trigger: null,
           }).catch(() => {});
-          // S3: background-detected high-confidence threat — also warn the guardian
-          maybeAlertGuardian(result.confidence, result.threat_type === 'phishing' ? 'ফিশিং' : 'প্রতারণা').catch(() => {});
         } else if (result.confidence >= 60) {
           // Fire local notification if confidence is high enough
           Notifications.scheduleNotificationAsync({

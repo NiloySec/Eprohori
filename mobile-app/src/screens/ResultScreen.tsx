@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
+import * as Haptics from 'expo-haptics';
 import { useAnalysisStore, useSettingsStore } from '@stores';
 import { ConfidenceBar, CollapsibleSection } from '@components';
 import { useTranslation } from '@hooks';
-import { sendSOSLocationToGuardian } from '../services/familyGuardianService';
 import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
 import type { ResultDetailScreenProps } from '@navigation/types';
 
@@ -19,23 +19,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
   const t = useTranslation();
   const { currentMessage, currentResult } = useAnalysisStore();
   const language           = useSettingsStore((s) => s.language);
-  const guardianNumber     = useSettingsStore((s) => s.guardianNumber);
   const [speaking, setSpeaking] = useState(false);
-
-  const handleSOS = () => {
-    const buttons: any[] = [
-      { text: t('result_sos_cancel'), style: 'cancel' },
-    ];
-    if (guardianNumber.trim()) {
-      buttons.push({
-        text: t('result_sos_guardian'),
-        onPress: () => { sendSOSLocationToGuardian(guardianNumber.trim()); },
-      });
-    }
-    buttons.push({ text: t('result_sos_call'), style: 'destructive', onPress: () => Linking.openURL('tel:999').catch(() => {}) });
-
-    Alert.alert(t('result_sos_title'), t('result_sos_confirm'), buttons);
-  };
 
   if (!currentResult) {
     return (
@@ -354,14 +338,6 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 </View>
               ))}
             </CollapsibleSection>
-          )}
-
-          {/* ── S5: Emergency SOS ── */}
-          {conf >= SOS_THRESHOLD && (
-            <TouchableOpacity style={styles.sosBtn} onPress={handleSOS} activeOpacity={0.85}>
-              <Icon name="phone-alert" size={20} color="#fff" />
-              <Text style={styles.sosBtnText}>{t('result_sos_btn')}</Text>
-            </TouchableOpacity>
           )}
 
           {/* ── Actions ── */}

@@ -12,7 +12,6 @@ import * as Haptics from 'expo-haptics';
 import * as StoreReview from 'expo-store-review';
 import { threatAnalysisAPI, ThreatAnalysisResponse } from '@api';
 import { pickAndExtractText, isOcrAvailable } from '../services/ocrService';
-import { maybeAlertGuardian } from '../services/familyGuardianService';
 import { useAnalysisStore, useHistoryStore, useSettingsStore } from '@stores';
 import { useTranslation } from '@hooks';
 import { OfflineBanner, CollapsibleSection } from '@components';
@@ -164,9 +163,6 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
       const result = await threatAnalysisAPI.analyzeThreat(query, lang, 3, privacyModeEnabled);
       setResult(result);
       addHistory(text, result, activeProfile);
-
-      // S3: warn a trusted contact when confidence crosses the guardian threshold
-      maybeAlertGuardian(result.confidence, result.threat_type).catch(() => {});
 
       // Rating prompt after 5th scan (shown once, native throttling prevents abuse)
       if (!hasShownRatingPrompt) {

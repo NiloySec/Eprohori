@@ -22,6 +22,9 @@ ios/Pods/
 .env
 .env.local
 
+# App secret — real value lives only here and in the Railway env
+src/config/secrets.ts
+
 # OS
 .DS_Store
 Thumbs.db

@@ -2,11 +2,11 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { analyzeUrlLocally, type UrlFeatures } from '../utils/urlFeatures';
 import { categorizeSms } from '../utils/smsCategories';
 import { useAuthStore } from '../stores/authStore';
+import { APP_SECRET } from '../config/secrets'; // M16: gitignored, see secrets.example.ts
 
 // C5: Hardcoded config — never use process.env in mobile bundle (baked into APK)
 const API_BASE_URL = 'https://eprohori-production.up.railway.app';
 const API_TIMEOUT  = 30000;
-const APP_SECRET   = 'ep_v1_live_a7f92e3d5c8b4a1f0d9e8c7b6a5f4e3d2c1b0a'; // M16: shared secret for bulk API integrity
 
 // C2: Runtime type guard for API response
 function validateApiThreatResponse(data: unknown): ValidateTextResponse {

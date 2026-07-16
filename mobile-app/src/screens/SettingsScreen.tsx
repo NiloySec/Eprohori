@@ -97,7 +97,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
   const [exporting,           setExporting]           = useState(false);
   const [backupBusy,          setBackupBusy]          = useState(false);
   const [districtInput,       setDistrictInput]       = useState('');
-  const [guardianInput,       setGuardianInput]       = useState('');
   const [syncDisclosureOpen,  setSyncDisclosureOpen]  = useState(false);
   const [syncing,             setSyncing]             = useState(false);
 
@@ -121,11 +120,9 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     otpGuardEnabled, weeklyDigestEnabled, trustedNumbers,
     chatGuardEnabled,
     clipboardGuardEnabled, contactSyncEnabled,
-    guardianAlertEnabled, guardianNumber, guardianThreshold, guardianLocationEnabled,
     setOtpGuardEnabled, setWeeklyDigestEnabled, setContactSyncEnabled,
     setChatGuardEnabled,
     setClipboardGuardEnabled,
-    setGuardianAlertEnabled, setGuardianNumber, setGuardianThreshold, setGuardianLocationEnabled,
     setLanguage, setNotificationsEnabled, setDailySummaryEnabled,
     setSoundAlertEnabled, setAutoDeleteDays, setAutoBlockEnabled, setAutoBlockThreshold,
     setGhostModeEnabled, setSmsAutoScanEnabled, toggleSmsAlertCategory,
@@ -182,11 +179,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
         { text: t('settings_chat_guard_perm_goto'), onPress: () => openChatGuardSettings() },
       ]);
     }
-  };
-
-  const handleGuardianSave = () => {
-    const v = guardianInput.trim(); if (!v) return;
-    setGuardianNumber(v); setGuardianInput(''); Alert.alert('', t('settings_guardian_saved'));
   };
 
   const handleSyncToggle = (v: boolean) => { v ? setSyncDisclosureOpen(true) : setContactSyncEnabled(false); };
@@ -385,15 +377,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <SettingRow icon="incognito" label="প্রাইভেসি মোড" right={<Switch value={privacyModeEnabled} onValueChange={hv(setPrivacyModeEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#818cf8' }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
             <SettingRow icon="account-multiple-plus-outline" label="কলার আইডি উন্নত করুন" right={syncing ? <ActivityIndicator size="small" color={Colors.accent} /> : <Switch value={contactSyncEnabled} onValueChange={hv(handleSyncToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.safe }} thumbColor={Colors.white} />} />
-          </View>
-
-          {/* ── Family ── */}
-          <Text style={styles.sectionLabel}>সুরক্ষা</Text>
-          <View style={styles.card}>
-            <SettingRow icon="account-alert-outline" label="Guardian Alert" right={<Switch value={guardianAlertEnabled} onValueChange={hv(setGuardianAlertEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.threat }} thumbColor={Colors.white} />} />
-            {guardianAlertEnabled && (
-              <><View style={styles.divider} /><View style={styles.row}><View style={styles.rowIcon}><Icon name="phone-outline" size={18} color={Colors.accent} /></View><View style={styles.rowContent}><Text style={styles.rowLabel}>অভিভাবকের নম্বর</Text><TextInput style={styles.districtInput} value={guardianInput || guardianNumber} onChangeText={setGuardianInput} placeholder="017XXXXXXXX" placeholderTextColor={Colors.text.tertiary} keyboardType="phone-pad" onSubmitEditing={handleGuardianSave} returnKeyType="done" /></View><TouchableOpacity style={styles.districtSaveBtn} onPress={handleGuardianSave}><Icon name="check" size={18} color={Colors.primary} /></TouchableOpacity></View></>
-            )}
           </View>
 
           {/* ── Help ── */}

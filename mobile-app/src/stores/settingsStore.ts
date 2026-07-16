@@ -57,10 +57,6 @@ interface SettingsState {
   chatGuardApps: string[];           // P1: package names to watch
   callScreeningEnabled: boolean;     // P3: block spam calls before ring (role)
   clipboardGuardEnabled: boolean;    // S1: suggest checking copied number/link
-  guardianAlertEnabled: boolean;     // S3: SMS a trusted contact on high-confidence threat
-  guardianNumber: string;            // S3: guardian's phone number
-  guardianThreshold: number;         // S3: confidence 0-100 that triggers the alert
-  guardianLocationEnabled: boolean;  // S3b: attach a Google Maps link of current location to the guardian SMS
   contactSyncEnabled: boolean;       // S9: contribute to community caller ID database
 
   setLanguage: (language: 'bn' | 'en') => void;
@@ -100,10 +96,7 @@ interface SettingsState {
   toggleChatGuardApp: (pkg: string) => void;
   setCallScreeningEnabled: (v: boolean) => void;
   setClipboardGuardEnabled: (v: boolean) => void;
-  setGuardianAlertEnabled: (v: boolean) => void;
-  setGuardianNumber: (v: string) => void;
-  setGuardianThreshold: (v: number) => void;
-  setGuardianLocationEnabled: (v: boolean) => void;
+  setContactSyncEnabled: (v: boolean) => void;
   checkAndAutoBlock: (number: string, score: number) => boolean;
 }
 
@@ -148,10 +141,6 @@ export const useSettingsStore = create<SettingsState>()(
       ],
       callScreeningEnabled: false,
       clipboardGuardEnabled: true,
-      guardianAlertEnabled: false,
-      guardianNumber: '',
-      guardianThreshold: 90,
-      guardianLocationEnabled: false,
       contactSyncEnabled: false,
 
       setLanguage: (language) => set({ language }),
@@ -225,10 +214,6 @@ export const useSettingsStore = create<SettingsState>()(
       },
       setCallScreeningEnabled: (v) => set({ callScreeningEnabled: v }),
       setClipboardGuardEnabled: (v) => set({ clipboardGuardEnabled: v }),
-      setGuardianAlertEnabled: (v) => set({ guardianAlertEnabled: v }),
-      setGuardianNumber: (v) => set({ guardianNumber: v.replace(/[^\d+]/g, '').slice(0, 15) }),
-      setGuardianThreshold: (v) => set({ guardianThreshold: Math.max(50, Math.min(100, Math.round(v))) }),
-      setGuardianLocationEnabled: (v) => set({ guardianLocationEnabled: v }),
       setContactSyncEnabled: (v) => set({ contactSyncEnabled: v }),
       checkAndAutoBlock: (number, score) => {
         const state = get();

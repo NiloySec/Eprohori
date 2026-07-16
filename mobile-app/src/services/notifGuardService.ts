@@ -34,6 +34,27 @@ export const CHAT_GUARD_APPS: { pkg: string; name: string; icon: string }[] = [
   { pkg: 'com.imo.android.imoim',  name: 'imo',       icon: '🔵' },
 ];
 
+let subscription: { remove: () => void } | null = null;
+
+// True when running in a build that includes the native NotificationListener
+// module (false in Expo Go).
+export function isChatGuardAvailable(): boolean {
+  return NotifListenerNative != null;
+}
+
+export async function isChatGuardPermitted(): Promise<boolean> {
+  if (!NotifListenerNative) return false;
+  try {
+    return await NotifListenerNative.isPermissionGranted();
+  } catch {
+    return false;
+  }
+}
+
+export function openChatGuardSettings(): void {
+  NotifListenerNative?.openNotificationAccessSettings();
+}
+
 async function handleChatNotif(notif: ChatNotif): Promise<void> {
   const settings = useSettingsStore.getState();
   if (!settings.chatGuardEnabled) return;

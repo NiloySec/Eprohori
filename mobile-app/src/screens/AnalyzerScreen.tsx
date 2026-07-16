@@ -44,7 +44,6 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
   const soundAlertEnabled        = useSettingsStore((s) => s.soundAlertEnabled);
   const notificationsEnabled     = useSettingsStore((s) => s.notificationsEnabled);
   const blocklist                = useSettingsStore((s) => s.blocklist);
-  const activeProfile            = useSettingsStore((s) => s.activeProfile);
   const hasShownRatingPrompt     = useSettingsStore((s) => s.hasShownRatingPrompt);
   const setHasShownRatingPrompt  = useSettingsStore((s) => s.setHasShownRatingPrompt);
   const privacyModeEnabled       = useSettingsStore((s) => s.privacyModeEnabled);
@@ -150,7 +149,7 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
       };
       setAnalysisMessage(text);
       setResult(blockResult);
-      addHistory(text, blockResult, activeProfile);
+      addHistory(text, blockResult);
       navigation.navigate('ResultDetail');
       return;
     }
@@ -162,7 +161,7 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
       setAnalysisMessage(text);
       const result = await threatAnalysisAPI.analyzeThreat(query, lang, 3, privacyModeEnabled);
       setResult(result);
-      addHistory(text, result, activeProfile);
+      addHistory(text, result);
 
       // Rating prompt after 5th scan (shown once, native throttling prevents abuse)
       if (!hasShownRatingPrompt) {

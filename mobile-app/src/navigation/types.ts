@@ -4,6 +4,9 @@ import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigat
 
 export type RootStackParamList = {
   Onboarding:      undefined;
+  Login:           undefined;
+  Signup:          undefined;
+  AdminDashboard:  undefined;
   MainTabs:        NavigatorScreenParams<TabParamList> | undefined;
   ResultDetail:    undefined;
   Blocklist:       undefined;

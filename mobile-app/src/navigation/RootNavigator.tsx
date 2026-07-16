@@ -11,13 +11,13 @@ import type { RootStackParamList, TabParamList } from './types';
 
 import {
   HomeScreen, AnalyzerScreen, MonitorScreen, HistoryScreen, SettingsScreen,
-  ResultScreen, BlocklistScreen, CommunityReportScreen, FamilyScreen,
+  ResultScreen, BlocklistScreen, CommunityReportScreen,
   OnboardingScreen, LoginScreen, SignupScreen, AdminDashboardScreen,
   CallerIDScreen, SpamDirectoryScreen, CallLogScreen,
   MyReportsScreen, CyberReportScreen, CyberSafetyScreen, FraudAlertsScreen,
   TrustedContactsScreen, ScamNewsScreen,
-  LinkCheckScreen, CyberQuizScreen,
-  BreachMonitorScreen, LegalSupportScreen
+  LinkCheckScreen,
+  BreachMonitorScreen, LegalSupportScreen, PrivacyPolicyScreen
 } from '@screens';
 
 type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>['name'];

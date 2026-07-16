@@ -272,22 +272,6 @@ const CyberSafetyScreen = ({ navigation }: CyberSafetyScreenProps) => {
             </Text>
           </View>
 
-          {/* S6: Quiz CTA */}
-          <TouchableOpacity
-            style={styles.quizCta}
-            onPress={() => navigation.navigate('CyberQuiz')}
-            activeOpacity={0.85}
-          >
-            <LinearGradient colors={Colors.gradient.accent} style={styles.quizCtaGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
-              <Icon name="brain" size={26} color={Colors.primary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.quizCtaTitle}>এটা কি স্ক্যাম? কুইজ খেলুন</Text>
-                <Text style={styles.quizCtaSub}>শিখুন, যাচাই করুন, নিজেকে পরীক্ষা করুন</Text>
-              </View>
-              <Icon name="arrow-right" size={20} color={Colors.primary} />
-            </LinearGradient>
-          </TouchableOpacity>
-
           {/* Fraud types */}
           <Text style={styles.sectionLabel}>প্রতারণার ধরনসমূহ</Text>
           {FRAUD_TYPES.map((item) => (
@@ -363,11 +347,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#3b82f640',
   },
   introText: { ...TextStyles.caption, color: '#93c5fd', flex: 1, lineHeight: 18 },
-
-  quizCta:     { borderRadius: BorderRadius.lg, overflow: 'hidden', marginBottom: Spacing.lg },
-  quizCtaGrad: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg },
-  quizCtaTitle:{ ...TextStyles.body, color: Colors.primary, fontWeight: '800' },
-  quizCtaSub:  { ...TextStyles.caption, color: `${Colors.primary}cc`, marginTop: 2 },
 
   sectionLabel: {
     ...TextStyles.caption, color: Colors.text.tertiary, fontWeight: '700',

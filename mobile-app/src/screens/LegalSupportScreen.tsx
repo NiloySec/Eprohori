@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useThemeColors, DarkColors, type ThemeColors } from '@theme';
+import { useTranslation } from '@hooks';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -10,11 +11,12 @@ let styles: ReturnType<typeof makeStyles>;
 const LegalSupportScreen = () => {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const contacts = [
-    { title: 'BTRC সাইবার ক্রাইম', sub: 'বিটিআরসি কল সেন্টার', val: '100', icon: 'phone' },
-    { title: 'পুলিশ সাইবার সাপোর্ট', sub: 'ফেসবুক পেজ', val: 'https://www.facebook.com/CyberSupportPolice', icon: 'facebook' },
-    { title: 'CID সাইবার পুলিশ', sub: 'ইমেইল হেল্পডেস্ক', val: 'cyber@police.gov.bd', icon: 'email' },
-    { title: 'জাতীয় হেল্পলাইন', sub: 'জরুরি সেবা', val: '999', icon: 'shield-star' },
+    { title: t('legal_c1_title'), sub: t('legal_c1_sub'), val: '100', icon: 'phone' },
+    { title: t('legal_c2_title'), sub: t('legal_c2_sub'), val: 'https://www.facebook.com/CyberSupportPolice', icon: 'facebook' },
+    { title: t('legal_c3_title'), sub: t('legal_c3_sub'), val: 'cyber@police.gov.bd', icon: 'email' },
+    { title: t('legal_c4_title'), sub: t('legal_c4_sub'), val: '999', icon: 'shield-star' },
   ];
 
   const handleAction = (val: string) => {

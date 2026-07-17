@@ -67,7 +67,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
   const handleShare = async () => {
     const statusEmoji = isThreat ? '🔴' : isSuspicious ? '⚠️' : '✅';
     const preview = currentMessage.length > 120 ? `${currentMessage.slice(0, 120)}...` : currentMessage;
-    const body = `${statusEmoji} EProhori বিশ্লেষণ ফলাফল\n\n${headline} · ${Math.round(conf)}% নিশ্চয়তা\n\nবার্তা: "${preview}"\n\nEProhori অ্যাপ দিয়ে সাইবার হুমকি থেকে সুরক্ষিত থাকুন।`;
+    const body = `${statusEmoji} ${t('result_share_body')}\n\n${headline} · ${Math.round(conf)}% ${t('result_share_confidence')}\n\n${t('result_share_message_label')}: "${preview}"\n\n${t('result_share_footer')}`;
     await Share.share({ message: body });
   };
 
@@ -79,7 +79,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
         <LinearGradient colors={heroGradient as [string, string]} style={styles.hero}>
           <TouchableOpacity style={styles.backRow} onPress={() => navigation.goBack()}>
             <Icon name="chevron-left" size={24} color="#fff" />
-            <Text style={styles.backRowText}>ফলাফল</Text>
+            <Text style={styles.backRowText}>{t('result_header_title')}</Text>
           </TouchableOpacity>
 
           <View style={styles.heroCenter}>
@@ -90,7 +90,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
 
             <View style={styles.scoreContainer}>
               <Text style={[styles.scoreVal, { color: statusColor }]}>{Math.round(conf)}%</Text>
-              <Text style={styles.scoreLabel}>নিশ্চয়তা স্কোর</Text>
+              <Text style={styles.scoreLabel}>{t('result_score_label')}</Text>
             </View>
           </View>
 
@@ -134,7 +134,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Icon name="link-variant" size={18} color={Colors.accent} />
-                <Text style={[styles.sectionTitle, { color: Colors.accent }]}>URL বিশ্লেষণ</Text>
+                <Text style={[styles.sectionTitle, { color: Colors.accent }]}>{t('result_url_analysis')}</Text>
               </View>
 
               {/* Badges row */}
@@ -176,8 +176,8 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                     { color: currentResult.url_features.subdomain_count >= 2 ? Colors.threat : Colors.safe },
                   ]}>
                     {currentResult.url_features.subdomain_count === 0
-                      ? 'সাবডোমেইন নেই'
-                      : `${currentResult.url_features.subdomain_count}টি সাবডোমেইন`}
+                      ? t('result_no_subdomain')
+                      : `${currentResult.url_features.subdomain_count} ${t('result_subdomain_count')}`}
                   </Text>
                 </View>
 
@@ -185,7 +185,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 {currentResult.url_features.is_direct_ip && (
                   <View style={[styles.urlBadge, styles.urlBadgeThreat]}>
                     <Icon name="ip-network-outline" size={13} color={Colors.threat} />
-                    <Text style={[styles.urlBadgeText, { color: Colors.threat }]}>সরাসরি IP</Text>
+                    <Text style={[styles.urlBadgeText, { color: Colors.threat }]}>{t('result_direct_ip')}</Text>
                   </View>
                 )}
 
@@ -221,8 +221,8 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                       },
                     ]}>
                       {currentResult.domain_age_days < 1
-                        ? 'আজই তৈরি'
-                        : `${currentResult.domain_age_days} দিন`}
+                        ? t('result_domain_new')
+                        : `${currentResult.domain_age_days} ${t('result_domain_age_days')}`}
                     </Text>
                   </View>
                 )}
@@ -256,24 +256,24 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
               {
                 id: '0',
                 icon: 'virus-outline' as MCIcon,
-                name: 'VirusTotal স্ক্যান',
-                desc: 'বৈশ্বিক ম্যালওয়্যার ডেটাবেজ',
+                name: t('result_layer0_name'),
+                desc: t('result_layer0_desc'),
                 active: src ? has('virustotal') : !!(currentResult.url_features?.is_url),
                 color: '#a78bfa',
               },
               {
                 id: '0.5',
                 icon: 'calendar-check-outline' as MCIcon,
-                name: 'ডোমেইন বয়স যাচাই',
-                desc: 'নতুন ডোমেইন = উচ্চ ঝুঁকি',
+                name: t('result_layer05_name'),
+                desc: t('result_layer05_desc'),
                 active: src ? (src === 'whois' || currentResult.domain_age_days != null) : currentResult.domain_age_days != null,
                 color: '#60a5fa',
               },
               {
                 id: '1',
                 icon: 'brain' as MCIcon,
-                name: 'Zero-Shot ML মডেল',
-                desc: 'TF-IDF + লজিস্টিক রিগ্রেশন',
+                name: t('result_layer1_name'),
+                desc: t('result_layer1_desc'),
                 active: src ? has('ml') : true,
                 color: Colors.accent,
               },
@@ -281,7 +281,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 id: '2',
                 icon: 'robot-outline' as MCIcon,
                 name: 'Groq / Gemma-2',
-                desc: 'দ্রুত প্রসঙ্গ বিশ্লেষণ',
+                desc: t('result_layer2_desc'),
                 active: src ? has('groq') : conf >= 50,
                 color: '#34d399',
               },
@@ -289,15 +289,15 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 id: '3',
                 icon: 'google' as MCIcon,
                 name: 'Gemini Flash',
-                desc: 'উচ্চ-নিশ্চয়তা যাচাইকরণ',
+                desc: t('result_layer3_desc'),
                 active: src ? has('gemini') : conf >= 70,
                 color: '#fbbf24',
               },
               {
                 id: '4',
                 icon: 'shield-half-full' as MCIcon,
-                name: 'ফলব্যাক সুরক্ষা',
-                desc: 'স্থানীয় প্যাটার্ন মিলান',
+                name: t('result_layer4_name'),
+                desc: t('result_layer4_desc'),
                 active: src ? isFallback : true,
                 color: Colors.safe,
               },
@@ -306,8 +306,8 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
             return (
               <CollapsibleSection
                 icon="layers-triple"
-                title="AI সুরক্ষা স্তর"
-                badge={`${activeCount}/${layers.length} সক্রিয়`}
+                title={t('result_layers_title')}
+                badge={`${activeCount}/${layers.length} ${t('result_layers_active')}`}
               >
                 <View style={styles.layerCard}>
                   {layers.map((layer) => (
@@ -317,7 +317,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={[styles.layerName, { color: layer.active ? Colors.text.primary : Colors.text.tertiary }]}>
-                          স্তর {layer.id}: {layer.name}
+                          {t('result_layer_prefix')} {layer.id}: {layer.name}
                         </Text>
                         <Text style={styles.layerDesc}>{layer.desc}</Text>
                       </View>
@@ -328,7 +328,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                           color={layer.active ? layer.color : Colors.text.tertiary}
                         />
                         <Text style={[styles.layerStatusText, { color: layer.active ? layer.color : Colors.text.tertiary }]}>
-                          {layer.active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                          {layer.active ? t('result_layer_active') : t('result_layer_inactive')}
                         </Text>
                       </View>
                     </View>

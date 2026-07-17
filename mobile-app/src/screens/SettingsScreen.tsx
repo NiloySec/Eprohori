@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, ScrollView, Text, StyleSheet, Switch, TouchableOpacity, TextInput,
-  Modal, Alert, ActivityIndicator, AppState,
+  Modal, Alert, ActivityIndicator, AppState, Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +17,7 @@ let styles: ReturnType<typeof makeStyles>;
 import { exportBackup, importBackup } from '../services/backupService';
 import { performContactSync } from '../services/contactSyncService';
 import { fetchLatestPatterns, getLocalPatterns } from '../services/patternUpdateService';
+import { getCrashLogs, formatCrashLogForSharing } from '../services/crashLog';
 import {
   isChatGuardAvailable, isChatGuardPermitted, openChatGuardSettings,
 } from '../services/notifGuardService';
@@ -151,6 +152,12 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     { label: t('delete_30'),    value: 30 }, { label: t('delete_never'), value: 365 },
   ];
   const autoDeleteLabel = AUTO_DELETE_OPTIONS.find((o) => o.value === autoDeleteDays)?.label ?? `${autoDeleteDays}`;
+
+  const handleShareCrashLog = async () => {
+    const logs = await getCrashLogs();
+    if (logs.length === 0) { Alert.alert('', 'কোনো ক্র্যাশ লগ নেই — অ্যাপ ঠিকভাবে চলছে।'); return; }
+    try { await Share.share({ message: formatCrashLogForSharing(logs) }); } catch {}
+  };
 
   const handleExport = async () => {
     if (entries.length === 0) { Alert.alert('', t('settings_export_empty')); return; }
@@ -392,6 +399,8 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <NavRow icon="shield-alert-outline" label="রিপোর্ট করুন" color={Colors.threat} onPress={() => navigation.navigate('CyberReport')} />
             <View style={styles.divider} />
             <NavRow icon="file-document-outline" label="প্রাইভেসি পলিসি" color={Colors.text.tertiary} onPress={() => navigation.navigate('PrivacyPolicy')} />
+            <View style={styles.divider} />
+            <NavRow icon="bug-outline" label="ক্র্যাশ লগ শেয়ার করুন" color={Colors.text.tertiary} onPress={handleShareCrashLog} />
           </View>
 
           <View style={styles.aboutCard}>

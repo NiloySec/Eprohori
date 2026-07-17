@@ -6,6 +6,7 @@ import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, Bord
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
 import { Sentry } from '../services/sentry';
+import { logCrash } from '../services/crashLog';
 
 interface Props { children: React.ReactNode }
 interface State { hasError: boolean; message: string }
@@ -19,7 +20,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack);
-    Sentry.captureException(error);
+    Sentry.captureException(error); // no-op until a real DSN is set in sentry.ts
+    logCrash(error, info.componentStack ?? undefined); // always-on local fallback
   }
 
   reset = () => this.setState({ hasError: false, message: '' });

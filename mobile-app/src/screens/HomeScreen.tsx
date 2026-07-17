@@ -45,6 +45,7 @@ const useSecurityScore = () => {
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 const SecurityGauge = ({ score }: { score: number }) => {
+  const t = useTranslation();
   const pulse = useRef(new Animated.Value(1)).current;
   const isOptimal = score >= 90;
   const isGood = score >= 70;
@@ -65,13 +66,13 @@ const SecurityGauge = ({ score }: { score: number }) => {
       <LinearGradient colors={[`${color}44`, 'transparent']} style={styles.gaugeFill}>
         <View style={[styles.gaugeInner, { borderColor: color }]}>
           <Text style={[styles.gaugeScore, { color }]}>{score}%</Text>
-          <Text style={styles.gaugeLabel}>সুরক্ষা স্কোর</Text>
+          <Text style={styles.gaugeLabel}>{t('home_security_score')}</Text>
         </View>
       </LinearGradient>
       <View style={styles.gaugeStatusBox}>
          <Icon name={isOptimal ? 'shield-check' : 'shield-alert'} size={20} color={color} />
          <Text style={[styles.gaugeStatusText, { color }]}>
-           {isOptimal ? 'আপনার ফোন অভেদ্য' : isGood ? 'ফোন সুরক্ষিত আছে' : 'সুরক্ষা বাড়ানো প্রয়োজন'}
+           {isOptimal ? t('home_status_optimal') : isGood ? t('home_status_good') : t('home_status_low')}
          </Text>
       </View>
     </View>
@@ -105,6 +106,7 @@ const ServiceItem = ({ icon, label, color, onPress }: {
 );
 
 const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => void }) => {
+  const t = useTranslation();
   const conf  = entry.result.confidence;
   const color = conf >= 75 ? Colors.threat : conf >= 60 ? Colors.suspicious : Colors.safe;
   const date  = new Date(entry.timestamp).toLocaleDateString('bn-BD', { month: 'short', day: 'numeric' });
@@ -116,7 +118,7 @@ const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => v
       <View style={styles.historyBody}>
         <Text style={styles.historyMsg} numberOfLines={1}>{entry.message}</Text>
         <View style={styles.historyMeta}>
-          <Text style={[styles.historyConf, { color }]}>{Math.round(conf)}% নিশ্চিত</Text>
+          <Text style={[styles.historyConf, { color }]}>{Math.round(conf)}{t('home_confident')}</Text>
           <Text style={styles.historyDate}>{date}</Text>
         </View>
       </View>
@@ -174,7 +176,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <View style={styles.navRow}>
             <View style={styles.brand}>
               <Text style={styles.brandTitle}>EProhori</Text>
-              <View style={styles.liveTag}><View style={styles.liveDot} /><Text style={styles.liveText}>Live Intelligence</Text></View>
+              <View style={styles.liveTag}><View style={styles.liveDot} /><Text style={styles.liveText}>{t('home_live')}</Text></View>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.profileBtn}>
               <Icon name="cog-outline" size={24} color={Colors.accent} />
@@ -190,7 +192,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             >
               <Icon name="lightbulb-on" size={18} color={Colors.accent} />
               <Text style={styles.recText}>
-                {securityScore < 70 ? 'আপনার সুরক্ষা লেভেল অত্যন্ত কম। অ্যাপ লক এবং অটো-স্ক্যান অন করুন।' : 'সুরক্ষা স্কোর ১০০% করতে সব অপশন চালু করুন।'}
+                {securityScore < 70 ? t('home_rec_low') : t('home_rec_partial')}
               </Text>
               <Icon name="chevron-right" size={16} color={Colors.accent} />
             </TouchableOpacity>
@@ -198,12 +200,12 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
           <View style={styles.quickStats}>
             <View style={styles.qStat}>
-              <Text style={styles.qStatLabel}>আজকের স্ক্যান</Text>
+              <Text style={styles.qStatLabel}>{t('home_stat_today')}</Text>
               <Text style={styles.qStatVal}>{stats.today}</Text>
             </View>
             <View style={styles.qStatDivider} />
             <View style={styles.qStat}>
-              <Text style={styles.qStatLabel}>মোট ঝুঁকি</Text>
+              <Text style={styles.qStatLabel}>{t('home_stat_critical')}</Text>
               <Text style={[styles.qStatVal, { color: Colors.threat }]}>{stats.critical}</Text>
             </View>
           </View>
@@ -211,7 +213,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
         <View style={styles.body}>
           {/* ── Main Defense Core ── */}
-          <Text style={styles.sectionTitle}>মূল প্রতিরক্ষা (Core Defense)</Text>
+          <Text style={styles.sectionTitle}>{t('home_core_defense')}</Text>
           <View style={styles.mainTools}>
             <TouchableOpacity
               style={[styles.bigCard, { backgroundColor: Colors.border }]}
@@ -219,8 +221,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             >
               <LinearGradient colors={['rgba(0, 255, 204, 0.15)', 'transparent']} style={styles.bigCardGrad} />
               <Icon name="shield-search" size={32} color={Colors.accent} />
-              <Text style={styles.bigCardTitle}>স্মার্ট এনালাইজার</Text>
-              <Text style={styles.bigCardSub}>টেক্সট ও ইমেজ এনালাইসিস</Text>
+              <Text style={styles.bigCardTitle}>{t('home_analyzer_title')}</Text>
+              <Text style={styles.bigCardSub}>{t('home_analyzer_sub')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -229,44 +231,44 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             >
               <LinearGradient colors={['rgba(129, 140, 248, 0.15)', 'transparent']} style={styles.bigCardGrad} />
               <Icon name="card-account-phone-outline" size={32} color="#818cf8" />
-              <Text style={styles.bigCardTitle}>কলার আইডি</Text>
-              <Text style={styles.bigCardSub}>স্প্যাম কল ও নম্বর ডিটেকশন</Text>
+              <Text style={styles.bigCardTitle}>{t('home_callerid_title')}</Text>
+              <Text style={styles.bigCardSub}>{t('home_callerid_sub')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* ── Security Services ── */}
-          <Text style={[styles.sectionTitle, { marginTop: 25 }]}>নিরাপত্তা সেবা (Security Services)</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 25 }]}>{t('home_security_services')}</Text>
           <View style={styles.serviceGrid}>
             <ServiceItem
               icon="leak"
-              label="লিক মনিটর"
+              label={t('home_leak_monitor')}
               color="#fbbf24"
               onPress={() => navigation.navigate('BreachMonitor')}
             />
             <ServiceItem
               icon="gavel"
-              label="আইনি সহায়তা"
+              label={t('home_legal_support')}
               color="#a78bfa"
               onPress={() => navigation.navigate('LegalSupport')}
             />
             <ServiceItem
               icon="bell-ring-outline"
-              label="ফ্রড এলার্ট"
+              label={t('home_fraud_alerts')}
               color="#f472b6"
               onPress={() => navigation.navigate('FraudAlerts')}
             />
             <ServiceItem
               icon="database-search"
-              label="স্প্যাম ডিরেক্টরি"
+              label={t('home_spam_directory')}
               color="#2dd4bf"
               onPress={() => navigation.navigate('SpamDirectory')}
             />
           </View>
 
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>সাম্প্রতিক কার্যক্রম</Text>
+            <Text style={styles.sectionTitle}>{t('home_recent_activity')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('History')}>
-              <Text style={styles.seeAll}>সব দেখুন →</Text>
+              <Text style={styles.seeAll}>{t('home_see_all')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -282,7 +284,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           ) : entries.length === 0 ? (
             <View style={styles.empty}>
               <NoScansIllustration size={100} color="rgba(255,255,255,0.05)" />
-              <Text style={styles.emptyText}>সুরক্ষা নিশ্চিত করতে প্রথম স্ক্যানটি করুন</Text>
+              <Text style={styles.emptyText}>{t('home_empty_scan')}</Text>
             </View>
           ) : (
             <View style={styles.historyList}>

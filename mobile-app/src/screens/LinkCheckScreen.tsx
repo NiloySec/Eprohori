@@ -7,7 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useTranslation } from '@hooks';
 import { analyzeQrContent, type QrAnalysis } from '../utils/qrAnalyzer';
 import { threatAnalysisAPI, type ThreatAnalysisResponse } from '@api';
@@ -24,6 +27,8 @@ const riskColor = (risk: QrAnalysis['risk']) =>
 // here, gets checked locally (instant) + optionally with backend AI, then
 // the user decides whether to continue to the browser.
 const LinkCheckScreen = ({ navigation, route }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const url = route.params?.url ?? '';
 
@@ -176,7 +181,7 @@ const LinkCheckScreen = ({ navigation, route }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
   header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.lg },
@@ -250,3 +255,4 @@ const styles = StyleSheet.create({
 });
 
 export default LinkCheckScreen;
+styles = makeStyles(Colors);

@@ -6,7 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { CollapsibleSection } from '@components';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@navigation/types';
@@ -100,6 +103,8 @@ const TIPS: { icon: MCIcon; text: string }[] = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const CyberReportScreen = ({ navigation }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
 
   const callAuthority = async (phone: string, name: string) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -136,7 +141,7 @@ const CyberReportScreen = ({ navigation }: Props) => {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* ── Header ── */}
-        <LinearGradient colors={['#1a0a2e', '#0f0f0f']} style={styles.header}>
+        <LinearGradient colors={Colors.gradient.hero} style={styles.header}>
           <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
             <Icon name="arrow-left" size={22} color={Colors.accent} />
           </TouchableOpacity>
@@ -222,7 +227,7 @@ const CyberReportScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: 48 },
 
@@ -291,3 +296,4 @@ const styles = StyleSheet.create({
 });
 
 export default CyberReportScreen;
+styles = makeStyles(Colors);

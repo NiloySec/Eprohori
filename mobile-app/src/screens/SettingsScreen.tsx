@@ -10,7 +10,10 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useSettingsStore, useHistoryStore, useSpamNumberStore, useAuthStore } from '@stores';
 import { CATEGORY_META, exportHistoryCSV, updateCachedPatterns } from '@utils';
 import { useTranslation } from '@hooks';
-import { Colors, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { exportBackup, importBackup } from '../services/backupService';
 import { performContactSync } from '../services/contactSyncService';
 import { fetchLatestPatterns, getLocalPatterns } from '../services/patternUpdateService';
@@ -92,6 +95,8 @@ function hv<T extends (v: boolean) => void>(fn: T): (v: boolean) => void {
 }
 
 const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [deletePickerOpen,    setDeletePickerOpen]    = useState(false);
   const [thresholdPickerOpen, setThresholdPickerOpen] = useState(false);
   const [exporting,           setExporting]           = useState(false);
@@ -234,7 +239,7 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* ── Header ── */}
-        <LinearGradient colors={['#1a0a1f', '#050810']} style={styles.header}>
+        <LinearGradient colors={Colors.gradient.hero} style={styles.header}>
           <View style={styles.headerRow}>
             <View>
               <View style={styles.headerIcon}><Icon name="cog-outline" size={28} color={Colors.accent} /></View>
@@ -407,7 +412,7 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <Text style={styles.disclosureText}>EProhori একটি কমিউনিটি ভিত্তিক অ্যাপ। আপনার কন্টাক্ট লিস্ট শেয়ার করলে অজানা নম্বর চিনতে সুবিধা হবে।</Text>
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setSyncDisclosureOpen(false)}><Text style={styles.cancelBtnText}>এখন না</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.submitBtn} onPress={confirmSync}><LinearGradient colors={['#00ffcc', '#00b894']} style={styles.submitBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}><Text style={styles.submitBtnText}>সম্মত ও সক্রিয় করুন</Text></LinearGradient></TouchableOpacity>
+              <TouchableOpacity style={styles.submitBtn} onPress={confirmSync}><LinearGradient colors={Colors.gradient.accent} style={styles.submitBtnGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}><Text style={styles.submitBtnText}>সম্মত ও সক্রিয় করুন</Text></LinearGradient></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -462,8 +467,8 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: '#050810' },
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
+  safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: 40 },
   header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
   headerRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -474,18 +479,18 @@ const styles = StyleSheet.create({
   body: { padding: 24 },
   sectionLabel: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, marginTop: 24 },
   statsGrid: { flexDirection: 'row', gap: 10, marginBottom: 5 },
-  statCard: { flex: 1, backgroundColor: '#0d1321', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', padding: 15, alignItems: 'center', gap: 5 },
+  statCard: { flex: 1, backgroundColor: Colors.secondary, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', padding: 15, alignItems: 'center', gap: 5 },
   statNum:   { fontSize: 20, fontWeight: '800', color: Colors.accent },
   statLabel: { fontSize: 10, color: Colors.text.tertiary, fontWeight: '600' },
-  card: { backgroundColor: '#0d1321', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', ...Shadows.small },
+  card: { backgroundColor: Colors.secondary, borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', ...Shadows.small },
   row:        { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 15 },
   rowIcon:    { width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(0,255,204,0.08)', justifyContent: 'center', alignItems: 'center' },
   rowContent: { flex: 1 },
-  rowLabel:   { fontSize: 14, fontWeight: '700', color: '#fff' },
+  rowLabel:   { fontSize: 14, fontWeight: '700', color: Colors.text.primary },
   rowDesc:    { fontSize: 12, color: Colors.text.tertiary, marginTop: 3, lineHeight: 18 },
   divider:    { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 4 },
   langRow:         { flexDirection: 'row', gap: 12 },
-  langBtn:         { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#131b2e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', alignItems: 'center' },
+  langBtn:         { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: Colors.secondary, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', alignItems: 'center' },
   themeBtn:        { flexDirection: 'row', justifyContent: 'center', gap: 6 },
   langBtnActive:   { borderColor: Colors.accent, backgroundColor: 'rgba(0,255,204,0.1)' },
   langBtnText:     { fontSize: 14, fontWeight: '600', color: Colors.text.secondary },
@@ -494,7 +499,7 @@ const styles = StyleSheet.create({
   profileInfo: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   avatarLarge: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', ...Shadows.medium },
   avatarText: { fontSize: 24, fontWeight: '800', color: Colors.primary },
-  profileName: { fontSize: 18, fontWeight: '800', color: '#fff' },
+  profileName: { fontSize: 18, fontWeight: '800', color: Colors.text.primary },
   profileEmail: { fontSize: 12, color: Colors.text.tertiary },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
   badgeText: { fontSize: 11, color: Colors.accent, fontWeight: '800' },
@@ -502,43 +507,43 @@ const styles = StyleSheet.create({
   logoutBtnText: { fontSize: 13, color: '#ef4444', fontWeight: '800' },
   loginCard: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   loginIconBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(0,255,204,0.1)', alignItems: 'center', justifyContent: 'center' },
-  selectBtn:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#131b2e', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  selectBtn:     { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.secondary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   selectBtnText: { fontSize: 12, color: Colors.accent, fontWeight: '700' },
   hourPicker:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
   hourBtn:         { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(0,255,204,0.2)', backgroundColor: 'rgba(0,255,204,0.05)', justifyContent: 'center', alignItems: 'center' },
   hourText:        { fontSize: 15, color: Colors.accent, fontWeight: '800', minWidth: 44, textAlign: 'center' },
-  aboutCard: { backgroundColor: '#0d1321', borderRadius: 24, padding: 30, alignItems: 'center', marginTop: 20, marginBottom: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  aboutName:   { fontSize: 22, fontWeight: '800', color: '#fff', marginTop: 15 },
+  aboutCard: { backgroundColor: Colors.secondary, borderRadius: 24, padding: 30, alignItems: 'center', marginTop: 20, marginBottom: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  aboutName:   { fontSize: 22, fontWeight: '800', color: Colors.text.primary, marginTop: 15 },
   aboutVer:    { fontSize: 13, color: Colors.text.tertiary, marginTop: 4 },
   aboutText:   { fontSize: 13, color: Colors.text.secondary, textAlign: 'center', marginTop: 15, lineHeight: 20 },
   catSection:      { paddingVertical: 8, gap: 10 },
   catSectionLabel: { fontSize: 11, color: Colors.text.tertiary, fontWeight: '800', marginBottom: 5 },
   catRow:          { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  catLabel:        { fontSize: 14, flex: 1, color: '#fff', fontWeight: '600' },
-  districtInput: { fontSize: 15, color: '#fff', fontWeight: '600', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, marginTop: 5 },
+  catLabel:        { fontSize: 14, flex: 1, color: Colors.text.primary, fontWeight: '600' },
+  districtInput: { fontSize: 15, color: Colors.text.primary, fontWeight: '600', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, marginTop: 5 },
   districtSaveBtn: { width: 38, height: 38, borderRadius: 10, backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center', ...Shadows.medium },
   overlay:     { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 24 },
-  modalCard:   { backgroundColor: '#0d1321', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  modalTitle:  { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 20 },
+  modalCard:   { backgroundColor: Colors.secondary, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  modalTitle:  { fontSize: 18, fontWeight: '800', color: Colors.text.primary, marginBottom: 20 },
   modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
   modalOptionText: { fontSize: 14, color: Colors.text.secondary, fontWeight: '600' },
   pinOverlay: { flex: 1, backgroundColor: 'rgba(5,8,16,0.95)', justifyContent: 'center', padding: 30 },
-  pinCard:    { backgroundColor: '#0d1321', borderRadius: 32, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', ...Shadows.large },
+  pinCard:    { backgroundColor: Colors.secondary, borderRadius: 32, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', ...Shadows.large },
   pinHeader:  { alignItems: 'center', gap: 10, marginBottom: 25 },
-  pinTitle:   { fontSize: 18, fontWeight: '800', color: '#fff' },
+  pinTitle:   { fontSize: 18, fontWeight: '800', color: Colors.text.primary },
   pinDots:    { flexDirection: 'row', gap: 20, marginBottom: 30 },
   pinDot:     { width: 14, height: 14, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   pinDotFilled: { backgroundColor: Colors.accent, borderColor: Colors.accent, ...Shadows.small },
   pinError:   { color: '#ef4444', fontSize: 13, fontWeight: '700', marginBottom: 20 },
   pinKeypad:  { width: '100%', gap: 15 },
   pinRow:     { flexDirection: 'row', justifyContent: 'center', gap: 20 },
-  pinKey:     { width: 64, height: 64, borderRadius: 32, backgroundColor: '#131b2e', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  pinKey:     { width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.secondary, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   pinKeyConfirm: { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  pinKeyText: { fontSize: 24, fontWeight: '700', color: '#fff' },
+  pinKeyText: { fontSize: 24, fontWeight: '700', color: Colors.text.primary },
   pinCancel: { marginTop: 25, paddingVertical: 10, paddingHorizontal: 20 },
   pinCancelText: { color: Colors.text.tertiary, fontSize: 14, fontWeight: '600' },
   disclosureIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(0,255,204,0.1)', alignItems: 'center', justifyContent: 'center' },
-  disclosureTitle: { fontSize: 20, fontWeight: '800', color: '#fff', textAlign: 'center' },
+  disclosureTitle: { fontSize: 20, fontWeight: '800', color: Colors.text.primary, textAlign: 'center' },
   disclosureText: { fontSize: 14, color: Colors.text.secondary, textAlign: 'center', lineHeight: 22, paddingHorizontal: 10 },
   modalActions: { flexDirection: 'row', gap: 12, width: '100%', marginTop: 10 },
   cancelBtn: { flex: 1, height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
@@ -549,3 +554,4 @@ const styles = StyleSheet.create({
 });
 
 export default SettingsScreen;
+styles = makeStyles(Colors);

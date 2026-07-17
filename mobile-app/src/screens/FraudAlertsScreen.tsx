@@ -5,7 +5,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { CollapsibleSection } from '@components';
 import { threatAnalysisAPI, type FraudAlertItem } from '@api';
 import type { FraudAlertsScreenProps } from '@navigation/types';
@@ -185,6 +188,8 @@ const AlertCard = ({ item }: { item: FraudAlert }) => {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 const FraudAlertsScreen = ({ navigation }: FraudAlertsScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [filter, setFilter]       = useState<'all' | 'critical' | 'high' | 'medium'>('all');
   const [alerts, setAlerts]       = useState<FraudAlert[]>(() => buildFallbackAlerts()); // M20: lazy init = runtime date
   const [loading, setLoading]     = useState(false);
@@ -336,7 +341,7 @@ const FraudAlertsScreen = ({ navigation }: FraudAlertsScreenProps) => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: 40 },
 
@@ -434,3 +439,4 @@ const styles = StyleSheet.create({
 });
 
 export default FraudAlertsScreen;
+styles = makeStyles(Colors);

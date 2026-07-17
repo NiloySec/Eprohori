@@ -8,7 +8,10 @@ import * as Haptics from 'expo-haptics';
 import { useAnalysisStore, useSettingsStore } from '@stores';
 import { ConfidenceBar, CollapsibleSection } from '@components';
 import { useTranslation } from '@hooks';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import type { ResultDetailScreenProps } from '@navigation/types';
 
 const SOS_THRESHOLD = 90; // confidence % above which the emergency call button appears
@@ -16,6 +19,8 @@ const SOS_THRESHOLD = 90; // confidence % above which the emergency call button 
 type MCIcon = React.ComponentProps<typeof Icon>['name'];
 
 const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const { currentMessage, currentResult } = useAnalysisStore();
   const language           = useSettingsStore((s) => s.language);
@@ -363,8 +368,8 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: '#050810' },
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
+  safe:  { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
 
   emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing.lg, padding: Spacing.xl },
@@ -374,7 +379,7 @@ const styles = StyleSheet.create({
 
   hero: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 40, alignItems: 'center' },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginBottom: 20 },
-  backRowText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  backRowText: { fontSize: 16, fontWeight: '700', color: Colors.text.primary },
 
   heroCenter: { alignItems: 'center' },
   heroIconRing: { width: 120, height: 120, borderRadius: 60, borderWidth: 1, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
@@ -389,11 +394,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#dc2626', borderRadius: BorderRadius.lg,
     paddingVertical: 15, marginBottom: Spacing.md,
   },
-  sosBtnText: { fontSize: 14, fontWeight: '800', color: '#fff' },
+  sosBtnText: { fontSize: 14, fontWeight: '800', color: Colors.text.primary },
 
   body: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg },
 
-  card: { backgroundColor: '#0d1321', borderRadius: BorderRadius.lg, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', ...Shadows.small },
+  card: { backgroundColor: Colors.secondary, borderRadius: BorderRadius.lg, padding: Spacing.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', ...Shadows.small },
   cardLabel: { ...TextStyles.bodyMedium, color: Colors.text.tertiary, marginBottom: Spacing.sm },
   cardBody:  { ...TextStyles.body, color: Colors.text.secondary, lineHeight: 24 },
 
@@ -490,3 +495,4 @@ const styles = StyleSheet.create({
 });
 
 export default ResultScreen;
+styles = makeStyles(Colors);

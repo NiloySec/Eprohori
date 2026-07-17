@@ -7,7 +7,10 @@ import { useHistoryStore, useSettingsStore, useSpamNumberStore, SPAM_CATEGORIES 
 import { useTranslation } from '@hooks';
 import { threatAnalysisAPI, DistrictStat } from '@api';
 import { DistrictSkeleton, RadarEmptyIllustration, CollapsibleSection } from '@components';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { getSyncedNumbers } from '../services/scamSyncService';
 import type { MonitorScreenProps } from '@navigation/types';
 
@@ -24,6 +27,8 @@ const SummaryCard = ({ value, label, color, icon }: { value: number; label: stri
 );
 
 const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const entries = useHistoryStore((s) => s.entries);
   const [districts,     setDistricts]     = useState<DistrictStat[]>([]);
@@ -266,7 +271,7 @@ const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:  { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
 
@@ -359,3 +364,4 @@ const styles = StyleSheet.create({
 });
 
 export default MonitorScreen;
+styles = makeStyles(Colors);

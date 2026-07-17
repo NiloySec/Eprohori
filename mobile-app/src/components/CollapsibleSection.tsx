@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -26,6 +29,8 @@ interface Props {
 export const CollapsibleSection = ({
   icon, iconColor = Colors.accent, title, titleColor, badge, defaultExpanded = false, children,
 }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const toggle = () => {
@@ -61,7 +66,7 @@ export const CollapsibleSection = ({
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   wrap: { marginBottom: Spacing.md, ...Shadows.small },
   card: {
     backgroundColor: Colors.secondary, borderRadius: BorderRadius.lg,
@@ -77,3 +82,4 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: '700' },
   content: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.md },
 });
+styles = makeStyles(Colors);

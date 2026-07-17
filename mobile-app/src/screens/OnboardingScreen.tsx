@@ -8,7 +8,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { useSettingsStore } from '@stores';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import {
   WelcomeIllustration, AnalyzeIllustration, CommunityIllustration, AlertIllustration,
 } from '@components';
@@ -76,6 +79,8 @@ const SLIDES: Slide[] = [
 ];
 
 const OnboardingScreen = ({ navigation }: OnboardingScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [current, setCurrent] = useState(0);
   const flatListRef = useRef<FlatList<Slide>>(null);
   const setHasOnboarded = useSettingsStore((s) => s.setHasOnboarded);
@@ -171,7 +176,7 @@ const OnboardingScreen = ({ navigation }: OnboardingScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
 
   skipRow: { alignItems: 'flex-end', paddingHorizontal: Spacing.lg, paddingTop: Spacing.md },
@@ -202,3 +207,4 @@ const styles = StyleSheet.create({
 });
 
 export default OnboardingScreen;
+styles = makeStyles(Colors);

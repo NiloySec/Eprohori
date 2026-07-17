@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useTranslation } from '@hooks';
 
 const API_BASE = 'https://eprohori-production.up.railway.app';
@@ -11,6 +14,8 @@ const MAX_INTERVAL = 300_000;
 type ConnStatus = 'online' | 'offline' | 'connecting';
 
 export const OfflineBanner = () => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [status, setStatus] = useState<ConnStatus>('online');
   const intervalRef = useRef(MIN_INTERVAL);
   const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,7 +68,7 @@ export const OfflineBanner = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   banner: {
     backgroundColor: Colors.suspicious,
     flexDirection: 'row',
@@ -76,3 +81,4 @@ const styles = StyleSheet.create({
   bannerConnecting: { backgroundColor: Colors.accentDark }, // L6: green tint while reconnecting
   text: { ...TextStyles.caption, color: Colors.white, fontWeight: '700' },
 });
+styles = makeStyles(Colors);

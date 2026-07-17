@@ -8,7 +8,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useTranslation } from '@hooks';
 import {
   useSettingsStore,
@@ -147,6 +150,8 @@ async function sendCallerNotification(
 }
 
 const CallerIDScreen = ({ navigation, route }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const initialNumber = (route.params as { initialNumber?: string } | undefined)?.initialNumber ?? '';
 
   const [number, setNumber]   = useState(initialNumber);
@@ -849,7 +854,7 @@ const CallerIDScreen = ({ navigation, route }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
 
@@ -959,7 +964,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.threat, borderRadius: 10,
     padding: Spacing.sm, marginBottom: Spacing.sm,
   },
-  spoofTitle: { fontSize: 13, fontWeight: '800', color: '#fff', marginBottom: 2 },
+  spoofTitle: { fontSize: 13, fontWeight: '800', color: Colors.text.primary, marginBottom: 2 },
   spoofText:  { fontSize: 11, color: '#fecaca', lineHeight: 16 },
 
   cyberReportBtn: {
@@ -1040,3 +1045,4 @@ const styles = StyleSheet.create({
 });
 
 export default CallerIDScreen;
+styles = makeStyles(Colors);

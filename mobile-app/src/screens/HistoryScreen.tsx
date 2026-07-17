@@ -5,11 +5,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useHistoryStore, useAnalysisStore, useSettingsStore } from '@stores';
 import { useTranslation } from '@hooks';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { NoHistoryIllustration } from '@components';
 import type { HistoryScreenProps } from '@navigation/types';
 
 const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [filter, setFilter] = useState<string | null>(null);
   const t = useTranslation();
   const getFilteredEntries = useHistoryStore((s) => s.getFilteredEntries);
@@ -143,7 +148,7 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
 
   header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.lg },
@@ -203,3 +208,4 @@ const styles = StyleSheet.create({
 });
 
 export default HistoryScreen;
+styles = makeStyles(Colors);

@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { Sentry } from '../services/sentry';
 
 interface Props { children: React.ReactNode }
@@ -39,7 +42,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1, backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center', padding: Spacing['2xl'],
@@ -62,3 +65,4 @@ const styles = StyleSheet.create({
   },
   btnText: { ...TextStyles.bodyMedium, color: Colors.accent },
 });
+styles = makeStyles(Colors);

@@ -5,7 +5,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { CollapsibleSection } from '@components';
 import type { CyberSafetyScreenProps } from '@navigation/types';
 
@@ -246,6 +249,8 @@ const FraudCard = ({ item }: { item: FraudType }) => {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 const CyberSafetyScreen = ({ navigation }: CyberSafetyScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -316,7 +321,7 @@ const CyberSafetyScreen = ({ navigation }: CyberSafetyScreenProps) => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: 40 },
 
@@ -420,7 +425,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.threat, borderRadius: BorderRadius.md,
     paddingVertical: 8, paddingHorizontal: 12,
   },
-  reportBtnText: { ...TextStyles.caption, color: '#fff', fontWeight: '700' },
+  reportBtnText: { ...TextStyles.caption, color: Colors.text.primary, fontWeight: '700' },
 });
 
 export default CyberSafetyScreen;
+styles = makeStyles(Colors);

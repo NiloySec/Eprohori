@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import * as Device from 'expo-device';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 
 export const DeviceSecurityBanner = () => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [isRooted, setIsRooted] = useState(false);
 
   useEffect(() => {
@@ -28,7 +33,7 @@ export const DeviceSecurityBanner = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   container: {
     backgroundColor: '#dc2626',
     flexDirection: 'row',
@@ -51,3 +56,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 13, fontWeight: '800', color: Colors.white },
   text: { fontSize: 11, color: 'rgba(255,255,255,0.9)', lineHeight: 16, marginTop: 2 },
 });
+styles = makeStyles(Colors);

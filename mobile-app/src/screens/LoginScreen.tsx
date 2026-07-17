@@ -5,11 +5,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useAuthStore } from '@stores';
 import { threatAnalysisAPI } from '@api';
 
 export default function LoginScreen({ navigation }: any) {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totpCode, setTotpCode] = useState('');
@@ -134,7 +139,7 @@ export default function LoginScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary },
   hero: { padding: 40, alignItems: 'center', gap: 10 },
   title: { ...TextStyles.h1, color: Colors.accent },
@@ -163,3 +168,4 @@ const styles = StyleSheet.create({
   skipBtn: { alignItems: 'center', marginTop: 10 },
   skipBtnText: { color: Colors.text.tertiary, fontSize: 13 },
 });
+styles = makeStyles(Colors);

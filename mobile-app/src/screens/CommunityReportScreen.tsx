@@ -8,7 +8,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { threatAnalysisAPI, CommunityReportRequest } from '@api';
 import { useTranslation } from '@hooks';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import type { CommunityReportScreenProps } from '@navigation/types';
 
 type Platform = CommunityReportRequest['platform'];
@@ -32,6 +35,8 @@ const THREAT_TYPES: { key: ThreatType; label: string; color: string }[] = [
 ];
 
 const CommunityReportScreen = ({ navigation }: CommunityReportScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const [platform,   setPlatform]   = useState<Platform>('SMS');
   const [threatType, setThreatType] = useState<ThreatType>('phishing');
@@ -171,7 +176,7 @@ const CommunityReportScreen = ({ navigation }: CommunityReportScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:  { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
 
@@ -234,3 +239,4 @@ const styles = StyleSheet.create({
 });
 
 export default CommunityReportScreen;
+styles = makeStyles(Colors);

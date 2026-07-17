@@ -9,7 +9,10 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useHistoryStore, useAnalysisStore, useSettingsStore, useSpamNumberStore, useAuthStore, type HistoryEntry } from '@stores';
 import { categorizeSms } from '@utils';
 import { useTranslation } from '@hooks';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { DevWarningBanner, DeviceSecurityBanner, NoScansIllustration, Skeleton } from '@components';
 import type { HomeScreenProps } from '@navigation/types';
 
@@ -129,6 +132,8 @@ const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => v
 // ── Screen ─────────────────────────────────────────────────────────────────────
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [refreshing, setRefreshing] = React.useState(false);
 
   const t = useTranslation();
@@ -165,7 +170,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
       >
         {/* ── Cyber Command Center Header ── */}
-        <LinearGradient colors={['#1a0a1f', '#050810']} style={styles.header}>
+        <LinearGradient colors={Colors.gradient.hero} style={styles.header}>
           <View style={styles.navRow}>
             <View style={styles.brand}>
               <Text style={styles.brandTitle}>EProhori</Text>
@@ -209,7 +214,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           <Text style={styles.sectionTitle}>মূল প্রতিরক্ষা (Core Defense)</Text>
           <View style={styles.mainTools}>
             <TouchableOpacity
-              style={[styles.bigCard, { backgroundColor: '#1e293b' }]}
+              style={[styles.bigCard, { backgroundColor: Colors.border }]}
               onPress={() => navigation.navigate('Analyzer')}
             >
               <LinearGradient colors={['rgba(0, 255, 204, 0.15)', 'transparent']} style={styles.bigCardGrad} />
@@ -219,7 +224,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.bigCard, { backgroundColor: '#1e293b' }]}
+              style={[styles.bigCard, { backgroundColor: Colors.border }]}
               onPress={() => navigation.navigate('CallerID')}
             >
               <LinearGradient colors={['rgba(129, 140, 248, 0.15)', 'transparent']} style={styles.bigCardGrad} />
@@ -292,8 +297,8 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#050810' },
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: 40 },
 
   header: {
@@ -312,7 +317,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  brandTitle: { fontSize: 22, fontWeight: '900', color: '#fff', letterSpacing: -0.8 },
+  brandTitle: { fontSize: 22, fontWeight: '900', color: Colors.text.primary, letterSpacing: -0.8 },
   liveTag: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: 'rgba(0, 229, 196, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
@@ -337,7 +342,7 @@ const styles = StyleSheet.create({
   recText: {
     flex: 1,
     fontSize: 12,
-    color: '#fff',
+    color: Colors.text.primary,
     fontWeight: '600',
     lineHeight: 18,
   },
@@ -353,7 +358,7 @@ const styles = StyleSheet.create({
   },
   gaugeInner: {
     width: 130, height: 130, borderRadius: 65, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#050810', borderWidth: 3,
+    backgroundColor: Colors.primary, borderWidth: 3,
     ...Shadows.large, shadowColor: Colors.accent,
   },
   gaugeScore: { fontSize: 36, fontWeight: '900', letterSpacing: -1 },
@@ -376,7 +381,7 @@ const styles = StyleSheet.create({
 
   body: { padding: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 15 },
-  sectionTitle: { fontSize: 18, fontWeight: '900', color: '#fff', marginBottom: 15, letterSpacing: -0.3 },
+  sectionTitle: { fontSize: 18, fontWeight: '900', color: Colors.text.primary, marginBottom: 15, letterSpacing: -0.3 },
   seeAll: { fontSize: 13, color: Colors.accent, fontWeight: '700' },
 
   mainTools: { flexDirection: 'row', gap: 15, marginBottom: 20 },
@@ -390,7 +395,7 @@ const styles = StyleSheet.create({
     ...Shadows.small,
   },
   bigCardGrad: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  bigCardTitle: { color: '#fff', fontSize: 15, fontWeight: '900', marginTop: 15 },
+  bigCardTitle: { color: Colors.text.primary, fontSize: 15, fontWeight: '900', marginTop: 15 },
   bigCardSub: { color: Colors.text.tertiary, fontSize: 11, marginTop: 4, lineHeight: 15 },
 
   serviceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 30 },
@@ -399,33 +404,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    backgroundColor: '#0d1321',
+    backgroundColor: Colors.secondary,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
   serviceIconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  serviceLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  serviceLabel: { color: Colors.text.primary, fontSize: 13, fontWeight: '700' },
 
   toolGrid: { gap: 15, marginBottom: 30 },
   actionCard: {
     flexDirection: 'row', alignItems: 'center', padding: 20,
-    backgroundColor: '#0d1321', borderRadius: 24,
+    backgroundColor: Colors.secondary, borderRadius: 24,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     ...Shadows.small,
   },
   actionIconBox: { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginRight: 18 },
-  actionLabel: { fontSize: 16, fontWeight: '800', color: '#fff' },
+  actionLabel: { fontSize: 16, fontWeight: '800', color: Colors.text.primary },
   actionSub: { fontSize: 12, color: Colors.text.tertiary, marginTop: 4 },
 
-  historyList: { backgroundColor: '#0d1321', borderRadius: 28, padding: 10, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  historyList: { backgroundColor: Colors.secondary, borderRadius: 28, padding: 10, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   historyItem: {
     flexDirection: 'row', alignItems: 'center', padding: 18,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)',
   },
   historyDot: { width: 8, height: 8, borderRadius: 4, marginRight: 15 },
   historyBody: { flex: 1 },
-  historyMsg: { fontSize: 15, color: '#fff', fontWeight: '600' },
+  historyMsg: { fontSize: 15, color: Colors.text.primary, fontWeight: '600' },
   historyMeta: { flexDirection: 'row', gap: 12, marginTop: 6 },
   historyConf: { fontSize: 11, fontWeight: '700' },
   historyDate: { fontSize: 11, color: Colors.text.tertiary },
@@ -437,3 +442,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+styles = makeStyles(Colors);

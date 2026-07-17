@@ -5,11 +5,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useAuthStore } from '@stores';
 import { threatAnalysisAPI } from '@api';
 
 export default function SignupScreen({ navigation }: any) {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -91,7 +96,7 @@ export default function SignupScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary },
   hero: { padding: 30, alignItems: 'center', gap: 10 },
   title: { ...TextStyles.h2, color: Colors.accent },
@@ -118,3 +123,4 @@ const styles = StyleSheet.create({
   loginLink: { alignItems: 'center', marginBottom: 20 },
   loginLinkText: { color: Colors.accent, fontSize: 14 },
 });
+styles = makeStyles(Colors);

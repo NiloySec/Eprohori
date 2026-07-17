@@ -6,7 +6,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useTranslation } from '@hooks';
 import { AlertIllustration, CollapsibleSection } from '@components';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -55,6 +58,8 @@ const sevColor = (sev?: string) =>
   sev === 'critical' ? Colors.threat : sev === 'high' ? Colors.suspicious : sev === 'medium' ? '#818cf8' : Colors.accent;
 
 const ScamNewsScreen = ({ navigation }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const [alerts, setAlerts]   = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,7 +183,7 @@ const ScamNewsScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
   header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.lg },
@@ -232,3 +237,4 @@ const styles = StyleSheet.create({
 });
 
 export default ScamNewsScreen;
+styles = makeStyles(Colors);

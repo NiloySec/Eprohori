@@ -3,7 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 
 interface Props {
   pin: string;
@@ -14,6 +17,8 @@ interface Props {
 const ROWS = [['1','2','3'],['4','5','6'],['7','8','9'],['⌫','0','✓']];
 
 export const AppLockOverlay = ({ pin, onUnlock, biometricEnabled = false }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   // M19: store actual PIN input in a ref, not state — avoids DevTools/memory-dump exposure
   const inputRef = React.useRef('');
   const [inputLen,   setInputLen]   = useState(0);
@@ -146,7 +151,7 @@ export const AppLockOverlay = ({ pin, onUnlock, biometricEnabled = false }: Prop
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: Colors.primary,
@@ -181,3 +186,4 @@ const styles = StyleSheet.create({
   bioBtn: { alignItems: 'center', gap: 6, marginTop: Spacing.sm },
   bioText: { ...TextStyles.caption, color: Colors.accent },
 });
+styles = makeStyles(Colors);

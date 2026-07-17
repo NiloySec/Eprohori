@@ -4,10 +4,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { threatAnalysisAPI } from '@api';
 
 export default function AdminDashboardScreen({ navigation }: any) {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -119,7 +124,7 @@ export default function AdminDashboardScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary },
   header: {
     flexDirection: 'row',
@@ -159,7 +164,8 @@ const styles = StyleSheet.create({
   },
   verifyBtn: { backgroundColor: '#10b981' },
   rejectBtn: { backgroundColor: '#ef4444' },
-  actionBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  actionBtnText: { color: Colors.text.primary, fontWeight: 'bold', fontSize: 14 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100, gap: 10 },
   emptyText: { color: Colors.text.tertiary, fontSize: 16 },
 });
+styles = makeStyles(Colors);

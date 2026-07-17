@@ -15,7 +15,10 @@ import { pickAndExtractText, isOcrAvailable } from '../services/ocrService';
 import { useAnalysisStore, useHistoryStore, useSettingsStore } from '@stores';
 import { useTranslation } from '@hooks';
 import { OfflineBanner, CollapsibleSection } from '@components';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import type { AnalyzerScreenProps } from '@navigation/types';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -23,6 +26,8 @@ import * as ImagePicker from 'expo-image-picker';
 type InputMode = 'text' | 'phone' | 'vision';
 
 const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [message,      setMessage]      = useState('');
   const [lang,         setLang]         = useState<'bn' | 'en'>('bn');
   const [loading,      setLoading]      = useState(false);
@@ -231,7 +236,7 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
         {/* ── Header ── */}
-        <LinearGradient colors={['#1a0a1f', '#050810']} style={styles.header}>
+        <LinearGradient colors={Colors.gradient.hero} style={styles.header}>
           <View style={styles.headerIcon}>
             <Icon name="brain" size={32} color={Colors.accent} />
           </View>
@@ -436,8 +441,8 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: '#050810' },
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
+  safe:  { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
 
   header: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
@@ -454,7 +459,7 @@ const styles = StyleSheet.create({
   tabBg: {
     flexDirection: 'row',
     height: 56,
-    backgroundColor: '#0d1321',
+    backgroundColor: Colors.secondary,
     borderRadius: 28,
     padding: 4,
     borderWidth: 1,
@@ -479,7 +484,7 @@ const styles = StyleSheet.create({
   tabBtnTextActive: { color: Colors.primary },
 
   visionBox: {
-    backgroundColor: '#0d1321',
+    backgroundColor: Colors.secondary,
     borderRadius: 24,
     padding: 30,
     alignItems: 'center',
@@ -487,7 +492,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
     marginTop: 20,
   },
-  visionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 15 },
+  visionTitle: { color: Colors.text.primary, fontSize: 18, fontWeight: '800', marginTop: 15 },
   visionSub: { color: '#94a3b8', fontSize: 13, textAlign: 'center', marginTop: 8 },
   uploadBtn: {
     backgroundColor: Colors.accent,
@@ -501,13 +506,13 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '700', color: Colors.text.secondary, marginBottom: 12, marginTop: 24, textTransform: 'uppercase', letterSpacing: 1 },
 
   input: {
-    backgroundColor: '#0d1321', color: Colors.text.primary,
+    backgroundColor: Colors.secondary, color: Colors.text.primary,
     padding: 20, borderRadius: 20,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
     minHeight: 160, fontSize: 16, lineHeight: 26,
   },
   inputPhone:   { minHeight: 64, lineHeight: 22 },
-  inputFocused: { borderColor: Colors.accent, backgroundColor: '#131b2e' },
+  inputFocused: { borderColor: Colors.accent, backgroundColor: Colors.secondary },
 
   clearRow:  { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'flex-end' },
   clearText: { ...TextStyles.caption, color: Colors.text.tertiary },
@@ -578,3 +583,4 @@ const styles = StyleSheet.create({
 });
 
 export default AnalyzerScreen;
+styles = makeStyles(Colors);

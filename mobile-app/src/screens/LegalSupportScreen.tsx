@@ -2,9 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 
 const LegalSupportScreen = () => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const contacts = [
     { title: 'BTRC সাইবার ক্রাইম', sub: 'বিটিআরসি কল সেন্টার', val: '100', icon: 'phone' },
     { title: 'পুলিশ সাইবার সাপোর্ট', sub: 'ফেসবুক পেজ', val: 'https://www.facebook.com/CyberSupportPolice', icon: 'facebook' },
@@ -58,20 +63,20 @@ const LegalSupportScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#050810' },
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { padding: 24 },
-  title: { fontSize: 24, fontWeight: '900', color: '#fff' },
+  title: { fontSize: 24, fontWeight: '900', color: Colors.text.primary },
   sub: { fontSize: 14, color: '#94a3b8', marginTop: 8, marginBottom: 30 },
-  vaultCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0d1321', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 30 },
+  vaultCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.secondary, padding: 20, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 30 },
   vaultTexts: { flex: 1, marginLeft: 15, marginRight: 10 },
-  vaultTitle: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  vaultTitle: { color: Colors.text.primary, fontWeight: '800', fontSize: 16 },
   vaultSub: { color: '#94a3b8', fontSize: 12, marginTop: 4 },
   vaultBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(0, 255, 204, 0.05)', alignItems: 'center', justifyContent: 'center' },
-  sectionTitle: { fontSize: 18, fontWeight: '800', color: '#fff', marginBottom: 15 },
-  contactItem: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#0d1321', borderRadius: 20, marginBottom: 12, borderWidth: 1, borderColor: '#1e293b' },
+  sectionTitle: { fontSize: 18, fontWeight: '800', color: Colors.text.primary, marginBottom: 15 },
+  contactItem: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: Colors.secondary, borderRadius: 20, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
   iconBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(0, 255, 204, 0.05)', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
-  cTitle: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  cTitle: { color: Colors.text.primary, fontWeight: '700', fontSize: 15 },
   cSub: { color: '#64748b', fontSize: 12, marginTop: 2 },
   guideCard: { marginTop: 20, padding: 20, backgroundColor: 'rgba(0, 255, 204, 0.03)', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(0, 255, 204, 0.1)' },
   guideTitle: { color: Colors.accent, fontWeight: '800', fontSize: 16, marginBottom: 10 },
@@ -79,3 +84,4 @@ const styles = StyleSheet.create({
 });
 
 export default LegalSupportScreen;
+styles = makeStyles(Colors);

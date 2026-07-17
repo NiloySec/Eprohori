@@ -7,7 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { AllSafeIllustration, NoResultsIllustration } from '@components';
 import { useSpamNumberStore, SPAM_CATEGORIES, calcSpamScore, getSpamLabel, type SpamCategory } from '@stores';
 import { analyzePhoneLocally } from '@utils';
@@ -60,6 +63,8 @@ const operatorColor: Record<string, string> = {
 };
 
 const SpamDirectoryScreen = ({ navigation }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [query, setQuery] = useState('');
   const [communityNums, setCommunityNums] = useState<CommunitySpamEntry[]>([]);
   const [loadingCommunity, setLoadingCommunity] = useState(false);
@@ -336,7 +341,7 @@ const SpamDirectoryScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe:   { flex: 1, backgroundColor: Colors.primary },
   scroll: { paddingBottom: Spacing['3xl'] },
 
@@ -435,3 +440,4 @@ const styles = StyleSheet.create({
 });
 
 export default SpamDirectoryScreen;
+styles = makeStyles(Colors);

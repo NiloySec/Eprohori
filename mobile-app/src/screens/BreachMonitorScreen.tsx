@@ -3,9 +3,14 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Activi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 
 const BreachMonitorScreen = () => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [identifier, setIdentifier] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -66,24 +71,25 @@ const BreachMonitorScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#050810' },
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { padding: 24 },
-  title: { fontSize: 24, fontWeight: '900', color: '#fff' },
+  title: { fontSize: 24, fontWeight: '900', color: Colors.text.primary },
   sub: { fontSize: 14, color: '#94a3b8', marginTop: 8, marginBottom: 30 },
-  inputCard: { backgroundColor: '#0d1321', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: '#1e293b' },
-  input: { height: 50, color: '#fff', fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#334155', marginBottom: 15 },
+  inputCard: { backgroundColor: Colors.secondary, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: Colors.border },
+  input: { height: 50, color: Colors.text.primary, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#334155', marginBottom: 15 },
   btn: { backgroundColor: Colors.accent, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   btnText: { color: '#000', fontWeight: '800', fontSize: 16 },
   resCard: { marginTop: 30, padding: 20, borderRadius: 24, alignItems: 'center', borderWidth: 1 },
   resDanger: { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.2)' },
   resSafe: { backgroundColor: 'rgba(16, 185, 129, 0.1)', borderColor: 'rgba(16, 185, 129, 0.2)' },
-  resTitle: { fontSize: 20, fontWeight: '800', color: '#fff', marginTop: 15 },
+  resTitle: { fontSize: 20, fontWeight: '800', color: Colors.text.primary, marginTop: 15 },
   resCount: { fontSize: 14, color: '#ef4444', marginTop: 5, marginBottom: 20 },
   sourceItem: { width: '100%', padding: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, marginBottom: 10 },
-  sourceName: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  sourceName: { color: Colors.text.primary, fontWeight: '700', fontSize: 13 },
   sourceData: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
-  rec: { color: '#fff', fontSize: 13, textAlign: 'center', marginTop: 15, fontWeight: '600' }
+  rec: { color: Colors.text.primary, fontSize: 13, textAlign: 'center', marginTop: 15, fontWeight: '600' }
 });
 
 export default BreachMonitorScreen;
+styles = makeStyles(Colors);

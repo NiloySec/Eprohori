@@ -16,7 +16,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   } else {
     colors = DarkColors;
   }
-
   return <ThemeContext.Provider value={colors}>{children}</ThemeContext.Provider>;
 };
 

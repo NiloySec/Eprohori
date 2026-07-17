@@ -1,6 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, ViewStyle } from 'react-native';
-import { Colors, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 
 interface SkeletonProps {
   width?: number | string;
@@ -10,6 +13,8 @@ interface SkeletonProps {
 }
 
 export const Skeleton = ({ width = '100%', height = 16, borderRadius = BorderRadius.sm, style }: SkeletonProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -30,7 +35,10 @@ export const Skeleton = ({ width = '100%', height = 16, borderRadius = BorderRad
   );
 };
 
-export const DistrictSkeleton = () => (
+export const DistrictSkeleton = () => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  return (
   <View style={styles.card}>
     {Array.from({ length: 6 }).map((_, i) => (
       <View key={i} style={styles.row}>
@@ -43,9 +51,10 @@ export const DistrictSkeleton = () => (
       </View>
     ))}
   </View>
-);
+  );
+};
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   bone: { backgroundColor: Colors.secondary },
   card: {
     backgroundColor: Colors.secondary, borderRadius: BorderRadius.lg,
@@ -53,3 +62,4 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 });
+styles = makeStyles(Colors);

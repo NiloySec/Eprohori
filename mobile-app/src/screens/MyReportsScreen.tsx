@@ -6,7 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useSpamNumberStore, SPAM_CATEGORIES, calcSpamScore, getSpamLabel, type SpamCategory } from '@stores';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import type { MyReportsScreenProps } from '@navigation/types';
 import type { NumberRecord } from '@stores';
 
@@ -20,6 +23,8 @@ const CATEGORY_ICON: Record<SpamCategory, MCIcon> = {
 };
 
 const MyReportsScreen = ({ navigation }: MyReportsScreenProps) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const getAllNumbers = useSpamNumberStore((s) => s.getAllNumbers);
   const removeReports = useSpamNumberStore((s) => s.removeReports);
   const records = getAllNumbers();
@@ -115,7 +120,7 @@ const MyReportsScreen = ({ navigation }: MyReportsScreenProps) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
 
   header: {
@@ -170,3 +175,4 @@ const styles = StyleSheet.create({
 });
 
 export default MyReportsScreen;
+styles = makeStyles(Colors);

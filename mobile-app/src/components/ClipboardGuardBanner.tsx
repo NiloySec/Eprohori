@@ -4,7 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useSettingsStore } from '@stores';
 import { useTranslation } from '@hooks';
 import { extractPhoneNumbers } from '../utils/phoneFeatures';
@@ -36,6 +39,8 @@ function detect(text: string): Suggestion | null {
 // Rendered once at the root, as an absolute overlay above whatever screen is
 // currently active — that way it works no matter which tab the user returns to.
 export const ClipboardGuardBanner = () => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const enabled = useSettingsStore((s) => s.clipboardGuardEnabled);
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
@@ -95,7 +100,7 @@ export const ClipboardGuardBanner = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   banner: {
     position: 'absolute', left: 0, right: 0, zIndex: 100, elevation: 100,
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
@@ -110,3 +115,4 @@ const styles = StyleSheet.create({
   },
   checkBtnText: { fontSize: 11, fontWeight: '800', color: Colors.primary },
 });
+styles = makeStyles(Colors);

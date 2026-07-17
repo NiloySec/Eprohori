@@ -6,7 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useTranslation } from '@hooks';
 import { useSettingsStore } from '@stores';
 import { NoContactsIllustration } from '@components';
@@ -17,6 +20,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TrustedContacts'>;
 
 // N3: trusted whitelist — numbers here are never spam-flagged or call-alerted
 const TrustedContactsScreen = ({ navigation }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const [input, setInput] = useState('');
   const trustedNumbers      = useSettingsStore((s) => s.trustedNumbers);
@@ -105,7 +110,7 @@ const TrustedContactsScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.lg },
   backBtn: { marginBottom: Spacing.md },
@@ -152,3 +157,4 @@ const styles = StyleSheet.create({
 });
 
 export default TrustedContactsScreen;
+styles = makeStyles(Colors);

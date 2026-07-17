@@ -2,7 +2,10 @@ import React from 'react';
 import { ScrollView, Text, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useTranslation } from '@hooks';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '@navigation/types';
@@ -10,6 +13,8 @@ import type { RootStackParamList } from '@navigation/types';
 type Props = NativeStackScreenProps<RootStackParamList, 'PrivacyPolicy'>;
 
 const PrivacyPolicyScreen = ({ navigation }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
 
   return (
@@ -61,7 +66,7 @@ const PrivacyPolicyScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   header: {
     flexDirection: 'row',
@@ -84,3 +89,4 @@ const styles = StyleSheet.create({
 });
 
 export default PrivacyPolicyScreen;
+styles = makeStyles(Colors);

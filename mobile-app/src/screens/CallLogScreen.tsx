@@ -7,7 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+
+let Colors: ThemeColors = DarkColors;
+let styles: ReturnType<typeof makeStyles>;
 import { useNameTagStore, useSpamNumberStore } from '@stores';
 import { calcSpamScore, getSpamLabel } from '@stores';
 import { getDivision } from '@utils';
@@ -56,6 +59,8 @@ function fmtDate(ts: number): string {
 }
 
 const CallLogScreen = ({ navigation }: Props) => {
+  Colors = useThemeColors();
+  styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [calls, setCalls]       = useState<CallEntry[]>([]);
   const [loading, setLoading]   = useState(false);
   const [hasPermission, setPerm] = useState<boolean | null>(null);
@@ -219,7 +224,7 @@ const CallLogScreen = ({ navigation }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
 
   header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.lg },
@@ -280,3 +285,4 @@ const styles = StyleSheet.create({
 });
 
 export default CallLogScreen;
+styles = makeStyles(Colors);

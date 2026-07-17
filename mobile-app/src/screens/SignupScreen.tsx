@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useTranslation } from '@hooks';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -15,6 +16,7 @@ import { threatAnalysisAPI } from '@api';
 export default function SignupScreen({ navigation }: any) {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,14 +27,14 @@ export default function SignupScreen({ navigation }: any) {
 
   const handleSignup = async () => {
     if (!name || !email || !password) {
-      Alert.alert('ত্রুটি', 'নাম, ইমেইল এবং পাসওয়ার্ড আবশ্যিক');
+      Alert.alert(t('signup_err_title'), t('signup_err_required'));
       return;
     }
     setLoading(true);
     try {
       const res = await threatAnalysisAPI.register({ name, email, password, phone, division });
       if (!res.token) {
-        Alert.alert('ত্রুটি', 'সিস্টেম টোকেন পাওয়া যায়নি');
+        Alert.alert(t('signup_err_title'), t('signup_no_token'));
         setLoading(false);
         return;
       }
@@ -47,7 +49,7 @@ export default function SignupScreen({ navigation }: any) {
       }, res.token);
       navigation.replace('MainTabs');
     } catch (err: any) {
-      Alert.alert('ব্যর্থ হয়েছে', err.message || 'রেজিস্ট্রেশন করা সম্ভব হয়নি');
+      Alert.alert(t('signup_failed_title'), err.message || t('signup_failed_msg'));
     } finally {
       setLoading(false);
     }
@@ -58,37 +60,37 @@ export default function SignupScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <LinearGradient colors={Colors.gradient.hero} style={styles.hero}>
           <Icon name="account-plus" size={60} color={Colors.accent} />
-          <Text style={styles.title}>নতুন অ্যাকাউন্ট</Text>
-          <Text style={styles.subtitle}>EProhori রেঞ্জার হিসেবে যোগ দিন</Text>
+          <Text style={styles.title}>{t('signup_title')}</Text>
+          <Text style={styles.subtitle}>{t('signup_subtitle')}</Text>
         </LinearGradient>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>সম্পূর্ণ নাম *</Text>
-            <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="আপনার নাম" placeholderTextColor={Colors.text.tertiary} />
+            <Text style={styles.label}>{t('signup_name_label')}</Text>
+            <TextInput style={styles.input} value={name} onChangeText={setName} placeholder={t('signup_name_placeholder')} placeholderTextColor={Colors.text.tertiary} />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>ইমেইল *</Text>
+            <Text style={styles.label}>{t('signup_email_label')}</Text>
             <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="example@mail.com" placeholderTextColor={Colors.text.tertiary} keyboardType="email-address" autoCapitalize="none" />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>ফোন নম্বর</Text>
+            <Text style={styles.label}>{t('signup_phone_label')}</Text>
             <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="017XXXXXXXX" placeholderTextColor={Colors.text.tertiary} keyboardType="phone-pad" />
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>পাসওয়ার্ড *</Text>
+            <Text style={styles.label}>{t('signup_password_label')}</Text>
             <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="********" placeholderTextColor={Colors.text.tertiary} secureTextEntry />
           </View>
 
           <TouchableOpacity style={styles.signupBtn} onPress={handleSignup} disabled={loading}>
-            {loading ? <ActivityIndicator color={Colors.primary} /> : <Text style={styles.signupBtnText}>রেজিস্ট্রেশন করুন</Text>}
+            {loading ? <ActivityIndicator color={Colors.primary} /> : <Text style={styles.signupBtnText}>{t('signup_btn')}</Text>}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.loginLinkText}>আগের অ্যাকাউন্ট আছে? লগইন করুন</Text>
+            <Text style={styles.loginLinkText}>{t('signup_has_account')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

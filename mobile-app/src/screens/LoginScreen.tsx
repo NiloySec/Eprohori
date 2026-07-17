@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useTranslation } from '@hooks';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -15,6 +16,7 @@ import { threatAnalysisAPI } from '@api';
 export default function LoginScreen({ navigation }: any) {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totpCode, setTotpCode] = useState('');
@@ -24,7 +26,7 @@ export default function LoginScreen({ navigation }: any) {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('ত্রুটি', 'ইমেইল এবং পাসওয়ার্ড দিন');
+      Alert.alert(t('login_err_title'), t('login_err_required'));
       return;
     }
     setLoading(true);
@@ -32,13 +34,13 @@ export default function LoginScreen({ navigation }: any) {
       const res = await threatAnalysisAPI.login(email, password, totpCode);
       if (res.requires_2fa) {
         setRequires2fa(true);
-        Alert.alert('২-ফ্যাক্টর যাচাইকরণ', 'আপনার অথেন্টিকেটর অ্যাপ থেকে কোডটি দিন');
+        Alert.alert(t('login_2fa_title'), t('login_2fa_msg'));
         setLoading(false);
         return;
       }
 
       if (!res.token) {
-        Alert.alert('ত্রুটি', 'সিস্টেম টোকেন পাওয়া যায়নি');
+        Alert.alert(t('login_err_title'), t('login_no_token'));
         setLoading(false);
         return;
       }
@@ -54,7 +56,7 @@ export default function LoginScreen({ navigation }: any) {
       }, res.token);
       navigation.replace('MainTabs');
     } catch (err: any) {
-      Alert.alert('ব্যর্থ হয়েছে', err.message || 'লগইন করা সম্ভব হয়নি');
+      Alert.alert(t('login_failed_title'), err.message || t('login_failed_msg'));
     } finally {
       setLoading(false);
     }
@@ -64,13 +66,13 @@ export default function LoginScreen({ navigation }: any) {
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={Colors.gradient.hero} style={styles.hero}>
         <Icon name="shield-lock" size={80} color={Colors.accent} />
-        <Text style={styles.title}>স্বাগতম</Text>
-        <Text style={styles.subtitle}>EProhori অ্যাকাউন্টে লগইন করুন</Text>
+        <Text style={styles.title}>{t('login_welcome')}</Text>
+        <Text style={styles.subtitle}>{t('login_subtitle')}</Text>
       </LinearGradient>
 
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>ইমেইল</Text>
+          <Text style={styles.label}>{t('login_email_label')}</Text>
           <TextInput
             style={styles.input}
             value={email}
@@ -83,7 +85,7 @@ export default function LoginScreen({ navigation }: any) {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>পাসওয়ার্ড</Text>
+          <Text style={styles.label}>{t('login_password_label')}</Text>
           <TextInput
             style={styles.input}
             value={password}
@@ -96,7 +98,7 @@ export default function LoginScreen({ navigation }: any) {
 
         {requires2fa && (
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: Colors.accent }]}>২-ফ্যাক্টর কোড (TOTP)</Text>
+            <Text style={[styles.label, { color: Colors.accent }]}>{t('login_2fa_label')}</Text>
             <TextInput
               style={[styles.input, { borderColor: Colors.accent }]}
               value={totpCode}
@@ -117,7 +119,7 @@ export default function LoginScreen({ navigation }: any) {
           {loading ? (
             <ActivityIndicator color={Colors.primary} />
           ) : (
-            <Text style={styles.loginBtnText}>লগইন করুন</Text>
+            <Text style={styles.loginBtnText}>{t('login_btn')}</Text>
           )}
         </TouchableOpacity>
 
@@ -125,14 +127,14 @@ export default function LoginScreen({ navigation }: any) {
           style={styles.signupLink}
           onPress={() => navigation.navigate('Signup')}
         >
-          <Text style={styles.signupLinkText}>অ্যাকাউন্ট নেই? রেজিস্ট্রেশন করুন</Text>
+          <Text style={styles.signupLinkText}>{t('login_no_account')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.skipBtn}
           onPress={() => navigation.replace('MainTabs')}
         >
-          <Text style={styles.skipBtnText}>পরে করুন</Text>
+          <Text style={styles.skipBtnText}>{t('login_skip')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

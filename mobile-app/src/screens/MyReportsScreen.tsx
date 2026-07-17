@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useSpamNumberStore, SPAM_CATEGORIES, calcSpamScore, getSpamLabel, type SpamCategory } from '@stores';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useTranslation } from '@hooks';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -25,17 +26,18 @@ const CATEGORY_ICON: Record<SpamCategory, MCIcon> = {
 const MyReportsScreen = ({ navigation }: MyReportsScreenProps) => {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const getAllNumbers = useSpamNumberStore((s) => s.getAllNumbers);
   const removeReports = useSpamNumberStore((s) => s.removeReports);
   const records = getAllNumbers();
 
   const confirmDelete = (number: string) => {
     Alert.alert(
-      'রিপোর্ট মুছুন',
-      `${number} নম্বরের সব রিপোর্ট মুছে ফেলা হবে। নিশ্চিত?`,
+      t('myreports_delete_title'),
+      `${number} ${t('myreports_delete_confirm')}`,
       [
-        { text: 'বাতিল', style: 'cancel' },
-        { text: 'মুছুন', style: 'destructive', onPress: () => removeReports(number) },
+        { text: t('myreports_cancel'), style: 'cancel' },
+        { text: t('myreports_delete'), style: 'destructive', onPress: () => removeReports(number) },
       ]
     );
   };
@@ -71,7 +73,7 @@ const MyReportsScreen = ({ navigation }: MyReportsScreenProps) => {
             </View>
           </View>
           <Text style={styles.meta}>
-            {item.reports.length} টি রিপোর্ট · {latestDate}
+            {item.reports.length} {t('myreports_count_suffix')} · {latestDate}
           </Text>
         </View>
         <TouchableOpacity style={styles.trashBtn} onPress={() => confirmDelete(item.number)}>
@@ -90,20 +92,20 @@ const MyReportsScreen = ({ navigation }: MyReportsScreenProps) => {
         <View style={styles.headerIcon}>
           <Icon name="flag-checkered" size={24} color={Colors.accent} />
         </View>
-        <Text style={styles.title}>আমার রিপোর্ট</Text>
+        <Text style={styles.title}>{t('myreports_title')}</Text>
         <Text style={styles.subtitle}>
           {records.length === 0
-            ? 'কোনো রিপোর্ট নেই'
-            : `${records.length} টি নম্বর রিপোর্ট করা হয়েছে`}
+            ? t('myreports_none')
+            : `${records.length} ${t('myreports_count_reported')}`}
         </Text>
       </LinearGradient>
 
       {records.length === 0 ? (
         <View style={styles.empty}>
           <Icon name="flag-outline" size={56} color={Colors.text.tertiary} />
-          <Text style={styles.emptyTitle}>কোনো রিপোর্ট নেই</Text>
+          <Text style={styles.emptyTitle}>{t('myreports_none')}</Text>
           <Text style={styles.emptyDesc}>
-            কোনো নম্বর স্প্যাম রিপোর্ট করলে এখানে দেখা যাবে
+            {t('myreports_empty_desc')}
           </Text>
         </View>
       ) : (

@@ -469,6 +469,40 @@ const translations = {
     admin_empty: 'কোনো পেন্ডিং রিপোর্ট নেই',
     admin_success: 'সফল',
     admin_failed: 'ব্যর্থ',
+
+    // My Reports screen
+    myreports_title: 'আমার রিপোর্ট',
+    myreports_delete_title: 'রিপোর্ট মুছুন',
+    myreports_delete_confirm: 'নম্বরের সব রিপোর্ট মুছে ফেলা হবে। নিশ্চিত?',
+    myreports_cancel: 'বাতিল',
+    myreports_delete: 'মুছুন',
+    myreports_count_suffix: 'টি রিপোর্ট',
+    myreports_none: 'কোনো রিপোর্ট নেই',
+    myreports_count_reported: 'টি নম্বর রিপোর্ট করা হয়েছে',
+    myreports_empty_desc: 'কোনো নম্বর স্প্যাম রিপোর্ট করলে এখানে দেখা যাবে',
+
+    // Breach Monitor screen
+    breach_title: 'ডাটা লিক মনিটর',
+    breach_sub: 'আপনার ইমেইল বা ফোন নম্বর কি ডার্ক ওয়েবে লিক হয়েছে?',
+    breach_placeholder: 'ইমেইল বা ফোন নম্বর লিখুন',
+    breach_check_btn: 'চেক করুন',
+    breach_check_failed: 'চেক করা সম্ভব হয়নি',
+    breach_pwned: 'আপনার তথ্য লিক হয়েছে!',
+    breach_safe: 'আপনার তথ্য নিরাপদ আছে',
+    breach_count_suffix: 'টি ব্রীচে আপনার তথ্য পাওয়া গেছে',
+    breach_leaked_data: 'লিক হওয়া ডাটা',
+
+    // Scam News screen — official sources
+    scamnews_src_btrc_name: 'BTRC',
+    scamnews_src_btrc_desc: 'টেলিকম নিয়ন্ত্রক সংস্থার নোটিশ ও সতর্কতা',
+    scamnews_src_bb_name: 'বাংলাদেশ ব্যাংক',
+    scamnews_src_bb_desc: 'ব্যাংকিং প্রতারণা সতর্কতা ও সার্কুলার',
+    scamnews_src_police_name: 'পুলিশ সাইবার সাপোর্ট',
+    scamnews_src_police_desc: 'সাইবার অপরাধ রিপোর্ট ও পরামর্শ',
+    scamnews_src_cid_name: 'CID সাইবার পুলিশ',
+    scamnews_src_cid_desc: 'সাইবার অপরাধ তদন্ত বিভাগ',
+    scamnews_src_dncrp_name: 'ভোক্তা অধিকার',
+    scamnews_src_dncrp_desc: 'অনলাইন কেনাকাটা প্রতারণার অভিযোগ',
   },
   en: {
     tab_home: 'Home',
@@ -925,6 +959,40 @@ const translations = {
     admin_empty: 'No pending reports',
     admin_success: 'Success',
     admin_failed: 'Failed',
+
+    // My Reports screen
+    myreports_title: 'My Reports',
+    myreports_delete_title: 'Delete reports',
+    myreports_delete_confirm: 'All reports for this number will be deleted. Confirm?',
+    myreports_cancel: 'Cancel',
+    myreports_delete: 'Delete',
+    myreports_count_suffix: 'reports',
+    myreports_none: 'No reports yet',
+    myreports_count_reported: 'numbers reported',
+    myreports_empty_desc: 'Numbers you report as spam will show up here',
+
+    // Breach Monitor screen
+    breach_title: 'Data Leak Monitor',
+    breach_sub: 'Has your email or phone number leaked on the dark web?',
+    breach_placeholder: 'Enter email or phone number',
+    breach_check_btn: 'Check now',
+    breach_check_failed: 'Could not complete the check',
+    breach_pwned: 'Your data has leaked!',
+    breach_safe: 'Your data is safe',
+    breach_count_suffix: 'breaches found containing your data',
+    breach_leaked_data: 'Leaked data',
+
+    // Scam News screen — official sources
+    scamnews_src_btrc_name: 'BTRC',
+    scamnews_src_btrc_desc: 'Telecom regulator notices and alerts',
+    scamnews_src_bb_name: 'Bangladesh Bank',
+    scamnews_src_bb_desc: 'Banking fraud alerts and circulars',
+    scamnews_src_police_name: 'Police Cyber Support',
+    scamnews_src_police_desc: 'Report cybercrime and get advice',
+    scamnews_src_cid_name: 'CID Cyber Police',
+    scamnews_src_cid_desc: 'Cybercrime investigation department',
+    scamnews_src_dncrp_name: 'Consumer Rights',
+    scamnews_src_dncrp_desc: 'Report online shopping fraud',
   },
 };
 

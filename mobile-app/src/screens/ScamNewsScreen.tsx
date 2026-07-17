@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+import type { TKeys } from '@utils';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -31,25 +32,25 @@ interface AlertItem {
 type MCIcon = React.ComponentProps<typeof Icon>['name'];
 
 // N4: official BD anti-fraud sources — curated, opens externally
-const OFFICIAL_SOURCES: { icon: MCIcon; name: string; desc: string; url: string; hotline: string }[] = [
+const OFFICIAL_SOURCES: { icon: MCIcon; nameKey: TKeys; descKey: TKeys; url: string; hotline: string }[] = [
   {
-    icon: 'bank', name: 'BTRC', desc: 'টেলিকম নিয়ন্ত্রক সংস্থার নোটিশ ও সতর্কতা',
+    icon: 'bank', nameKey: 'scamnews_src_btrc_name', descKey: 'scamnews_src_btrc_desc',
     url: 'http://www.btrc.gov.bd', hotline: '১০০',
   },
   {
-    icon: 'bank-outline', name: 'বাংলাদেশ ব্যাংক', desc: 'ব্যাংকিং প্রতারণা সতর্কতা ও সার্কুলার',
+    icon: 'bank-outline', nameKey: 'scamnews_src_bb_name', descKey: 'scamnews_src_bb_desc',
     url: 'https://www.bb.org.bd', hotline: '১৬২৩৬',
   },
   {
-    icon: 'police-badge-outline', name: 'পুলিশ সাইবার সাপোর্ট', desc: 'সাইবার অপরাধ রিপোর্ট ও পরামর্শ',
+    icon: 'police-badge-outline', nameKey: 'scamnews_src_police_name', descKey: 'scamnews_src_police_desc',
     url: 'https://www.facebook.com/cybersupport.women', hotline: '৯৯৯',
   },
   {
-    icon: 'magnify-scan', name: 'CID সাইবার পুলিশ', desc: 'সাইবার অপরাধ তদন্ত বিভাগ',
+    icon: 'magnify-scan', nameKey: 'scamnews_src_cid_name', descKey: 'scamnews_src_cid_desc',
     url: 'https://www.facebook.com/cpccidbdpolice', hotline: '০১৩২০-০১০১৪৮',
   },
   {
-    icon: 'scale-balance', name: 'ভোক্তা অধিকার', desc: 'অনলাইন কেনাকাটা প্রতারণার অভিযোগ',
+    icon: 'scale-balance', nameKey: 'scamnews_src_dncrp_name', descKey: 'scamnews_src_dncrp_desc',
     url: 'https://dncrp.portal.gov.bd', hotline: '১৬১২১',
   },
 ];
@@ -146,7 +147,7 @@ const ScamNewsScreen = ({ navigation }: Props) => {
             >
               {OFFICIAL_SOURCES.map((src, i) => (
                 <TouchableOpacity
-                  key={src.name}
+                  key={src.nameKey}
                   style={[styles.srcCard, i > 0 && styles.srcDivider]}
                   onPress={() => Linking.openURL(src.url).catch(() => {})}
                   activeOpacity={0.75}
@@ -155,8 +156,8 @@ const ScamNewsScreen = ({ navigation }: Props) => {
                     <Icon name={src.icon} size={20} color={Colors.accent} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.srcName}>{src.name}</Text>
-                    <Text style={styles.srcDesc}>{src.desc}</Text>
+                    <Text style={styles.srcName}>{t(src.nameKey)}</Text>
+                    <Text style={styles.srcDesc}>{t(src.descKey)}</Text>
                     <Text style={styles.srcHotline}>{t('scamnews_hotline')} {src.hotline}</Text>
                   </View>
                   <Icon name="open-in-new" size={16} color={Colors.text.tertiary} />

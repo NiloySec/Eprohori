@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors, DarkColors, type ThemeColors, Shadows } from '@theme';
+import { useTranslation } from '@hooks';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -11,6 +12,7 @@ let styles: ReturnType<typeof makeStyles>;
 const BreachMonitorScreen = () => {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const [identifier, setIdentifier] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -32,33 +34,33 @@ const BreachMonitorScreen = () => {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>ডাটা লিক মনিটর</Text>
-        <Text style={styles.sub}>আপনার ইমেইল বা ফোন নম্বর কি ডার্ক ওয়েবে লিক হয়েছে?</Text>
+        <Text style={styles.title}>{t('breach_title')}</Text>
+        <Text style={styles.sub}>{t('breach_sub')}</Text>
 
         <View style={styles.inputCard}>
           <TextInput
             style={styles.input}
-            placeholder="ইমেইল বা ফোন নম্বর লিখুন"
+            placeholder={t('breach_placeholder')}
             placeholderTextColor="#666"
             value={identifier}
             onChangeText={setIdentifier}
           />
           <TouchableOpacity style={styles.btn} onPress={checkBreach} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>চেক করুন</Text>}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{t('breach_check_btn')}</Text>}
           </TouchableOpacity>
         </View>
 
         {result && (
           <View style={[styles.resCard, result.is_pwned ? styles.resDanger : styles.resSafe]}>
             <Icon name={result.is_pwned ? 'alert-octagon' : 'check-circle'} size={48} color={result.is_pwned ? '#ef4444' : '#10b981'} />
-            <Text style={styles.resTitle}>{result.is_pwned ? 'আপনার তথ্য লিক হয়েছে!' : 'আপনার তথ্য নিরাপদ আছে'}</Text>
+            <Text style={styles.resTitle}>{result.is_pwned ? t('breach_pwned') : t('breach_safe')}</Text>
             {result.is_pwned && (
               <>
-                <Text style={styles.resCount}>{result.breach_count}টি ব্রীচে আপনার তথ্য পাওয়া গেছে</Text>
+                <Text style={styles.resCount}>{result.breach_count} {t('breach_count_suffix')}</Text>
                 {result.sources.map((s: any, i: number) => (
                   <View key={i} style={styles.sourceItem}>
                     <Text style={styles.sourceName}>{s.name} ({s.date})</Text>
-                    <Text style={styles.sourceData}>লিক হওয়া ডাটা: {s.data}</Text>
+                    <Text style={styles.sourceData}>{t('breach_leaked_data')}: {s.data}</Text>
                   </View>
                 ))}
                 <Text style={styles.rec}>{result.recommendation}</Text>

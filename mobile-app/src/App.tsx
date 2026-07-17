@@ -68,7 +68,6 @@ function App() {
   const scheduledScanEnabled  = useSettingsStore((s) => s.scheduledScanEnabled);
   const scheduledScanHour     = useSettingsStore((s) => s.scheduledScanHour);
   const batterySaverEnabled   = useSettingsStore((s) => s.batterySaverEnabled);
-  const otpGuardEnabled       = useSettingsStore((s) => s.otpGuardEnabled);
   const chatGuardEnabled      = useSettingsStore((s) => s.chatGuardEnabled);
   const setSharedText       = useAnalysisStore((s) => s.setSharedText);
   const setPendingSmsText   = useAnalysisStore((s) => s.setPendingSmsText);
@@ -86,10 +85,8 @@ function App() {
 
   const setSharedRef           = useRef(setSharedText);
   const setPendingSmsRef       = useRef(setPendingSmsText);
-  const otpGuardEnabledRef     = useRef(otpGuardEnabled);
   setSharedRef.current          = setSharedText;
   setPendingSmsRef.current      = setPendingSmsText;
-  otpGuardEnabledRef.current    = otpGuardEnabled;
 
   useEffect(() => {
     cleanupOldEntries(autoDeleteDays);
@@ -188,8 +185,7 @@ function App() {
         const result = await threatAnalysisAPI.analyzeThreat(text, lang);
         const cat = categorizeSms(text); // still use local cat for icon/label fallback
 
-        // N6: OTP guard — always fire a MAX-priority warning on high-confidence threats
-        if (otpGuardEnabledRef.current && (result.confidence >= 80 || cat.category === 'otp_theft' || cat.category === 'mfs_fraud')) {
+        if (result.confidence >= 80 || cat.category === 'otp_theft' || cat.category === 'mfs_fraud') {
           Notifications.scheduleNotificationAsync({
             content: {
               title: '🚨 সরাসরি সাইবার হুমকি সনাক্ত!',

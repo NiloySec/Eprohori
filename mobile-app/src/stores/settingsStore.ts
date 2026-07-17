@@ -49,7 +49,6 @@ interface SettingsState {
   districtAlertEnabled: boolean;     // R5: notify on new high-severity alert in district
   scamSyncLastAt: number;            // R3: epoch ms of last community blocklist sync
   trustedNumbers: string[];          // N3: whitelist — never spam-flagged or call-alerted
-  otpGuardEnabled: boolean;          // N6: real-time warning on OTP-theft SMS patterns
   weeklyDigestEnabled: boolean;      // N2: weekly safety summary notification
   weeklyDigestLastAt: number;        // N2: epoch ms of last digest notification
   chatGuardEnabled: boolean;         // P1: scan chat-app notifications for scams
@@ -88,7 +87,6 @@ interface SettingsState {
   addTrustedNumber: (num: string) => void;
   removeTrustedNumber: (num: string) => void;
   isTrusted: (num: string) => boolean;
-  setOtpGuardEnabled: (v: boolean) => void;
   setWeeklyDigestEnabled: (v: boolean) => void;
   setWeeklyDigestLastAt: (v: number) => void;
   setChatGuardEnabled: (v: boolean) => void;
@@ -128,7 +126,6 @@ export const useSettingsStore = create<SettingsState>()(
       districtAlertEnabled: false,
       scamSyncLastAt: 0,
       trustedNumbers: [],
-      otpGuardEnabled: true,
       weeklyDigestEnabled: true,
       weeklyDigestLastAt: 0,
       chatGuardEnabled: false,
@@ -202,7 +199,6 @@ export const useSettingsStore = create<SettingsState>()(
         set((s) => ({ trustedNumbers: s.trustedNumbers.filter((x) => x !== clean) }));
       },
       isTrusted: (num) => get().trustedNumbers.includes(num.replace(/\D/g, '')),
-      setOtpGuardEnabled: (v) => set({ otpGuardEnabled: v }),
       setWeeklyDigestEnabled: (v) => set({ weeklyDigestEnabled: v }),
       setWeeklyDigestLastAt: (v) => set({ weeklyDigestLastAt: v }),
       setChatGuardEnabled: (v) => set({ chatGuardEnabled: v }),

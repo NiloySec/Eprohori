@@ -123,10 +123,10 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
     smsAutoScanEnabled, smsAlertCategories, appLockEnabled, appLockPin,
     scheduledScanEnabled, scheduledScanHour, privacyModeEnabled, batterySaverEnabled,
     biometricEnabled, themeMode, userDistrict, districtAlertEnabled,
-    otpGuardEnabled, weeklyDigestEnabled, trustedNumbers,
+    weeklyDigestEnabled, trustedNumbers,
     chatGuardEnabled,
     clipboardGuardEnabled, contactSyncEnabled,
-    setOtpGuardEnabled, setWeeklyDigestEnabled, setContactSyncEnabled,
+    setWeeklyDigestEnabled, setContactSyncEnabled,
     setChatGuardEnabled,
     setClipboardGuardEnabled,
     setLanguage, setNotificationsEnabled, setDailySummaryEnabled,
@@ -309,8 +309,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
           <View style={styles.card}>
             <SettingRow icon="bell-outline" label={t('settings_push')} description={t('settings_push_desc')} right={<Switch value={notificationsEnabled} onValueChange={hv(setNotificationsEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
-            <SettingRow icon="key-alert-outline" label={t('settings_otp_guard')} description={otpGuardEnabled ? t('settings_otp_guard_on') : t('settings_otp_guard_off')} right={<Switch value={otpGuardEnabled} onValueChange={hv(setOtpGuardEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.threat }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
             <SettingRow icon="map-marker-alert-outline" label="জেলা সতর্কতা" description={districtAlertEnabled && userDistrict ? `${userDistrict} জেলার হুমকিতে বিজ্ঞপ্তি` : 'আপনার জেলার হুমকিতে alert পান'} right={<Switch value={districtAlertEnabled} onValueChange={hv(setDistrictAlertEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             {districtAlertEnabled && (
               <><View style={styles.divider} /><View style={styles.row}><View style={styles.rowIcon}><Icon name="map-marker" size={18} color={Colors.accent} /></View><View style={styles.rowContent}><Text style={styles.rowLabel}>আপনার জেলা</Text><TextInput style={styles.districtInput} value={districtInput || userDistrict} onChangeText={setDistrictInput} placeholder="যেমন: ঢাকা, চট্টগ্রাম..." placeholderTextColor={Colors.text.tertiary} onSubmitEditing={handleDistrictSave} returnKeyType="done" /></View><TouchableOpacity style={styles.districtSaveBtn} onPress={handleDistrictSave}><Icon name="check" size={18} color={Colors.primary} /></TouchableOpacity></View></>
@@ -352,7 +350,7 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
           {/* ── Advanced ── */}
           <Text style={styles.sectionLabel}>অ্যাডভান্সড প্রোটেকশন</Text>
           <View style={styles.card}>
-            <SettingRow icon="message-badge-outline" label="SMS অটো-স্ক্যান" right={<Switch value={smsAutoScanEnabled} onValueChange={hv(setSmsAutoScanEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
+            <SettingRow icon="message-badge-outline" label="SMS অটো-স্ক্যান ও OTP সুরক্ষা" description={smsAutoScanEnabled ? 'ইনকামিং SMS স্ক্যান + OTP চুরি সতর্কতা সক্রিয়' : 'বন্ধ'} right={<Switch value={smsAutoScanEnabled} onValueChange={hv(setSmsAutoScanEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             {smsAutoScanEnabled && (
               <><View style={styles.divider} /><View style={styles.catSection}>{ALERT_CATS.map(cat => { const m = CATEGORY_META[cat]; return (<View key={cat} style={styles.catRow}><Icon name={CATEGORY_VECTOR_ICON[cat]} size={18} color={m.color} /><Text style={styles.catLabel}>{m.label_bn}</Text><Switch value={smsAlertCategories.includes(cat)} onValueChange={hv(() => toggleSmsAlertCategory(cat))} trackColor={{ false: 'rgba(255,255,255,0.1)', true: m.color }} thumbColor={Colors.white} style={{ transform: [{ scale: 0.8 }] }} /></View>); })}</View></>
             )}

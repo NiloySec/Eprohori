@@ -134,7 +134,7 @@ export const useSettingsStore = create<SettingsState>()(
       chatGuardEnabled: false,
       chatGuardApps: [
         'com.whatsapp', 'com.whatsapp.w4b', 'org.telegram.messenger',
-        'com.facebook.orca', 'com.instagram.android', 'com.google.android.gm',
+        'com.facebook.orca', 'com.facebook.katana', 'com.instagram.android', 'com.google.android.gm',
         'com.linkedin.android', 'com.viber.voip', 'com.imo.android.imoim',
       ],
       callScreeningEnabled: false,

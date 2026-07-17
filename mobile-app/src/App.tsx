@@ -7,7 +7,7 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as Updates from 'expo-updates';
 import { RootNavigator, navigationRef } from '@navigation';
-import { Colors, ThemeProvider } from '@theme';
+import { ThemeProvider, useThemeColors } from '@theme';
 import { useHistoryStore, useSettingsStore, useAnalysisStore } from '@stores';
 import { threatAnalysisAPI } from '@api';
 import { ErrorBoundary, AppLockOverlay } from '@components';
@@ -323,8 +323,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-      <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.primary }}>
-        <SafeAreaProvider>
+        <AppShell>
           <RootNavigator />
           {isLocked && appLockEnabled && appLockPin ? (
             <AppLockOverlay
@@ -333,10 +332,19 @@ function App() {
               biometricEnabled={biometricEnabled}
             />
           ) : null}
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+        </AppShell>
       </ThemeProvider>
     </ErrorBoundary>
+  );
+}
+
+// Themed root shell — reads the active theme so the backdrop follows light/dark.
+function AppShell({ children }: { children: React.ReactNode }) {
+  const colors = useThemeColors();
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.primary }}>
+      <SafeAreaProvider>{children}</SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

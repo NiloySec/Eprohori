@@ -67,20 +67,20 @@ const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { padding: 24 },
   title: { fontSize: 24, fontWeight: '900', color: Colors.text.primary },
-  sub: { fontSize: 14, color: '#94a3b8', marginTop: 8, marginBottom: 30 },
+  sub: { fontSize: 14, color: Colors.text.secondary, marginTop: 8, marginBottom: 30 },
   vaultCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.secondary, padding: 20, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: 30 },
   vaultTexts: { flex: 1, marginLeft: 15, marginRight: 10 },
   vaultTitle: { color: Colors.text.primary, fontWeight: '800', fontSize: 16 },
-  vaultSub: { color: '#94a3b8', fontSize: 12, marginTop: 4 },
+  vaultSub: { color: Colors.text.secondary, fontSize: 12, marginTop: 4 },
   vaultBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(0, 255, 204, 0.05)', alignItems: 'center', justifyContent: 'center' },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: Colors.text.primary, marginBottom: 15 },
   contactItem: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: Colors.secondary, borderRadius: 20, marginBottom: 12, borderWidth: 1, borderColor: Colors.border },
   iconBox: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(0, 255, 204, 0.05)', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
   cTitle: { color: Colors.text.primary, fontWeight: '700', fontSize: 15 },
-  cSub: { color: '#64748b', fontSize: 12, marginTop: 2 },
+  cSub: { color: Colors.text.secondary, fontSize: 12, marginTop: 2 },
   guideCard: { marginTop: 20, padding: 20, backgroundColor: 'rgba(0, 255, 204, 0.03)', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(0, 255, 204, 0.1)' },
   guideTitle: { color: Colors.accent, fontWeight: '800', fontSize: 16, marginBottom: 10 },
-  guideText: { color: '#cbd5e1', fontSize: 13, marginBottom: 8, lineHeight: 20 }
+  guideText: { color: Colors.text.secondary, fontSize: 13, marginBottom: 8, lineHeight: 20 }
 });
 
 export default LegalSupportScreen;

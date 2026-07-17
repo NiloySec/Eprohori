@@ -75,7 +75,7 @@ const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.primary },
   scroll: { padding: 24 },
   title: { fontSize: 24, fontWeight: '900', color: Colors.text.primary },
-  sub: { fontSize: 14, color: '#94a3b8', marginTop: 8, marginBottom: 30 },
+  sub: { fontSize: 14, color: Colors.text.secondary, marginTop: 8, marginBottom: 30 },
   inputCard: { backgroundColor: Colors.secondary, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: Colors.border },
   input: { height: 50, color: Colors.text.primary, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#334155', marginBottom: 15 },
   btn: { backgroundColor: Colors.accent, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
@@ -87,7 +87,7 @@ const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   resCount: { fontSize: 14, color: '#ef4444', marginTop: 5, marginBottom: 20 },
   sourceItem: { width: '100%', padding: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, marginBottom: 10 },
   sourceName: { color: Colors.text.primary, fontWeight: '700', fontSize: 13 },
-  sourceData: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
+  sourceData: { color: Colors.text.secondary, fontSize: 11, marginTop: 2 },
   rec: { color: Colors.text.primary, fontSize: 13, textAlign: 'center', marginTop: 15, fontWeight: '600' }
 });
 

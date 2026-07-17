@@ -493,7 +493,7 @@ const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
     marginTop: 20,
   },
   visionTitle: { color: Colors.text.primary, fontSize: 18, fontWeight: '800', marginTop: 15 },
-  visionSub: { color: '#94a3b8', fontSize: 13, textAlign: 'center', marginTop: 8 },
+  visionSub: { color: Colors.text.secondary, fontSize: 13, textAlign: 'center', marginTop: 8 },
   uploadBtn: {
     backgroundColor: Colors.accent,
     paddingHorizontal: 24,

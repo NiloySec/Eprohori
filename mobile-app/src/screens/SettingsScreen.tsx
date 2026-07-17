@@ -342,9 +342,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <View style={styles.divider} />
             <SettingRow icon="content-paste" label={t('settings_clipboard_guard')} description={clipboardGuardEnabled ? 'সক্রিয়' : 'বন্ধ'} right={<Switch value={clipboardGuardEnabled} onValueChange={hv(setClipboardGuardEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
-            <NavRow icon="cloud-download-outline" label="ইতিহাস ব্যাকআপ" color="#818cf8" onPress={handleBackupExport} right={backupBusy ? <ActivityIndicator size="small" color={Colors.accent} /> : undefined} />
-            <View style={styles.divider} />
-            <NavRow icon="cloud-upload-outline" label="ব্যাকআপ পুনরুদ্ধার" color="#818cf8" onPress={handleBackupImport} right={backupBusy ? <ActivityIndicator size="small" color={Colors.accent} /> : undefined} />
           </View>
 
           {/* ── Advanced ── */}
@@ -361,51 +358,22 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             )}
             <View style={styles.divider} />
             <SettingRow icon="message-alert-outline" label="Chat Guard" right={<Switch value={chatGuardEnabled} onValueChange={hv(handleChatGuardToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
-            <SettingRow icon="alarm-check" label="দৈনিক স্ক্যান রিমাইন্ডার" right={<Switch value={scheduledScanEnabled} onValueChange={hv(setScheduledScanEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
-            <NavRow icon="database-sync" label="হুমকি সিগনেচার আপডেট" description="নতুন প্রতারণা প্যাটার্ন ডাউনলোড করুন" onPress={async () => {
-              setBackupBusy(true);
-              await fetchLatestPatterns();
-              const p = await getLocalPatterns();
-              updateCachedPatterns(p);
-              setBackupBusy(false);
-              Alert.alert('সফল', 'লেটেস্ট হুমকি সিগনেচার আপডেট হয়েছে');
-            }} right={backupBusy ? <ActivityIndicator size="small" color={Colors.accent} /> : undefined} />
           </View>
 
           {/* ── Privacy ── */}
           <Text style={styles.sectionLabel}>গোপনীয়তা</Text>
           <View style={styles.card}>
-            <SettingRow icon="lock-outline" label="অ্যাপ লক" right={<Switch value={appLockEnabled} onValueChange={hv(handleAppLockToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
-            {appLockEnabled && (
-              <><View style={styles.divider} /><NavRow icon="lock-reset" label="PIN পরিবর্তন করুন" onPress={openPinSetup} /><View style={styles.divider} /><SettingRow icon="fingerprint" label="বায়োমেট্রিক আনলক" right={<Switch value={biometricEnabled} onValueChange={hv(setBiometricEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} /></>
-            )}
-            <View style={styles.divider} />
             <SettingRow icon="ghost" label="Ghost Mode" right={<Switch value={ghostModeEnabled} onValueChange={hv(setGhostModeEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
             <View style={styles.divider} />
             <SettingRow icon="incognito" label="প্রাইভেসি মোড" right={<Switch value={privacyModeEnabled} onValueChange={hv(setPrivacyModeEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#818cf8' }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
-            <SettingRow icon="account-multiple-plus-outline" label="কলার আইডি উন্নত করুন" right={syncing ? <ActivityIndicator size="small" color={Colors.accent} /> : <Switch value={contactSyncEnabled} onValueChange={hv(handleSyncToggle)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.safe }} thumbColor={Colors.white} />} />
           </View>
 
           {/* ── Help ── */}
           <Text style={styles.sectionLabel}>সাহায্য ও তথ্য</Text>
           <View style={styles.card}>
-            <NavRow icon="school-outline" label="সাইবার শিক্ষা" color="#818cf8" onPress={() => navigation.navigate('CyberSafety')} />
-            <View style={styles.divider} />
             <NavRow icon="shield-alert-outline" label="রিপোর্ট করুন" color={Colors.threat} onPress={() => navigation.navigate('CyberReport')} />
             <View style={styles.divider} />
             <NavRow icon="file-document-outline" label="প্রাইভেসি পলিসি" color={Colors.text.tertiary} onPress={() => navigation.navigate('PrivacyPolicy')} />
-            <View style={styles.divider} />
-            <NavRow icon="bug-outline" label="ক্র্যাশ লগ শেয়ার করুন" color={Colors.text.tertiary} onPress={handleShareCrashLog} />
-          </View>
-
-          <View style={styles.aboutCard}>
-             <Icon name="shield-check" size={36} color={Colors.accent} />
-             <Text style={styles.aboutName}>EProhori</Text>
-             <Text style={styles.aboutVer}>{t('settings_version')}</Text>
-             <Text style={styles.aboutText}>{t('settings_about_text')}</Text>
           </View>
         </View>
       </ScrollView>

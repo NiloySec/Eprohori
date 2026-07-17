@@ -10,9 +10,10 @@ import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, Bord
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
 import { NoHistoryIllustration } from '@components';
-import type { HistoryScreenProps } from '@navigation/types';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@navigation/types';
 
-const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
+const HistoryScreen = ({ navigation }: NativeStackScreenProps<RootStackParamList>) => {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [filter, setFilter] = useState<string | null>(null);

@@ -6,14 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { useHistoryStore, useAnalysisStore, useSettingsStore, useSpamNumberStore, useAuthStore, type HistoryEntry } from '@stores';
-import { categorizeSms } from '@utils';
+import { useHistoryStore, useSettingsStore } from '@stores';
 import { useTranslation } from '@hooks';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
-import { DevWarningBanner, DeviceSecurityBanner, NoScansIllustration, Skeleton } from '@components';
+import { DevWarningBanner, DeviceSecurityBanner } from '@components';
 import type { HomeScreenProps } from '@navigation/types';
 
 type MCIcon = React.ComponentProps<typeof Icon>['name'];
@@ -105,32 +104,6 @@ const ServiceItem = ({ icon, label, color, onPress }: {
   </TouchableOpacity>
 );
 
-const HistoryItem = ({ entry, onPress }: { entry: HistoryEntry; onPress: () => void }) => {
-  const t = useTranslation();
-  const conf  = entry.result.confidence;
-  const color = conf >= 75 ? Colors.threat : conf >= 60 ? Colors.suspicious : Colors.safe;
-  const date  = new Date(entry.timestamp).toLocaleDateString('bn-BD', { month: 'short', day: 'numeric' });
-  const cat   = categorizeSms(entry.message);
-
-  return (
-    <TouchableOpacity style={styles.historyItem} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.historyDot, { backgroundColor: color }]} />
-      <View style={styles.historyBody}>
-        <Text style={styles.historyMsg} numberOfLines={1}>{entry.message}</Text>
-        <View style={styles.historyMeta}>
-          <Text style={[styles.historyConf, { color }]}>{Math.round(conf)}{t('home_confident')}</Text>
-          <Text style={styles.historyDate}>{date}</Text>
-        </View>
-      </View>
-      {cat.category !== 'unknown' && (
-        <View style={[styles.miniBadge, { backgroundColor: `${cat.color}15` }]}>
-          <Text style={[styles.miniBadgeText, { color: cat.color }]}>{cat.label_bn}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
-
 // ── Screen ─────────────────────────────────────────────────────────────────────
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
@@ -140,8 +113,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const t = useTranslation();
   const entries           = useHistoryStore((s) => s.entries);
-  const setCurrentMessage = useAnalysisStore((s) => s.setMessage);
-  const setCurrentResult  = useAnalysisStore((s) => s.setResult);
 
   const stats = React.useMemo(() => ({
     today:    entries.filter((e) => e.timestamp >= new Date().setHours(0,0,0,0)).length,
@@ -152,12 +123,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     setRefreshing(true);
     await new Promise((r) => setTimeout(r, 800));
     setRefreshing(false);
-  };
-
-  const handleEntryPress = (entry: HistoryEntry) => {
-    setCurrentMessage(entry.message);
-    setCurrentResult(entry.result);
-    navigation.navigate('ResultDetail');
   };
 
   const securityScore = useSecurityScore();
@@ -178,9 +143,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
               <Text style={styles.brandTitle}>EProhori</Text>
               <View style={styles.liveTag}><View style={styles.liveDot} /><Text style={styles.liveText}>{t('home_live')}</Text></View>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.profileBtn}>
-              <Icon name="cog-outline" size={24} color={Colors.accent} />
-            </TouchableOpacity>
           </View>
 
           <SecurityGauge score={securityScore} />
@@ -265,34 +227,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             />
           </View>
 
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('home_recent_activity')}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('History')}>
-              <Text style={styles.seeAll}>{t('home_see_all')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {refreshing ? (
-            <View style={styles.historyList}>
-              {[1, 2, 3].map(i => (
-                <View key={i} style={{ padding: 18, gap: 10 }}>
-                  <Skeleton width="90%" height={18} />
-                  <Skeleton width="50%" height={14} />
-                </View>
-              ))}
-            </View>
-          ) : entries.length === 0 ? (
-            <View style={styles.empty}>
-              <NoScansIllustration size={100} color="rgba(255,255,255,0.05)" />
-              <Text style={styles.emptyText}>{t('home_empty_scan')}</Text>
-            </View>
-          ) : (
-            <View style={styles.historyList}>
-              {entries.slice(0, 5).map(e => (
-                <HistoryItem key={e.id} entry={e} onPress={() => handleEntryPress(e)} />
-              ))}
-            </View>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>

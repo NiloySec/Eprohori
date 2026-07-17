@@ -1,12 +1,12 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
-import { useHistoryStore, useSettingsStore, useSpamNumberStore, SPAM_CATEGORIES } from '@stores';
+import { useHistoryStore, useSettingsStore, useSpamNumberStore, useAnalysisStore, SPAM_CATEGORIES } from '@stores';
 import { useTranslation } from '@hooks';
 import { threatAnalysisAPI, DistrictStat } from '@api';
-import { DistrictSkeleton, RadarEmptyIllustration, CollapsibleSection } from '@components';
+import { DistrictSkeleton, RadarEmptyIllustration, NoHistoryIllustration, CollapsibleSection } from '@components';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
 
 let Colors: ThemeColors = DarkColors;
@@ -31,6 +31,13 @@ const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const t = useTranslation();
   const entries = useHistoryStore((s) => s.entries);
+  const getFilteredEntries = useHistoryStore((s) => s.getFilteredEntries);
+  const removeEntry        = useHistoryStore((s) => s.removeEntry);
+  const clearHistory       = useHistoryStore((s) => s.clearHistory);
+  const setAnalysisMessage = useAnalysisStore((s) => s.setMessage);
+  const setResult          = useAnalysisStore((s) => s.setResult);
+  const [historyFilter, setHistoryFilter] = useState<string | null>(null);
+  const filteredEntries = useMemo(() => getFilteredEntries(historyFilter ?? undefined), [historyFilter, getFilteredEntries]);
   const [districts,     setDistricts]     = useState<DistrictStat[]>([]);
   const [districtError, setDistrictError] = useState(false);
   const [districtLoad,  setDistrictLoad]  = useState(true);
@@ -233,37 +240,81 @@ const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
             </View>
           )}
 
-          {/* ── Recent detections ── */}
-          {entries.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>{t('monitor_recent')}</Text>
-              {entries.slice(0, 6).map((entry) => {
-                const conf  = entry.result.confidence;
-                const color = conf >= 75 ? Colors.threat : conf >= 60 ? Colors.suspicious : Colors.safe;
-                return (
-                  <View key={entry.id} style={styles.recentCard}>
-                    <View style={[styles.recentDot, { backgroundColor: color }]} />
-                    <View style={styles.recentBody}>
-                      <Text style={styles.recentMsg} numberOfLines={1}>{entry.message}</Text>
-                      <View style={styles.recentMeta}>
-                        <View style={[styles.badge, { backgroundColor: `${color}20` }]}>
-                          <Text style={[styles.badgeText, { color }]}>{entry.result.threat_type}</Text>
-                        </View>
-                        <Text style={styles.recentPct}>{Math.round(conf)}%</Text>
+          {/* ── History ── */}
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>{t('history_title')}</Text>
+            {entries.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearHistBtn}
+                onPress={() => {
+                  Alert.alert(t('history_confirm_title'), t('history_confirm_msg'), [
+                    { text: t('history_cancel'), style: 'cancel' },
+                    { text: t('history_delete'), style: 'destructive', onPress: () => clearHistory() },
+                  ]);
+                }}
+              >
+                <Icon name="delete-sweep-outline" size={18} color={Colors.threat} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
+            {([
+              { key: null,        label: t('tab_history'),   icon: 'history' },
+              { key: 'phishing',  label: t('type_phishing'), icon: 'fish' },
+              { key: 'scam',      label: t('type_scam'),     icon: 'currency-usd-off' },
+              { key: 'fraud',     label: t('type_fraud'),    icon: 'alert-octagon' },
+              { key: 'safe',      label: t('type_safe'),     icon: 'check-circle' },
+            ] as const).map((f) => {
+              const active = historyFilter === f.key;
+              return (
+                <TouchableOpacity key={String(f.key)} style={[styles.chip, active && styles.chipActive]} onPress={() => setHistoryFilter(f.key)}>
+                  <Icon name={f.icon as any} size={13} color={active ? Colors.primary : Colors.text.tertiary} />
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {filteredEntries.length === 0 ? (
+            <View style={styles.emptyBox}>
+              {entries.length === 0
+                ? <><RadarEmptyIllustration color={Colors.accent} size={120} /><Text style={styles.emptyText}>{t('monitor_empty')}</Text><Text style={styles.emptyHint}>{t('monitor_empty_hint')}</Text></>
+                : <><NoHistoryIllustration color={Colors.accent} size={100} /><Text style={styles.emptyText}>{t('history_empty')}</Text></>
+              }
+            </View>
+          ) : (
+            filteredEntries.map((entry) => {
+              const conf  = entry.result.confidence;
+              const color = conf >= 75 ? Colors.threat : conf >= 60 ? Colors.suspicious : Colors.safe;
+              const icon  = conf >= 75 ? 'alert-circle' : conf >= 60 ? 'alert' : 'check-circle';
+              const date  = new Date(entry.timestamp).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
+              return (
+                <TouchableOpacity
+                  key={entry.id}
+                  style={styles.histCard}
+                  activeOpacity={0.75}
+                  onPress={() => { setAnalysisMessage(entry.message); setResult(entry.result); navigation.navigate('ResultDetail'); }}
+                >
+                  <View style={[styles.histAccent, { backgroundColor: color }]} />
+                  <View style={[styles.histIconBox, { backgroundColor: `${color}18` }]}>
+                    <Icon name={icon as any} size={18} color={color} />
+                  </View>
+                  <View style={styles.histBody}>
+                    <Text style={styles.histMsg} numberOfLines={2}>{entry.message}</Text>
+                    <View style={styles.histMeta}>
+                      <View style={[styles.badge, { backgroundColor: `${color}20` }]}>
+                        <Text style={[styles.badgeText, { color }]}>{entry.result.threat_type} · {Math.round(conf)}%</Text>
                       </View>
+                      <Text style={styles.histDate}>{date}</Text>
                     </View>
                   </View>
-                );
-              })}
-            </>
-          )}
-
-          {entries.length === 0 && (
-            <View style={styles.emptyBox}>
-              <RadarEmptyIllustration color={Colors.accent} size={120} />
-              <Text style={styles.emptyText}>{t('monitor_empty')}</Text>
-              <Text style={styles.emptyHint}>{t('monitor_empty_hint')}</Text>
-            </View>
+                  <TouchableOpacity style={styles.histDelBtn} onPress={() => removeEntry(entry.id)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <Icon name="close" size={16} color={Colors.text.tertiary} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -361,6 +412,31 @@ const makeStyles = (Colors: ThemeColors) => StyleSheet.create({
   leaderCat:   { ...TextStyles.caption, color: Colors.text.tertiary },
   leaderBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   leaderCount: { fontSize: 11, fontWeight: '700' },
+
+  clearHistBtn: { width: 36, height: 36, borderRadius: 9, backgroundColor: Colors.threatGlow, justifyContent: 'center', alignItems: 'center' },
+  filterScroll: { flexGrow: 0, marginBottom: Spacing.md },
+  filterRow:    { gap: Spacing.sm },
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: Spacing.md, paddingVertical: 7,
+    borderRadius: BorderRadius.full, backgroundColor: Colors.secondary,
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  chipActive:     { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  chipText:       { ...TextStyles.caption, color: Colors.text.tertiary, fontWeight: '600' },
+  chipTextActive: { color: Colors.primary },
+  histCard: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.secondary,
+    borderRadius: BorderRadius.lg, marginBottom: Spacing.sm, overflow: 'hidden',
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  histAccent:  { width: 4, alignSelf: 'stretch' },
+  histIconBox: { width: 36, height: 36, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginLeft: Spacing.sm },
+  histBody:    { flex: 1, padding: Spacing.md },
+  histMsg:     { ...TextStyles.body, color: Colors.text.primary, marginBottom: 6 },
+  histMeta:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  histDate:    { ...TextStyles.caption, color: Colors.text.tertiary },
+  histDelBtn:  { padding: Spacing.md },
 });
 
 export default MonitorScreen;

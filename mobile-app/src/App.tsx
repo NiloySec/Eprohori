@@ -268,7 +268,7 @@ function App() {
         } else if (data?.screen === 'FraudAlerts') {
           navigationRef.navigate('FraudAlerts');
         } else if (data?.screen === 'History') {
-          navigationRef.navigate('MainTabs', { screen: 'History' });
+          navigationRef.navigate('MainTabs', { screen: 'Monitor' });
         }
       });
     };

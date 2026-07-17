@@ -310,26 +310,19 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 badge={`${activeCount}/${layers.length} ${t('result_layers_active')}`}
               >
                 <View style={styles.layerCard}>
-                  {layers.map((layer) => (
-                    <View key={layer.id} style={[styles.layerRow, layer.active && styles.layerRowActive]}>
-                      <View style={[styles.layerIconWrap, { backgroundColor: layer.active ? `${layer.color}25` : `${Colors.text.tertiary}12` }]}>
-                        <Icon name={layer.icon} size={16} color={layer.active ? layer.color : Colors.text.tertiary} />
+                  {layers.filter((l) => l.active).map((layer) => (
+                    <View key={layer.id} style={[styles.layerRow, styles.layerRowActive]}>
+                      <View style={[styles.layerIconWrap, { backgroundColor: `${layer.color}25` }]}>
+                        <Icon name={layer.icon} size={16} color={layer.color} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.layerName, { color: layer.active ? Colors.text.primary : Colors.text.tertiary }]}>
-                          {t('result_layer_prefix')} {layer.id}: {layer.name}
+                        <Text style={[styles.layerName, { color: Colors.text.primary }]}>
+                          {layer.name}
                         </Text>
                         <Text style={styles.layerDesc}>{layer.desc}</Text>
                       </View>
-                      <View style={[styles.layerStatus, { backgroundColor: layer.active ? `${layer.color}20` : `${Colors.text.tertiary}12` }]}>
-                        <Icon
-                          name={layer.active ? 'check-circle' : 'minus-circle-outline'}
-                          size={14}
-                          color={layer.active ? layer.color : Colors.text.tertiary}
-                        />
-                        <Text style={[styles.layerStatusText, { color: layer.active ? layer.color : Colors.text.tertiary }]}>
-                          {layer.active ? t('result_layer_active') : t('result_layer_inactive')}
-                        </Text>
+                      <View style={[styles.layerStatus, { backgroundColor: `${layer.color}20` }]}>
+                        <Icon name="check-circle" size={14} color={layer.color} />
                       </View>
                     </View>
                   ))}

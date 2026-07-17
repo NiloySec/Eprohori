@@ -46,7 +46,7 @@ export async function checkWeeklyDigest(): Promise<void> {
     content: {
       title: '🛡️ সাপ্তাহিক নিরাপত্তা সারসংক্ষেপ',
       body:  `এই সপ্তাহে: ${parts.join(' · ')} — EProhori আপনাকে সুরক্ষিত রেখেছে!`,
-      data:  { screen: 'History' },
+      data:  { screen: 'Monitor' },
     },
     trigger: null,
   }).catch(() => {});

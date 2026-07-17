@@ -29,13 +29,11 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
   const [message,      setMessage]      = useState('');
-  const [lang,         setLang]         = useState<'bn' | 'en'>('bn');
   const [loading,      setLoading]      = useState(false);
   const [focused,      setFocused]      = useState(false);
   const [error,        setError]        = useState<string | null>(null);
   const [inputMode,    setInputMode]    = useState<InputMode>('text');
-  const [waTutorialOpen, setWaTutorialOpen] = useState(false);
-  const [ocrBusy, setOcrBusy] = useState(false); // N5: screenshot OCR in progress
+  const [ocrBusy, setOcrBusy] = useState(false);
   const lastAnalyzeRef = useRef(0); // M8: debounce — prevent rapid fire
 
   // Micro-interaction: Scale animation for analyze button
@@ -164,7 +162,8 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
     try {
       const query = inputMode === 'phone' ? `ফোন নম্বর চেক করুন: ${text}` : text;
       setAnalysisMessage(text);
-      const result = await threatAnalysisAPI.analyzeThreat(query, lang, 3, privacyModeEnabled);
+      const settingsLang = useSettingsStore.getState().language;
+      const result = await threatAnalysisAPI.analyzeThreat(query, settingsLang, 3, privacyModeEnabled);
       setResult(result);
       addHistory(text, result);
 
@@ -270,81 +269,21 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
             </View>
           </View>
 
-          {/* ── Multi-source hint (text mode) ── */}
-          {inputMode === 'text' && (
-            <>
-              <View style={styles.sourceRow}>
-                <Text style={styles.sourceLabel}>যেকোনো অ্যাপ থেকে কপি করুন:</Text>
-                <View style={styles.sourceChips}>
-                  {[
-                    { icon: 'message-text-outline' as const, color: Colors.accent, name: 'SMS' },
-                    { icon: 'whatsapp' as const, color: '#4ade80', name: 'WhatsApp' },
-                    { icon: 'send-outline' as const, color: '#38bdf8', name: 'Telegram' },
-                    { icon: 'facebook-messenger' as const, color: '#818cf8', name: 'Messenger' },
-                    { icon: 'email-outline' as const, color: Colors.text.tertiary, name: 'Email' },
-                  ].map((s) => (
-                    <View key={s.name} style={styles.sourceChip}>
-                      <Icon name={s.icon} size={13} color={s.color} />
-                      <Text style={styles.sourceChipText}>{s.name}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              {/* ── N5: Screenshot OCR ── */}
-              {isOcrAvailable() && (
-                <TouchableOpacity
-                  style={[styles.ocrBtn, ocrBusy && { opacity: 0.6 }]}
-                  onPress={handleScreenshotScan}
-                  disabled={ocrBusy || loading}
-                  activeOpacity={0.8}
-                >
-                  {ocrBusy
-                    ? <ActivityIndicator size="small" color="#22d3ee" />
-                    : <Icon name="image-search-outline" size={18} color="#22d3ee" />}
-                  <Text style={styles.ocrBtnText}>
-                    {ocrBusy ? 'লেখা বের করা হচ্ছে...' : 'স্ক্রিনশট থেকে স্ক্যান করুন'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              {/* ── WhatsApp Tutorial Card ── */}
-              <TouchableOpacity
-                style={styles.waTutCard}
-                onPress={() => setWaTutorialOpen((v) => !v)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.waTutHeader}>
-                  <View style={styles.waTutTitleRow}>
-                    <Icon name="whatsapp" size={15} color="#4ade80" />
-                    <Text style={styles.waTutTitle}>WhatsApp বার্তা কিভাবে স্ক্যান করবেন?</Text>
-                  </View>
-                  <Icon
-                    name={waTutorialOpen ? 'chevron-up' : 'chevron-down'}
-                    size={16} color="#4ade80"
-                  />
-                </View>
-                {waTutorialOpen && (
-                  <View style={styles.waTutSteps}>
-                    {[
-                      { num: '১', text: 'WhatsApp বার্তাটি খুলুন → বার্তার উপর চাপ ধরুন' },
-                      { num: '২', text: '"কপি" বা "Copy" বাটনে চাপুন' },
-                      { num: '৩', text: 'EProhori-এ ফিরে আসুন → এখানে পেস্ট করুন → বিশ্লেষণ করুন' },
-                    ].map((step) => (
-                      <View key={step.num} style={styles.waTutStep}>
-                        <View style={styles.waTutNum}>
-                          <Text style={styles.waTutNumText}>{step.num}</Text>
-                        </View>
-                        <Text style={styles.waTutStepText}>{step.text}</Text>
-                      </View>
-                    ))}
-                    <Text style={styles.waTutTip}>
-                      টিপ: WhatsApp → বার্তায় হোল্ড → শেয়ার → EProhori ব্যবহার করলে স্বয়ংক্রিয়ভাবে পাঠানো যায়
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </>
+          {/* ── N5: Screenshot OCR (text mode) ── */}
+          {inputMode === 'text' && isOcrAvailable() && (
+            <TouchableOpacity
+              style={[styles.ocrBtn, ocrBusy && { opacity: 0.6 }]}
+              onPress={handleScreenshotScan}
+              disabled={ocrBusy || loading}
+              activeOpacity={0.8}
+            >
+              {ocrBusy
+                ? <ActivityIndicator size="small" color="#22d3ee" />
+                : <Icon name="image-search-outline" size={18} color="#22d3ee" />}
+              <Text style={styles.ocrBtnText}>
+                {ocrBusy ? 'লেখা বের করা হচ্ছে...' : 'স্ক্রিনশট থেকে স্ক্যান করুন'}
+              </Text>
+            </TouchableOpacity>
           )}
 
           {/* ── Input ── */}
@@ -375,25 +314,6 @@ const AnalyzerScreen = ({ navigation }: AnalyzerScreenProps) => {
               <Icon name="close-circle" size={16} color={Colors.text.tertiary} />
               <Text style={styles.clearText}>{t('analyzer_clear')}</Text>
             </TouchableOpacity>
-          )}
-
-          {/* ── Language (text mode only) ── */}
-          {inputMode === 'text' && (
-            <>
-              <Text style={styles.label}>{t('analyzer_lang_label')}</Text>
-              <View style={styles.langRow}>
-                {([['bn', '🇧🇩  বাংলা'], ['en', '🇺🇸  English']] as const).map(([val, lbl]) => (
-                  <TouchableOpacity
-                    key={val}
-                    style={[styles.langBtn, lang === val && styles.langBtnActive]}
-                    onPress={() => setLang(val)}
-                    disabled={loading}
-                  >
-                    <Text style={[styles.langBtnText, lang === val && styles.langBtnTextActive]}>{lbl}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
           )}
 
           {/* ── Error ── */}

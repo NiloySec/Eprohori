@@ -30,7 +30,6 @@ export type TabParamList = {
   Home:     undefined;
   Analyzer: undefined;
   Monitor:  undefined;
-  History:  undefined;
   Settings: undefined;
 };
 
@@ -53,5 +52,4 @@ export type LinkCheckScreenProps       = NativeStackScreenProps<RootStackParamLi
 export type HomeScreenProps     = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Home'>,     NativeStackScreenProps<RootStackParamList>>;
 export type AnalyzerScreenProps = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Analyzer'>, NativeStackScreenProps<RootStackParamList>>;
 export type MonitorScreenProps  = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Monitor'>,  NativeStackScreenProps<RootStackParamList>>;
-export type HistoryScreenProps  = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'History'>,  NativeStackScreenProps<RootStackParamList>>;
 export type SettingsScreenProps = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Settings'>, NativeStackScreenProps<RootStackParamList>>;

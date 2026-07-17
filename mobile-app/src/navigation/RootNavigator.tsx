@@ -10,7 +10,7 @@ import { ClipboardGuardBanner } from '@components';
 import type { RootStackParamList, TabParamList } from './types';
 
 import {
-  HomeScreen, AnalyzerScreen, MonitorScreen, HistoryScreen, SettingsScreen,
+  HomeScreen, AnalyzerScreen, MonitorScreen, SettingsScreen,
   ResultScreen, BlocklistScreen, CommunityReportScreen,
   OnboardingScreen, LoginScreen, SignupScreen, AdminDashboardScreen,
   CallerIDScreen, SpamDirectoryScreen, CallLogScreen,
@@ -26,7 +26,6 @@ const ICONS: Record<string, { active: MCIcon; inactive: MCIcon }> = {
   Home:     { active: 'home',    inactive: 'home-outline' },
   Analyzer: { active: 'magnify', inactive: 'magnify' },
   Monitor:  { active: 'map',     inactive: 'map-outline' },
-  History:  { active: 'history', inactive: 'history' },
   Settings: { active: 'cog',     inactive: 'cog-outline' },
 };
 
@@ -45,7 +44,6 @@ const linking: LinkingOptions<RootStackParamList> = {
         screens: {
           Analyzer: 'analyze',
           Monitor:  'monitor',
-          History:  'history',
         },
       },
       CallerID:    'callerid',
@@ -87,7 +85,6 @@ const TabNavigator = () => {
       <Tab.Screen name="Home"     component={HomeScreen}     options={{ tabBarLabel: t('tab_home') }} />
       <Tab.Screen name="Analyzer" component={AnalyzerScreen} options={{ tabBarLabel: t('tab_analyzer') }} />
       <Tab.Screen name="Monitor"  component={MonitorScreen}  options={{ tabBarLabel: t('tab_monitor') }} />
-      <Tab.Screen name="History"  component={HistoryScreen}  options={{ tabBarLabel: t('tab_history') }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarLabel: t('tab_settings') }} />
     </Tab.Navigator>
   );

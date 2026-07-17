@@ -586,9 +586,9 @@ const translations = {
     result_layer3_desc: 'উচ্চ-নিশ্চয়তা যাচাইকরণ',
     result_layer4_name: 'ফলব্যাক সুরক্ষা',
     result_layer4_desc: 'স্থানীয় প্যাটার্ন মিলান',
-    result_layers_title: 'AI সুরক্ষা স্তর',
+    result_layers_title: 'EProhori সুরক্ষা',
     result_layers_active: 'সক্রিয়',
-    result_layer_prefix: 'স্তর',
+    result_layer_prefix: '',
     result_layer_active: 'সক্রিয়',
     result_layer_inactive: 'নিষ্ক্রিয়',
 
@@ -1183,9 +1183,9 @@ const translations = {
     result_layer3_desc: 'High-certainty verification',
     result_layer4_name: 'Fallback Protection',
     result_layer4_desc: 'Local pattern matching',
-    result_layers_title: 'AI Defense Layers',
+    result_layers_title: 'EProhori Protection',
     result_layers_active: 'active',
-    result_layer_prefix: 'Layer',
+    result_layer_prefix: '',
     result_layer_active: 'Active',
     result_layer_inactive: 'Inactive',
 

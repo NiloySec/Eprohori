@@ -8,6 +8,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useTranslation } from '@hooks';
+
+type TFunc = ReturnType<typeof useTranslation>;
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -38,29 +41,30 @@ const TYPE_ICON: Record<string, { icon: string; color: string }> = {
   unknown:  { icon: 'phone',          color: Colors.text.tertiary },
 };
 
-function fmtDuration(sec: number): string {
+function fmtDuration(sec: number, t: TFunc): string {
   if (sec <= 0) return '';
   const m = Math.floor(sec / 60);
   const s = sec % 60;
-  return m > 0 ? `${m}মি ${s}সে` : `${s}সে`;
+  return m > 0 ? `${m}${t('calllog_min_short')} ${s}${t('calllog_sec_short')}` : `${s}${t('calllog_sec_short')}`;
 }
 
-function fmtDate(ts: number): string {
+function fmtDate(ts: number, t: TFunc): string {
   const d  = new Date(ts);
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffH  = diffMs / 3600000;
-  if (diffH < 1)  return `${Math.floor(diffMs / 60000)} মিনিট আগে`;
-  if (diffH < 24) return `${Math.floor(diffH)} ঘণ্টা আগে`;
+  if (diffH < 1)  return `${Math.floor(diffMs / 60000)} ${t('calllog_min_ago')}`;
+  if (diffH < 24) return `${Math.floor(diffH)} ${t('calllog_hour_ago')}`;
   const diffD = Math.floor(diffH / 24);
-  if (diffD === 1) return 'গতকাল';
-  if (diffD < 7)   return `${diffD} দিন আগে`;
+  if (diffD === 1) return t('calllog_yesterday');
+  if (diffD < 7)   return `${diffD} ${t('calllog_day_ago')}`;
   return d.toLocaleDateString('bn-BD');
 }
 
 const CallLogScreen = ({ navigation }: Props) => {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const [calls, setCalls]       = useState<CallEntry[]>([]);
   const [loading, setLoading]   = useState(false);
   const [hasPermission, setPerm] = useState<boolean | null>(null);
@@ -74,9 +78,9 @@ const CallLogScreen = ({ navigation }: Props) => {
       const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.READ_CALL_LOG,
         {
-          title:   'কল লগ অনুমতি',
-          message: 'EProhori কল লগ পড়তে চায় যাতে স্প্যাম কলের বিশ্লেষণ করতে পারে।',
-          buttonPositive: 'অনুমতি দিন',
+          title:   t('calllog_perm_title'),
+          message: t('calllog_perm_msg'),
+          buttonPositive: t('calllog_perm_grant'),
         }
       );
       const ok = granted === PermissionsAndroid.RESULTS.GRANTED;
@@ -84,14 +88,14 @@ const CallLogScreen = ({ navigation }: Props) => {
       if (!ok) { setLoading(false); return; }
 
       if (!CallLogReader) {
-        Alert.alert('', 'CallLogReader native module not available (Expo Go).');
+        Alert.alert('', t('calllog_native_unavailable'));
         setLoading(false);
         return;
       }
       const data: CallEntry[] = await CallLogReader.getRecentCalls(100);
       setCalls(data);
     } catch (e: any) {
-      Alert.alert('ত্রুটি', e?.message ?? 'কল লগ লোড হয়নি');
+      Alert.alert(t('calllog_err_title'), e?.message ?? t('calllog_load_failed'));
     } finally {
       setLoading(false);
     }
@@ -132,20 +136,20 @@ const CallLogScreen = ({ navigation }: Props) => {
             {isKnownTag && (
               <View style={styles.knownBadge}>
                 <Icon name="check-circle" size={10} color={Colors.safe} />
-                <Text style={styles.knownBadgeText}>পরিচিত</Text>
+                <Text style={styles.knownBadgeText}>{t('calllog_known')}</Text>
               </View>
             )}
           </View>
           <View style={styles.metaRow}>
             <Text style={[styles.typeLabel, { color: meta.color }]}>
-              {item.type === 'incoming' ? 'ইনকামিং' :
-               item.type === 'outgoing' ? 'আউটগোয়িং' :
-               item.type === 'missed'   ? 'মিসড' :
-               item.type === 'rejected' ? 'রিজেক্ট' :
-               item.type === 'blocked'  ? 'ব্লকড' : 'অজানা'}
+              {item.type === 'incoming' ? t('calllog_type_incoming') :
+               item.type === 'outgoing' ? t('calllog_type_outgoing') :
+               item.type === 'missed'   ? t('calllog_type_missed') :
+               item.type === 'rejected' ? t('calllog_type_rejected') :
+               item.type === 'blocked'  ? t('calllog_type_blocked') : t('calllog_type_unknown')}
             </Text>
             {item.duration > 0 && (
-              <Text style={styles.duration}> · {fmtDuration(item.duration)}</Text>
+              <Text style={styles.duration}> · {fmtDuration(item.duration, t)}</Text>
             )}
             {division && (
               <Text style={styles.division}> · {division}</Text>
@@ -162,7 +166,7 @@ const CallLogScreen = ({ navigation }: Props) => {
         </View>
 
         {/* Time */}
-        <Text style={styles.time}>{fmtDate(item.date)}</Text>
+        <Text style={styles.time}>{fmtDate(item.date, t)}</Text>
       </TouchableOpacity>
     );
   };
@@ -178,8 +182,8 @@ const CallLogScreen = ({ navigation }: Props) => {
             <Icon name="phone-log" size={24} color={Colors.accent} />
           </View>
           <View>
-            <Text style={styles.title}>কল লগ</Text>
-            <Text style={styles.subtitle}>স্প্যাম স্কোরসহ সাম্প্রতিক কল</Text>
+            <Text style={styles.title}>{t('calllog_title')}</Text>
+            <Text style={styles.subtitle}>{t('calllog_subtitle')}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -187,17 +191,17 @@ const CallLogScreen = ({ navigation }: Props) => {
       {loading && (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={Colors.accent} />
-          <Text style={styles.loadingText}>কল লগ লোড হচ্ছে…</Text>
+          <Text style={styles.loadingText}>{t('calllog_loading')}</Text>
         </View>
       )}
 
       {!loading && hasPermission === false && (
         <View style={styles.center}>
           <Icon name="phone-lock" size={48} color={Colors.text.tertiary} />
-          <Text style={styles.emptyTitle}>অনুমতি প্রয়োজন</Text>
-          <Text style={styles.emptyText}>কল লগ দেখতে READ_CALL_LOG অনুমতি দিন।</Text>
+          <Text style={styles.emptyTitle}>{t('calllog_perm_needed')}</Text>
+          <Text style={styles.emptyText}>{t('calllog_perm_needed_desc')}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={requestAndLoad}>
-            <Text style={styles.retryText}>আবার চেষ্টা করুন</Text>
+            <Text style={styles.retryText}>{t('calllog_retry')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -205,8 +209,8 @@ const CallLogScreen = ({ navigation }: Props) => {
       {!loading && hasPermission && calls.length === 0 && (
         <View style={styles.center}>
           <Icon name="phone-off" size={48} color={Colors.text.tertiary} />
-          <Text style={styles.emptyTitle}>কোনো কল নেই</Text>
-          <Text style={styles.emptyText}>কল লগ খালি।</Text>
+          <Text style={styles.emptyTitle}>{t('calllog_no_calls')}</Text>
+          <Text style={styles.emptyText}>{t('calllog_no_calls_desc')}</Text>
         </View>
       )}
 

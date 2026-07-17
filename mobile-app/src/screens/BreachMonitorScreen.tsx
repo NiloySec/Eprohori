@@ -25,7 +25,7 @@ const BreachMonitorScreen = () => {
       const data = await response.json();
       setResult(data);
     } catch (e) {
-      Alert.alert('', 'চেক করা সম্ভব হয়নি');
+      Alert.alert('', t('breach_check_failed'));
     } finally {
       setLoading(false);
     }

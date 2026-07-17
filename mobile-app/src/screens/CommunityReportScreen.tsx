@@ -9,6 +9,7 @@ import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { threatAnalysisAPI, CommunityReportRequest } from '@api';
 import { useTranslation } from '@hooks';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius, Shadows } from '@theme';
+import type { TKeys } from '@utils';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -17,21 +18,21 @@ import type { CommunityReportScreenProps } from '@navigation/types';
 type Platform = CommunityReportRequest['platform'];
 type ThreatType = CommunityReportRequest['threat_type'];
 
-const PLATFORMS: { key: Platform; label: string; icon: string }[] = [
+const PLATFORMS: { key: Platform; label: string; labelKey?: TKeys; icon: string }[] = [
   { key: 'SMS',      label: 'SMS',       icon: 'message-text' },
   { key: 'WhatsApp', label: 'WhatsApp',  icon: 'whatsapp' },
   { key: 'Telegram', label: 'Telegram',  icon: 'telegram' },
-  { key: 'Email',    label: 'ইমেইল',    icon: 'email' },
-  { key: 'Call',     label: 'ফোন কল',   icon: 'phone' },
-  { key: 'Other',    label: 'অন্যান্য', icon: 'dots-horizontal' },
+  { key: 'Email',    label: 'Email',     labelKey: 'community_platform_email', icon: 'email' },
+  { key: 'Call',     label: 'Call',      labelKey: 'community_platform_call',  icon: 'phone' },
+  { key: 'Other',    label: 'Other',     labelKey: 'community_platform_other', icon: 'dots-horizontal' },
 ];
 
-const THREAT_TYPES: { key: ThreatType; label: string; color: string }[] = [
-  { key: 'phishing', label: 'ফিশিং',    color: Colors.threat },
-  { key: 'scam',     label: 'স্কাম',    color: Colors.suspicious },
-  { key: 'fraud',    label: 'জালিয়াতি', color: Colors.threat },
-  { key: 'spam',     label: 'স্প্যাম',  color: Colors.suspicious },
-  { key: 'other',    label: 'অন্যান্য', color: Colors.text.tertiary },
+const THREAT_TYPES: { key: ThreatType; label: string; labelKey: TKeys; color: string }[] = [
+  { key: 'phishing', label: 'Phishing',  labelKey: 'community_cat_phishing', color: Colors.threat },
+  { key: 'scam',     label: 'Scam',      labelKey: 'community_cat_scam',     color: Colors.suspicious },
+  { key: 'fraud',    label: 'Fraud',     labelKey: 'community_cat_fraud',    color: Colors.threat },
+  { key: 'spam',     label: 'Spam',      labelKey: 'community_cat_spam',     color: Colors.suspicious },
+  { key: 'other',    label: 'Other',     labelKey: 'community_cat_other',    color: Colors.text.tertiary },
 ];
 
 const CommunityReportScreen = ({ navigation }: CommunityReportScreenProps) => {
@@ -95,7 +96,7 @@ const CommunityReportScreen = ({ navigation }: CommunityReportScreenProps) => {
                   onPress={() => setPlatform(p.key)}
                 >
                   <Icon name={p.icon as any} size={15} color={active ? Colors.primary : Colors.text.tertiary} />
-                  <Text style={[styles.platformChipText, active && styles.platformChipTextActive]}>{p.label}</Text>
+                  <Text style={[styles.platformChipText, active && styles.platformChipTextActive]}>{p.labelKey ? t(p.labelKey) : p.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -112,7 +113,7 @@ const CommunityReportScreen = ({ navigation }: CommunityReportScreenProps) => {
                   style={[styles.typeChip, active && { backgroundColor: `${tt.color}25`, borderColor: tt.color }]}
                   onPress={() => setThreatType(tt.key)}
                 >
-                  <Text style={[styles.typeChipText, active && { color: tt.color, fontWeight: '700' }]}>{tt.label}</Text>
+                  <Text style={[styles.typeChipText, active && { color: tt.color, fontWeight: '700' }]}>{t(tt.labelKey)}</Text>
                 </TouchableOpacity>
               );
             })}

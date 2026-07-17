@@ -5,6 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useThemeColors, DarkColors, type ThemeColors, TextStyles, Spacing, BorderRadius } from '@theme';
+import { useTranslation } from '@hooks';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
@@ -13,6 +14,7 @@ import { threatAnalysisAPI } from '@api';
 export default function AdminDashboardScreen({ navigation }: any) {
   Colors = useThemeColors();
   styles = React.useMemo(() => makeStyles(Colors), [Colors]);
+  const t = useTranslation();
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,9 +44,9 @@ export default function AdminDashboardScreen({ navigation }: any) {
         await threatAnalysisAPI.rejectThreat(id);
       }
       setPending(prev => prev.filter(item => item.id !== id));
-      Alert.alert('সফল', action === 'verify' ? 'থ্রেটটি অনুমোদিত হয়েছে' : 'থ্রেটটি বাতিল করা হয়েছে');
+      Alert.alert(t('admin_success'), action === 'verify' ? t('admin_verify_ok') : t('admin_reject_ok'));
     } catch (err) {
-      Alert.alert('ব্যর্থ', 'অ্যাকশন সম্পন্ন করা যায়নি');
+      Alert.alert(t('admin_failed'), t('admin_action_failed'));
     }
   };
 
@@ -80,7 +82,7 @@ export default function AdminDashboardScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={24} color={Colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.title}>অ্যাডমিন ড্যাশবোর্ড</Text>
+        <Text style={styles.title}>{t('admin_title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -115,7 +117,7 @@ export default function AdminDashboardScreen({ navigation }: any) {
           ListEmptyComponent={
             <View style={styles.empty}>
               <Icon name="shield-check" size={60} color={Colors.text.tertiary} />
-              <Text style={styles.emptyText}>কোনো পেন্ডিং রিপোর্ট নেই</Text>
+              <Text style={styles.emptyText}>{t('admin_empty')}</Text>
             </View>
           }
         />

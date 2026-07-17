@@ -210,7 +210,7 @@ const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
           {/* ── R9: Scam Number Leaderboard ── */}
           {leaderboard.length > 0 && (
             <View style={{ marginBottom: Spacing.xl }}>
-              <CollapsibleSection icon="trophy-outline" title="সর্বাধিক রিপোর্টেড নম্বর" badge={String(leaderboard.length)}>
+              <CollapsibleSection icon="trophy-outline" title={t('monitor_leaderboard_title')} badge={String(leaderboard.length)}>
                 {leaderboard.map((item, i) => {
                   const cat   = SPAM_CATEGORIES[item.category as keyof typeof SPAM_CATEGORIES];
                   const color = i === 0 ? '#fbbf24' : i === 1 ? '#94a3b8' : i === 2 ? '#cd7c2f' : Colors.text.tertiary;
@@ -223,7 +223,7 @@ const MonitorScreen = ({ navigation }: MonitorScreenProps) => {
                       </View>
                       <View style={[styles.leaderBadge, { backgroundColor: `${Colors.threat}18` }]}>
                         <Text style={[styles.leaderCount, { color: Colors.threat }]}>
-                          {item.count} রিপোর্ট
+                          {item.count} {t('monitor_leaderboard_count')}
                         </Text>
                       </View>
                     </View>

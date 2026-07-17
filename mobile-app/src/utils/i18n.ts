@@ -437,6 +437,38 @@ const translations = {
     home_see_all: 'সব দেখুন →',
     home_confident: '% নিশ্চিত',
     home_empty_scan: 'সুরক্ষা নিশ্চিত করতে প্রথম স্ক্যানটি করুন',
+
+    // Monitor screen — leaderboard
+    monitor_leaderboard_title: 'সর্বাধিক রিপোর্টেড নম্বর',
+    monitor_leaderboard_count: 'রিপোর্ট',
+
+    // History screen
+    history_record_count: 'টি রেকর্ড',
+    history_empty_hint: 'বিশ্লেষণ করুন এবং এখানে দেখুন',
+
+    // Blocklist screen
+    blocklist_already_added: 'ইতোমধ্যে আছে',
+    blocklist_remove_confirm: 'মুছে ফেলবেন?',
+    blocklist_active_count: 'টি কীওয়ার্ড সক্রিয়',
+
+    // Community report screen — platform/category chip labels
+    community_platform_email: 'ইমেইল',
+    community_platform_call: 'ফোন কল',
+    community_platform_other: 'অন্যান্য',
+    community_cat_phishing: 'ফিশিং',
+    community_cat_scam: 'স্কাম',
+    community_cat_fraud: 'জালিয়াতি',
+    community_cat_spam: 'স্প্যাম',
+    community_cat_other: 'অন্যান্য',
+
+    // Admin dashboard screen
+    admin_title: 'অ্যাডমিন ড্যাশবোর্ড',
+    admin_verify_ok: 'থ্রেটটি অনুমোদিত হয়েছে',
+    admin_reject_ok: 'থ্রেটটি বাতিল করা হয়েছে',
+    admin_action_failed: 'অ্যাকশন সম্পন্ন করা যায়নি',
+    admin_empty: 'কোনো পেন্ডিং রিপোর্ট নেই',
+    admin_success: 'সফল',
+    admin_failed: 'ব্যর্থ',
   },
   en: {
     tab_home: 'Home',
@@ -861,6 +893,38 @@ const translations = {
     home_see_all: 'See all →',
     home_confident: '% confident',
     home_empty_scan: 'Run your first scan to secure your phone',
+
+    // Monitor screen — leaderboard
+    monitor_leaderboard_title: 'Most reported numbers',
+    monitor_leaderboard_count: 'reports',
+
+    // History screen
+    history_record_count: 'records',
+    history_empty_hint: 'Run an analysis and it will show up here',
+
+    // Blocklist screen
+    blocklist_already_added: 'already added',
+    blocklist_remove_confirm: 'Remove this?',
+    blocklist_active_count: 'keywords active',
+
+    // Community report screen — platform/category chip labels
+    community_platform_email: 'Email',
+    community_platform_call: 'Phone call',
+    community_platform_other: 'Other',
+    community_cat_phishing: 'Phishing',
+    community_cat_scam: 'Scam',
+    community_cat_fraud: 'Fraud',
+    community_cat_spam: 'Spam',
+    community_cat_other: 'Other',
+
+    // Admin dashboard screen
+    admin_title: 'Admin Dashboard',
+    admin_verify_ok: 'Threat approved',
+    admin_reject_ok: 'Threat rejected',
+    admin_action_failed: 'Could not complete the action',
+    admin_empty: 'No pending reports',
+    admin_success: 'Success',
+    admin_failed: 'Failed',
   },
 };
 

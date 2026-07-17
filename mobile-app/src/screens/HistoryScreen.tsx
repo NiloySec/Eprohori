@@ -55,7 +55,7 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.title}>{t('history_title')}</Text>
-            <Text style={styles.subtitle}>{entries.length} টি রেকর্ড</Text>
+            <Text style={styles.subtitle}>{entries.length} {t('history_record_count')}</Text>
           </View>
           {entries.length > 0 && (
             <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
@@ -98,7 +98,7 @@ const HistoryScreen = ({ navigation }: HistoryScreenProps) => {
           <View style={styles.emptyBox}>
             <NoHistoryIllustration color={Colors.accent} size={120} />
             <Text style={styles.emptyTitle}>{t('history_empty')}</Text>
-            <Text style={styles.emptyHint}>বিশ্লেষণ করুন এবং এখানে দেখুন</Text>
+            <Text style={styles.emptyHint}>{t('history_empty_hint')}</Text>
           </View>
         ) : (
           entries.map((entry) => {

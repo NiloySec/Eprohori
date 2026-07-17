@@ -28,7 +28,7 @@ const BlocklistScreen = ({ navigation }: BlocklistScreenProps) => {
     const val = input.trim();
     if (!val) return;
     if (blocklist.includes(val)) {
-      Alert.alert('', t('blocklist_add') + ' — ইতোমধ্যে আছে');
+      Alert.alert('', t('blocklist_add') + ' — ' + t('blocklist_already_added'));
       return;
     }
     addToBlocklist(val);
@@ -36,7 +36,7 @@ const BlocklistScreen = ({ navigation }: BlocklistScreenProps) => {
   };
 
   const handleRemove = (item: string) => {
-    Alert.alert('', `"${item}" মুছে ফেলবেন?`, [
+    Alert.alert('', `"${item}" ${t('blocklist_remove_confirm')}`, [
       { text: t('history_cancel'), style: 'cancel' },
       { text: t('history_delete'), style: 'destructive', onPress: () => removeFromBlocklist(item) },
     ]);
@@ -105,7 +105,7 @@ const BlocklistScreen = ({ navigation }: BlocklistScreenProps) => {
         {blocklist.length > 0 && (
           <View style={styles.countBadge}>
             <Icon name="shield-check" size={14} color={Colors.accent} />
-            <Text style={styles.countText}>{blocklist.length} টি কীওয়ার্ড সক্রিয়</Text>
+            <Text style={styles.countText}>{blocklist.length} {t('blocklist_active_count')}</Text>
           </View>
         )}
       </View>

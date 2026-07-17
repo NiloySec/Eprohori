@@ -59,7 +59,7 @@ FINAL_LAUNCH.*
 extension/*.sh
 extension/icons/*.sh
 mobile-app/android/gradlew*
-mobile-app/android/*.properties
+mobile-app/android/local.properties
 
 
 # Python

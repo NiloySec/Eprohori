@@ -85,7 +85,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "EProhori শুধুমাত্র উচ্চ-ঝুঁকির প্রতারণা সনাক্ত হলে বা SOS চাপলে আপনার Guardian-কে আপনার লোকেশন পাঠানোর জন্য এই অনুমতি ব্যবহার করে।"
         }
-      ]
+      ],
+      "@sentry/react-native"
     ]
   }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,7 +18,7 @@ const BreachMonitorScreen = () => {
       const data = await response.json();
       setResult(data);
     } catch (e) {
-      alert('চেক করা সম্ভব হয়নি');
+      Alert.alert('', 'চেক করা সম্ভব হয়নি');
     } finally {
       setLoading(false);
     }

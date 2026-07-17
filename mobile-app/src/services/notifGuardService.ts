@@ -31,6 +31,7 @@ export const CHAT_GUARD_APPS: { pkg: string; name: string; icon: string }[] = [
   { pkg: 'com.facebook.katana',    name: 'Facebook',  icon: '📘' },
   { pkg: 'com.instagram.android',  name: 'Instagram', icon: '📸' },
   { pkg: 'com.google.android.gm',  name: 'Gmail',     icon: '📧' },
+  { pkg: 'com.linkedin.android',   name: 'LinkedIn',  icon: '💼' },
   { pkg: 'com.viber.voip',         name: 'Viber',     icon: '💜' },
   { pkg: 'com.imo.android.imoim',  name: 'imo',       icon: '🔵' },
 ];

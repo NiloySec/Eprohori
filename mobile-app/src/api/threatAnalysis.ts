@@ -29,6 +29,7 @@ export interface ThreatAnalysisResponse {
   prevention_tips: string[];
   domain_age_days?: number | null;   // from backend WHOIS
   url_features?: UrlFeatures;        // local analysis (subdomain, SSL, IP)
+  source?: string;                   // which backend layer(s) produced this verdict, e.g. "ml", "ml+groq", "virustotal", "fallback"
 }
 
 interface ValidateTextResponse {
@@ -250,6 +251,7 @@ class ThreatAnalysisAPI {
       solution_steps:  steps[threatType] ?? [],
       prevention_tips: tips[threatType]  ?? [],
       url_features:    urlFeatures,
+      source:          'fallback',
     };
   }
 
@@ -258,6 +260,7 @@ class ThreatAnalysisAPI {
     language: 'bn' | 'en' = 'bn',
     retries = 3,
     privacyMode = false,
+    timeoutMs = API_TIMEOUT,
   ): Promise<ThreatAnalysisResponse> {
     const isUrl = /^https?:\/\//i.test(message.trim());
     const payload = { text: message, type: isUrl ? 'url' : 'sms' };
@@ -280,7 +283,8 @@ class ThreatAnalysisAPI {
       try {
         const response = await this.axiosInstance.post<unknown>(
           '/api/validate/text',
-          payload
+          payload,
+          { timeout: timeoutMs }
         );
         // C2: validate API response shape + value ranges before using
         const data = validateApiThreatResponse(response.data);
@@ -304,6 +308,7 @@ class ThreatAnalysisAPI {
           prevention_tips:  tips[threatType]  ?? [],
           domain_age_days:  typeof data.domain_age_days === 'number' ? data.domain_age_days : null,
           url_features:     urlFeatures,
+          source:           typeof data.source === 'string' ? data.source : undefined,
         };
       } catch (error) {
         if (attempt === retries) {

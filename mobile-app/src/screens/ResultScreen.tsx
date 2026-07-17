@@ -241,15 +241,24 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
             </View>
           )}
 
-          {/* ── 4-Layer AI Defense ── */}
+          {/* ── 4-Layer AI Defense ──
+              "active" reflects the real `source` string the backend returned
+              for THIS result (e.g. "ml", "ml+groq", "virustotal", "fallback") —
+              not a guess from the final confidence number. Older cached
+              results saved before this field existed have source=undefined,
+              so they fall back to the pre-existing confidence heuristic. */}
           {(() => {
+            const src = currentResult.source;
+            const has = (needle: string) => src?.includes(needle) ?? false;
+            const isFallback = src === 'fallback' || src === 'unverified' || src === 'heuristic' || src === 'best-effort';
+
             const layers = [
               {
                 id: '0',
                 icon: 'virus-outline' as MCIcon,
                 name: 'VirusTotal স্ক্যান',
                 desc: 'বৈশ্বিক ম্যালওয়্যার ডেটাবেজ',
-                active: !!(currentResult.url_features?.is_url),
+                active: src ? has('virustotal') : !!(currentResult.url_features?.is_url),
                 color: '#a78bfa',
               },
               {
@@ -257,7 +266,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 icon: 'calendar-check-outline' as MCIcon,
                 name: 'ডোমেইন বয়স যাচাই',
                 desc: 'নতুন ডোমেইন = উচ্চ ঝুঁকি',
-                active: currentResult.domain_age_days != null,
+                active: src ? (src === 'whois' || currentResult.domain_age_days != null) : currentResult.domain_age_days != null,
                 color: '#60a5fa',
               },
               {
@@ -265,7 +274,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 icon: 'brain' as MCIcon,
                 name: 'Zero-Shot ML মডেল',
                 desc: 'TF-IDF + লজিস্টিক রিগ্রেশন',
-                active: true,
+                active: src ? has('ml') : true,
                 color: Colors.accent,
               },
               {
@@ -273,7 +282,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 icon: 'robot-outline' as MCIcon,
                 name: 'Groq / Gemma-2',
                 desc: 'দ্রুত প্রসঙ্গ বিশ্লেষণ',
-                active: conf >= 50,
+                active: src ? has('groq') : conf >= 50,
                 color: '#34d399',
               },
               {
@@ -281,7 +290,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 icon: 'google' as MCIcon,
                 name: 'Gemini Flash',
                 desc: 'উচ্চ-নিশ্চয়তা যাচাইকরণ',
-                active: conf >= 70,
+                active: src ? has('gemini') : conf >= 70,
                 color: '#fbbf24',
               },
               {
@@ -289,7 +298,7 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
                 icon: 'shield-half-full' as MCIcon,
                 name: 'ফলব্যাক সুরক্ষা',
                 desc: 'স্থানীয় প্যাটার্ন মিলান',
-                active: true,
+                active: src ? isFallback : true,
                 color: Colors.safe,
               },
             ];

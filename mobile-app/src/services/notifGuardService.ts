@@ -68,10 +68,12 @@ async function handleChatNotif(notif: ChatNotif): Promise<void> {
 
   if (!isSelected) return;
 
-  // P1: Use the same analysis logic as manual scan for consistency.
-  // By default, analyzeThreat will use local analysis if offline or privacy mode is on.
+  // P1: Use the same analysis logic as manual scan for consistency, but with a
+  // short timeout and a single attempt — this runs on every incoming chat
+  // notification, so it must fail over to the local model in a few seconds
+  // rather than the 30s*3-retry budget used for user-initiated scans.
   try {
-    const result = await threatAnalysisAPI.analyzeThreat(notif.text, settings.language);
+    const result = await threatAnalysisAPI.analyzeThreat(notif.text, settings.language, 1, false, 6000);
 
     // Alert if confidence >= 60% (suspicious or threat)
     if (result.confidence >= 60) {

@@ -241,95 +241,17 @@ const ResultScreen = ({ navigation }: ResultDetailScreenProps) => {
             </View>
           )}
 
-          {/* ── 4-Layer AI Defense ──
-              "active" reflects the real `source` string the backend returned
-              for THIS result (e.g. "ml", "ml+groq", "virustotal", "fallback") —
-              not a guess from the final confidence number. Older cached
-              results saved before this field existed have source=undefined,
-              so they fall back to the pre-existing confidence heuristic. */}
-          {(() => {
-            const src = currentResult.source;
-            const has = (needle: string) => src?.includes(needle) ?? false;
-            const isFallback = src === 'fallback' || src === 'unverified' || src === 'heuristic' || src === 'best-effort';
-
-            const layers = [
-              {
-                id: '0',
-                icon: 'virus-outline' as MCIcon,
-                name: t('result_layer0_name'),
-                desc: t('result_layer0_desc'),
-                active: src ? has('virustotal') : !!(currentResult.url_features?.is_url),
-                color: '#a78bfa',
-              },
-              {
-                id: '0.5',
-                icon: 'calendar-check-outline' as MCIcon,
-                name: t('result_layer05_name'),
-                desc: t('result_layer05_desc'),
-                active: src ? (src === 'whois' || currentResult.domain_age_days != null) : currentResult.domain_age_days != null,
-                color: '#60a5fa',
-              },
-              {
-                id: '1',
-                icon: 'brain' as MCIcon,
-                name: t('result_layer1_name'),
-                desc: t('result_layer1_desc'),
-                active: src ? has('ml') : true,
-                color: Colors.accent,
-              },
-              {
-                id: '2',
-                icon: 'robot-outline' as MCIcon,
-                name: 'Groq / Gemma-2',
-                desc: t('result_layer2_desc'),
-                active: src ? has('groq') : conf >= 50,
-                color: '#34d399',
-              },
-              {
-                id: '3',
-                icon: 'google' as MCIcon,
-                name: 'Gemini Flash',
-                desc: t('result_layer3_desc'),
-                active: src ? has('gemini') : conf >= 70,
-                color: '#fbbf24',
-              },
-              {
-                id: '4',
-                icon: 'shield-half-full' as MCIcon,
-                name: t('result_layer4_name'),
-                desc: t('result_layer4_desc'),
-                active: src ? isFallback : true,
-                color: Colors.safe,
-              },
-            ];
-            const activeCount = layers.filter((l) => l.active).length;
-            return (
-              <CollapsibleSection
-                icon="layers-triple"
-                title={t('result_layers_title')}
-                badge={`${activeCount}/${layers.length} ${t('result_layers_active')}`}
-              >
-                <View style={styles.layerCard}>
-                  {layers.filter((l) => l.active).map((layer) => (
-                    <View key={layer.id} style={[styles.layerRow, styles.layerRowActive]}>
-                      <View style={[styles.layerIconWrap, { backgroundColor: `${layer.color}25` }]}>
-                        <Icon name={layer.icon} size={16} color={layer.color} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.layerName, { color: Colors.text.primary }]}>
-                          {layer.name}
-                        </Text>
-                        <Text style={styles.layerDesc}>{layer.desc}</Text>
-                      </View>
-                      <View style={[styles.layerStatus, { backgroundColor: `${layer.color}20` }]}>
-                        <Icon name="check-circle" size={14} color={layer.color} />
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              </CollapsibleSection>
-            );
-          })()}
+          {/* ── EProhori সুরক্ষা ── */}
+          <CollapsibleSection
+            icon="shield-check-outline"
+            title="EProhori সুরক্ষা"
+          >
+            <View style={styles.card}>
+              <Text style={styles.cardBody}>
+                {currentResult.message || t('result_layers_active')}
+              </Text>
+            </View>
+          </CollapsibleSection>
 
           {/* ── Tips ── */}
           {currentResult.prevention_tips && currentResult.prevention_tips.length > 0 && (

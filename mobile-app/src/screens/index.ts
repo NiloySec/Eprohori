@@ -15,7 +15,6 @@ export { default as SpamDirectoryScreen } from './SpamDirectoryScreen';
 export { default as CallLogScreen } from './CallLogScreen';
 export { default as MyReportsScreen } from './MyReportsScreen';
 export { default as CyberReportScreen } from './CyberReportScreen';
-export { default as CyberSafetyScreen } from './CyberSafetyScreen';
 export { default as FraudAlertsScreen } from './FraudAlertsScreen';
 export { default as TrustedContactsScreen } from './TrustedContactsScreen';
 export { default as ScamNewsScreen } from './ScamNewsScreen';

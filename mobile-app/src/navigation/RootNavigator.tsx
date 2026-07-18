@@ -14,7 +14,7 @@ import {
   ResultScreen, BlocklistScreen, CommunityReportScreen,
   OnboardingScreen, LoginScreen, SignupScreen, AdminDashboardScreen,
   CallerIDScreen, SpamDirectoryScreen, CallLogScreen,
-  MyReportsScreen, CyberReportScreen, CyberSafetyScreen, FraudAlertsScreen,
+  MyReportsScreen, CyberReportScreen, FraudAlertsScreen,
   TrustedContactsScreen, ScamNewsScreen,
   LinkCheckScreen,
   BreachMonitorScreen, LegalSupportScreen, PrivacyPolicyScreen
@@ -117,7 +117,6 @@ export const RootNavigator = () => {
         <Stack.Screen name="CallLog"         component={CallLogScreen} />
         <Stack.Screen name="MyReports"       component={MyReportsScreen} />
         <Stack.Screen name="CyberReport"     component={CyberReportScreen} />
-        <Stack.Screen name="CyberSafety"     component={CyberSafetyScreen} />
         <Stack.Screen name="FraudAlerts"     component={FraudAlertsScreen} />
         <Stack.Screen name="TrustedContacts" component={TrustedContactsScreen} />
         <Stack.Screen name="ScamNews"        component={ScamNewsScreen} />

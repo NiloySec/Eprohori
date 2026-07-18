@@ -142,7 +142,9 @@
       "Bash(curl -s -I \"https://eprohori-production.up.railway.app/\")",
       "mcp__visualize__read_me",
       "mcp__visualize__show_widget",
-      "PowerShell(New-Item -ItemType Directory -Path \"D:\\\\Project\\\\Eprohori\\\\mobile-app\" -Force)"
+      "PowerShell(New-Item -ItemType Directory -Path \"D:\\\\Project\\\\Eprohori\\\\mobile-app\" -Force)",
+      "WebFetch(domain:github.com)",
+      "Bash(git fetch *)"
     ]
   }
 }

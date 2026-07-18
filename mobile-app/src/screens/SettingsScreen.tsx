@@ -14,10 +14,7 @@ import { useThemeColors, DarkColors, type ThemeColors, Shadows } from '@theme';
 
 let Colors: ThemeColors = DarkColors;
 let styles: ReturnType<typeof makeStyles>;
-import { exportBackup, importBackup } from '../services/backupService';
 import { performContactSync } from '../services/contactSyncService';
-import { fetchLatestPatterns, getLocalPatterns } from '../services/patternUpdateService';
-import { getCrashLogs, formatCrashLogForSharing } from '../services/crashLog';
 import {
   isChatGuardAvailable, isChatGuardPermitted, openChatGuardSettings,
 } from '../services/notifGuardService';
@@ -153,31 +150,11 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
   ];
   const autoDeleteLabel = AUTO_DELETE_OPTIONS.find((o) => o.value === autoDeleteDays)?.label ?? `${autoDeleteDays}`;
 
-  const handleShareCrashLog = async () => {
-    const logs = await getCrashLogs();
-    if (logs.length === 0) { Alert.alert('', 'কোনো ক্র্যাশ লগ নেই — অ্যাপ ঠিকভাবে চলছে।'); return; }
-    try { await Share.share({ message: formatCrashLogForSharing(logs) }); } catch {}
-  };
-
   const handleExport = async () => {
     if (entries.length === 0) { Alert.alert('', t('settings_export_empty')); return; }
     setExporting(true);
     try { const ok = await exportHistoryCSV(entries, language); if (ok) Alert.alert('', t('settings_export_ok')); }
     catch { Alert.alert('', t('community_error')); } finally { setExporting(false); }
-  };
-
-  const handleBackupExport = async () => {
-    setBackupBusy(true);
-    try { const ok = await exportBackup(); if (!ok) Alert.alert('', 'ব্যাকআপ ব্যর্থ হয়েছে'); } finally { setBackupBusy(false); }
-  };
-
-  const handleBackupImport = async () => {
-    setBackupBusy(true);
-    try {
-      const { imported, error } = await importBackup();
-      if (error) Alert.alert('ত্রুটি', error);
-      else Alert.alert('সফল', `${imported} টি নতুন এন্ট্রি আমদানি করা হয়েছে`);
-    } finally { setBackupBusy(false); }
   };
 
   const handleChatGuardToggle = async (v: boolean) => {
@@ -341,7 +318,6 @@ const SettingsScreen = ({ navigation }: SettingsScreenProps) => {
             <NavRow icon="account-heart-outline" label={t('settings_trusted_numbers')} description={trustedNumbers.length.toString()} color={Colors.safe} onPress={() => navigation.navigate('TrustedContacts')} />
             <View style={styles.divider} />
             <SettingRow icon="content-paste" label={t('settings_clipboard_guard')} description={clipboardGuardEnabled ? 'সক্রিয়' : 'বন্ধ'} right={<Switch value={clipboardGuardEnabled} onValueChange={hv(setClipboardGuardEnabled)} trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.accent }} thumbColor={Colors.white} />} />
-            <View style={styles.divider} />
           </View>
 
           {/* ── Advanced ── */}
